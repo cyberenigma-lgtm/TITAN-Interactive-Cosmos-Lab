@@ -1,8 +1,8 @@
 /**
  * ============================================================================
  * APOCALYPSE ENGINE — SIMULADOR COSMOLÓGICO Y MOTOR DE DEFENSA PLANETARIA 3D
- * Autor y Creador Original: José Manuel Moreno Cano
- * Copyright (c) 2026 José Manuel Moreno Cano. Todos los derechos reservados.
+ * Autor y Creador Original: José Manuel
+ * Copyright (c) 2026 José Manuel. Todos los derechos reservados.
  * ============================================================================
  */
 
