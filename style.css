@@ -196,6 +196,7 @@ nav a:hover, nav a.active {
 /* Beautiful modern range sliders */
 input[type=range] {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     background: transparent;
     margin: 10px 0;
