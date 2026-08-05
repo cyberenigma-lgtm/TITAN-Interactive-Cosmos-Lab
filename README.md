@@ -1,9 +1,9 @@
 # 🌌 APOCALYPSE ENGINE
 ### Simulador Cosmológico y Motor de Defensa Planetaria 3D / 3D Cosmological Simulator & Planetary Defense Engine
 
-> **Autor y Creador Original:** José Manuel Moreno Cano  
+> **Autor y Creador Original:** José Manuel  
 > **Alias:** cyberenigma-lgtm  
-> **Copyright © 2026 José Manuel Moreno Cano. Todos los derechos reservados.**  
+> **Copyright © 2026 José Manuel. Todos los derechos reservados.**  
 > **Licencia / License:** Propiedad Intelectual Privada (Uso Prohibido Sin Autorización) / Private Intellectual Property (Usage Prohibited Without Authorization)
 
 ---
@@ -104,7 +104,7 @@ It allows you to explore the Solar System, the Milky Way, supermassive black hol
 ## 🛡️ [ES] Derechos de Autor y Propiedad Intelectual
 
 > **⚠️ ADVERTENCIA LEGAL:**  
-> Este proyecto es **propiedad intelectual exclusiva** de **José Manuel Moreno Cano**.
+> Este proyecto es **propiedad intelectual exclusiva** de **José Manuel**.
 
 **Queda PROHIBIDO:**
 - Copiar o reproducir el código, total o parcialmente.
@@ -121,7 +121,7 @@ Todos los archivos contienen **marcas de agua digitales** de autoría. Las infra
 ## 🛡️ [EN] Copyright and Intellectual Property
 
 > **⚠️ LEGAL WARNING:**  
-> This project is the **exclusive intellectual property** of **José Manuel Moreno Cano**.
+> This project is the **exclusive intellectual property** of **José Manuel**.
 
 **It is strictly PROHIBITED to:**
 - Copy or reproduce the code, in whole or in part.
@@ -164,4 +164,4 @@ http://localhost:8080
 
 ---
 
-*Creado con precisión científica y visión cosmológica por / Created with scientific precision and cosmological vision by **José Manuel Moreno Cano** — 2026*
+*Creado con precisión científica y visión cosmológica por / Created with scientific precision and cosmological vision by **José Manuel** — 2026*
