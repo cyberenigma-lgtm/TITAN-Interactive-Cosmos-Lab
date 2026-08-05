@@ -1,0 +1,69 @@
+# ============================================================================
+# APOCALYPSE ENGINE — .gitignore
+# Autor: José Manuel Moreno Cano | Copyright (c) 2026
+# ============================================================================
+# Este archivo garantiza que el núcleo DVTRGAS y módulos propietarios
+# NUNCA se suban al repositorio público.
+# ============================================================================
+
+# === NÚCLEO DVTRGAS PRIVADO (NUNCA PUBLICAR) ===
+/core/
+/core/**
+
+# === DATOS PRIVADOS Y BASES DE DATOS ===
+*.db
+*.sqlite
+*.pkl
+*.bin
+/private/
+/secret/
+/internal/
+
+# === ARCHIVOS DE PYTHON COMPILADOS ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+
+# === ENTORNOS VIRTUALES ===
+venv/
+env/
+.venv/
+.env/
+
+# === VARIABLES DE ENTORNO Y CLAVES API ===
+.env
+.env.local
+*.key
+*.pem
+config.json
+secrets.json
+
+# === LOGS Y TEMPORALES ===
+*.log
+logs/
+tmp/
+temp/
+
+# === DATOS ASTRONÓMICOS MASIVOS (demasiado grandes para GitHub) ===
+public/data/*.bin
+public/data/hipparcos.json
+public/data/galaxy_1m.json
+
+# === ARCHIVOS DE SISTEMA ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === IDEs ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === NODE (si se usa) ===
+node_modules/
+dist/
+build/
