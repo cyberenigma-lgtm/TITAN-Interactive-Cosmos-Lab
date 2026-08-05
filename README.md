@@ -8,6 +8,22 @@
 
 ---
 
+## 📸 Capturas del Laboratorio en Funcionamiento
+
+```carousel
+![Vista General del Sistema](./public/screenshots/system_overview.png)
+<!-- slide -->
+![Radar de Bólidos NEO](./public/screenshots/neo_radar.png)
+<!-- slide -->
+![Tierra y Luna con Telemetría](./public/screenshots/earth_moon.png)
+<!-- slide -->
+![Horizonte de Sucesos Sgr A*](./public/screenshots/blackhole.png)
+<!-- slide -->
+![Júpiter y sus Satélites](./public/screenshots/jupiter.png)
+```
+
+---
+
 ## 🔭 ¿Qué es el Apocalypse Engine?
 
 **Apocalypse Engine** es un simulador cosmológico interactivo en tiempo real construido sobre **WebGL + Three.js**, que integra datos astronómicos reales, motores de físicas orbitales y un sistema de defensa planetaria basado en la misión NASA/DART.
