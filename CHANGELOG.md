@@ -1,6 +1,6 @@
 # CHANGELOG — APOCALYPSE ENGINE
-> Autor y Creador Original: José Manuel Moreno Cano  
-> Copyright © 2026 José Manuel Moreno Cano. Todos los derechos reservados.
+> Autor y Creador Original: José Manuel  
+> Copyright © 2026 José Manuel. Todos los derechos reservados.
 
 ---
 
@@ -116,4 +116,4 @@
 
 ---
 
-*Todos los derechos reservados — José Manuel Moreno Cano — 2026*
+*Todos los derechos reservados — José Manuel — 2026*

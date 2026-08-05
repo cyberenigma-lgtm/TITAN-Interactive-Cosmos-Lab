@@ -1,8 +1,8 @@
 """
 ============================================================================
 APOCALYPSE ENGINE — EXTRACTOR DE NUBE DE PUNTOS 3D DESDE FOTOS DE NEBULOSAS
-Autor y Creador Original: José Manuel Moreno Cano
-Copyright (c) 2026 José Manuel Moreno Cano. Todos los derechos reservados.
+Autor y Creador Original: José Manuel
+Copyright (c) 2026 José Manuel. Todos los derechos reservados.
 Licencia: CC BY-NC-ND 4.0 | Uso prohibido sin autorización expresa.
 ============================================================================
 Convierte una foto real de nebulosa (NASA/Hubble/JWST) en datos 3D para el Apocalypse Engine.

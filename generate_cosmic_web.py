@@ -1,8 +1,8 @@
 """
 ============================================================================
 APOCALYPSE ENGINE — GENERADOR DE RED CÓSMICA (FILAMENTOS GALÁCTICOS 3D)
-Autor y Creador Original: José Manuel Moreno Cano
-Copyright (c) 2026 José Manuel Moreno Cano. Todos los derechos reservados.
+Autor y Creador Original: José Manuel
+Copyright (c) 2026 José Manuel. Todos los derechos reservados.
 Licencia: CC BY-NC-ND 4.0 | Uso prohibido sin autorización expresa.
 ============================================================================
 """
