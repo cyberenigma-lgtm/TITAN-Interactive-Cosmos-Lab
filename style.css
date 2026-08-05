@@ -1,0 +1,311 @@
+/*
+ * ============================================================================
+ * APOCALYPSE ENGINE — SISTEMA DE ESTILOS Y DISEÑO VISUAL (GLASSMORPHISM UI)
+ * Autor y Creador Original: José Manuel Moreno Cano
+ * Copyright (c) 2026 José Manuel Moreno Cano. Todos los derechos reservados.
+ * Licencia: CC BY-NC-ND 4.0 | Uso prohibido sin autorización expresa.
+ * ============================================================================
+ */
+
+:root {
+    --bg-color: #000000;
+    --text-color: #e0e6ed;
+    --accent-color: #00f0ff;
+    --accent-glow: rgba(0, 240, 255, 0.5);
+    --secondary-color: #f72585;
+    --secondary-glow: rgba(247, 37, 133, 0.5);
+    --glass-bg: rgba(5, 8, 16, 0.65);
+    --glass-border: rgba(0, 240, 255, 0.2);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+#webgl-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* PREMIUM GLASSMORPHISM */
+.glass-header, .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+}
+
+.glass-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem 3%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 4px 30px rgba(0, 240, 255, 0.1);
+}
+
+header h1 {
+    font-weight: 800;
+    color: #ffffff;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+nav a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.03);
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+nav a:hover, nav a.active {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    background: rgba(0, 240, 255, 0.1);
+    box-shadow: 0 0 15px var(--accent-glow);
+    transform: translateY(-2px);
+}
+
+.hud {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.glass-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    pointer-events: auto;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Subtle inner glow */
+    box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.05), var(--glass-shadow);
+}
+
+.glass-card:hover {
+    border-color: rgba(0, 240, 255, 0.4);
+    box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.1), 0 0 30px rgba(0, 240, 255, 0.15);
+}
+
+.glass-card.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px) scale(0.95);
+}
+
+#info-panel {
+    width: 350px !important;
+    max-width: calc(100vw - 4rem) !important;
+    max-height: 75vh !important;
+    overflow-y: auto !important;
+}
+
+#target-image {
+    max-height: 150px !important;
+    object-fit: cover !important;
+}
+
+#target-name {
+    color: var(--accent-color);
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 8px var(--accent-glow);
+}
+
+#target-desc {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+    color: #718096;
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.stats span {
+    color: #ffffff;
+    font-weight: 600;
+    float: right;
+    text-shadow: 0 0 5px rgba(255,255,255,0.3);
+}
+
+/* Beautiful modern range sliders */
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+    margin: 10px 0;
+}
+input[type=range]:focus {
+    outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    transition: background 0.3s;
+}
+input[type=range]:hover::-webkit-slider-runnable-track {
+    background: rgba(0, 240, 255, 0.4);
+}
+input[type=range]::-webkit-slider-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -6px;
+    box-shadow: 0 0 10px var(--accent-glow);
+    transition: transform 0.2s, background 0.2s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+    background: #ffffff;
+}
+
+/* Modern Checkboxes */
+input[type="checkbox"] {
+    appearance: none;
+    background-color: rgba(255,255,255,0.1);
+    margin: 0;
+    font: inherit;
+    color: currentColor;
+    width: 1.15em;
+    height: 1.15em;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 0.15em;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+input[type="checkbox"]::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em var(--accent-color);
+    background-color: var(--accent-color);
+    transform-origin: center;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type="checkbox"]:checked {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+.planet-label {
+    position: absolute;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    pointer-events: auto;
+    cursor: pointer;
+    transform: translate(-50%, -150%);
+    text-shadow: 0 0 4px #000, 0 0 8px rgba(0,0,0,0.8);
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.planet-label:hover {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    transform: translate(-50%, -150%) scale(1.15);
+    background: rgba(0,0,0,0.7);
+    box-shadow: 0 0 10px var(--accent-glow);
+    z-index: 1000;
+}
+
+/* Button overrides for Landing / Action */
+button {
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.3s ease;
+}
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,255,0,0.3) !important;
+}
+#btn-takeoff:hover {
+    box-shadow: 0 5px 15px rgba(255,0,0,0.3) !important;
+}
+#btn-live:hover {
+    background: red !important;
+    box-shadow: 0 0 15px red;
+}
