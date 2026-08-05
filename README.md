@@ -8,19 +8,40 @@
 
 ---
 
-## 📸 Capturas del Laboratorio en Funcionamiento
+## 📸 Galería del Laboratorio en Funcionamiento
 
-```carousel
-![Vista General del Sistema](./public/screenshots/system_overview.png)
-<!-- slide -->
-![Radar de Bólidos NEO](./public/screenshots/neo_radar.png)
-<!-- slide -->
-![Tierra y Luna con Telemetría](./public/screenshots/earth_moon.png)
-<!-- slide -->
-![Horizonte de Sucesos Sgr A*](./public/screenshots/blackhole.png)
-<!-- slide -->
-![Júpiter y sus Satélites](./public/screenshots/jupiter.png)
-```
+<p align="center">
+  <img src="./public/screenshots/system_overview.png" width="85%" alt="Vista General del Sistema" />
+  <br><em>Vista General de la simulación con órbitas Keplerianas y la consola Titan en vivo</em>
+</p>
+
+<hr>
+
+<p align="center">
+  <img src="./public/screenshots/earth_moon.png" width="85%" alt="Tierra y Luna con Telemetría" />
+  <br><em>Tierra y Luna con telemetría dinámica de distancia a la cámara y vectorización métrica</em>
+</p>
+
+<hr>
+
+<p align="center">
+  <img src="./public/screenshots/neo_radar.png" width="85%" alt="Radar de Bólidos NEO" />
+  <br><em>Radar en tiempo real y panel de defensa cinemática contra anomalías NEO (Misión DART)</em>
+</p>
+
+<hr>
+
+<p align="center">
+  <img src="./public/screenshots/blackhole.png" width="85%" alt="Horizonte de Sucesos Sgr A*" />
+  <br><em>Simulación relativista del agujero negro supermasivo Sagitario A*</em>
+</p>
+
+<hr>
+
+<p align="center">
+  <img src="./public/screenshots/jupiter.png" width="85%" alt="Júpiter y sus Satélites" />
+  <br><em>Visualización orbital del gigante gaseoso Júpiter y sus satélites galileanos</em>
+</p>
 
 ---
 
