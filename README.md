@@ -1,7 +1,7 @@
-# 🌌 APOCALYPSE ENGINE
-> **Author & Creator:** José Manuel (`cyberenigma-lgtm`)  
-> **Copyright © 2026 José Manuel. All Rights Reserved.**  
-> **License:** Private Intellectual Property (Usage Prohibited Without Express Authorization)
+# 🌌 APOCALYPSE ENGINE / TITAN-LAB
+> **Author & Creator / Autor:** José Manuel (`cyberenigma-lgtm`)  
+> **Copyright © 2026 José Manuel. All Rights Reserved / Todos los Derechos Reservados.**  
+> **License:** Private Intellectual Property (Open Educational & Institutional Access)
 
 ---
 
@@ -39,147 +39,126 @@
   <br><em>Relativistic simulation of the supermassive black hole Sagittarius A* / Simulación relativista del agujero negro supermasivo Sagitario A*.</em>
 </p>
 
-<hr>
-
-<p align="center">
-  <img src="./public/screenshots/jupiter.png" width="85%" alt="Jupiter System" />
-  <br><em>Orbital visualization of the gas giant Jupiter and Galilean moons / Visualización orbital del gigante gaseoso Júpiter y sus satélites galileanos.</em>
-</p>
-
 ---
 
 ## 🇪🇸 Español
 
-### 🔭 ¿Qué es el Apocalypse Engine?
-**Apocalypse Engine** es un simulador cosmológico interactivo en tiempo real construido sobre **WebGL + Three.js**, que integra datos astronómicos reales, motores de físicas orbitales y un sistema de defensa planetaria basado en la misión NASA/DART.
+### 🔭 1. Objetivo e Impacto del Proyecto
+**Apocalypse Engine (TITAN-LAB)** es una plataforma interactiva 3D de investigación cosmológica, divulgación científica y simulación de defensa planetaria en tiempo real construida sobre **WebGL + Three.js**.
 
-Permite explorar el Sistema Solar, la Vía Láctea, agujeros negros supermasivos y miles de millones de años de historia cósmica, todo directamente desde el navegador web.
+- **Objetivo Científico y Cultural:** Democratizar el acceso a simulaciones astronómicas complejas (órbitas keplerianas, topologías métricas relativistas y asteroides en tránsito NEO) mediante tecnología web accesible sin necesidad de supercomputación.
+- **Divulgación Educativa:** Utilizado como laboratorio virtual para institutos, universidades y entusiastas de la astrofísica para experimentar con la misión NASA/DART, lentes gravitacionales y viajes temporales cosmogónicos.
 
-### 🧩 Arquitectura del Sistema
-```
-/ApocalypseEngine
-  /public
-    index.html        ← Interfaz principal del laboratorio
-    space_engine.js   ← Motor de renderizado 3D y físicas (226KB)
-    style.css         ← Sistema de diseño visual glassmorphism / cyberpunk
-    /textures         ← Mapas de textura planetaria (NASA)
-    /data             ← Catálogos astronómicos reales (Hipparcos, Nebulosas)
-  /core               ← Núcleo backend DVTRGAS [PROPIETARIO - No publicado]
-  server.py           ← Servidor API de datos astronómicos
-  fetch_nebulae.py    ← Generador de catálogo de nebulosas 3D
-  generate_cosmic_web.py ← Generador de filamentos galácticos
-  reconstruct_galaxy.py  ← Reconstructor galáctico volumétrico
-  nebula_photo_to_3d.py  ← Extractor de nubes 3D desde fotos NASA/Hubble/JWST
-  LICENSE             ← Licencia legal de uso restringido
-  CHANGELOG.md        ← Historial de versiones y commits
-```
+---
 
-### ⚙️ Características Principales
-| Módulo | Descripción |
+### 🏛️ 2. Marco Institucional y Subvenciones
+El proyecto **TITAN-LAB** está diseñado bajo los marcos de innovación tecnológica, divulgación científica y desarrollo cultural (financiación Horizon Europe, Creative Europe y convocatorias públicas de I+D+i).
+
+#### 🗺️ Roadmap de Desarrollo (6 - 12 Meses)
+- **Meses 1-3:** Integración de espectrometría 3D para exoplanetas del catálogo NASA Exoplanet Archive.
+- **Meses 4-6:** Implementación del Cúmulo Galáctico del Grupo Local (Andrómeda M31 y Triángulo M33).
+- **Meses 7-9:** Shaders volumétricos de auroras polares y tormentas atmosféricas planetarias.
+- **Meses 10-12:** Módulo WebXR para inmersión con gafas de realidad virtual en el laboratorio.
+
+#### 📊 Presupuesto Estimado y Destino de Fondos
+| Partida / Categoría | Uso Estimado de Fondos / Subvención |
 |:---|:---|
-| 🪐 **Sistema Solar Dinámico** | Planetas texturizados con sus lunas reales en órbita kepleriana |
-| ☄️ **Radar de Bólidos NEO** | Modelos 3D científicos de Apofis, 'Oumuamua, Ryugu, Eros, Halley, etc. |
-| 🛡️ **Misión DART** | Interceptor cinético 3D, pluma de escombros Dimorphos y desvío orbital |
-| 🕳️ **Agujeros Negros** | Sagitario A*, M87*, TON 618 con disco de acreción y anillo de fotones |
-| 🌌 **Stellarium Mode** | Catálogo Hipparcos real + Galaxia Volumétrica 1M estrellas + ZOA |
-| ⏱️ **Cronógrafo Cósmico** | Viaje temporal bidireccional desde el Big Bang hasta el año 7000 d.C. |
-| 🔬 **Laboratorio DVTRGAS** | Motor de topología espacial con métricas $L_2$ y $L_\infty$ en tiempo real |
-| 🚀 **Hyper-Warp** | Viaje entre objetivos a velocidad lumínica con interpolación Hermite |
-| 🛰️ **Chase Cam 3D** | Cámara perseguidora que sigue bólidos en tránsito orbital activo |
+| 💻 **Infraestructura Serverless** | Servidores de renderizado GPU y alojamiento de catálogos masivos NASA/Hipparcos |
+| 🔬 **Investigación & Desarrollo** | Modelado matemático de nuevas métricas relativistas y física N-cuerpos |
+| 🎓 **Difusión Cultural & Educativa** | Creación de unidades didácticas interactivas libres para escuelas y centros de investigación |
 
-### 🛡️ Derechos de Autor y Propiedad Intelectual
-> **⚠️ ADVERTENCIA LEGAL:**  
-> Este proyecto es **propiedad intelectual exclusiva** de **José Manuel**.
+#### 📣 Plan de Difusión
+- Publicación de artículos de divulgación en portales astrofísicos y repositorios académicos.
+- Seminarios web y demostraciones interactivas abiertas en universidades y observatorios.
+- Plataforma pública online indexada para libre exploración interactiva.
 
-**Queda PROHIBIDO:**
-- Copiar o reproducir el código, total o parcialmente.
-- Redistribuir en cualquier forma o medio.
-- Modificar o crear obras derivadas.
-- Usar con fines comerciales o lucrativos.
-- Integrar en otros motores o frameworks.
-- Reclamar autoría o propiedad sobre el código.
+---
 
-Todos los archivos contienen **marcas de agua digitales** de autoría. Las infracciones serán perseguidas bajo la legislación española de propiedad intelectual y el **Convenio de Berna**. Consulta el archivo [LICENSE](./LICENSE) para los términos completos.
+### 🤝 3. Guía de Contribución y Comunidad
+¡Agradecemos propuestas, ideas y aportaciones de la comunidad científica y de desarrollo!
 
-### 🚀 Ejecución Local
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab.git
+- **Código de Conducta:** Mantenemos un entorno colaborativo basado en el respeto, el rigor científico y la excelencia técnica.
+- **Cómo Contribuir:**
+  1. Abre un *Issue* describiendo la propuesta, error o mejora matemática/visual.
+  2. Haz un *Fork* del repositorio y envía un *Pull Request (PR)* documentando los cambios.
+- **Roles Abiertos:** Desarrolladores WebGL/Three.js, Físicos/Astrónomos (revisión de órbitas), Diseñadores UI/UX y Educadores.
 
-# 2. Iniciar el servidor de datos
-python server.py
+---
 
-# 3. Abrir en el navegador
-http://localhost:8080
-```
+### 🎓 4. Uso Académico e Institucional
+**TITAN-LAB** ofrece licencias de uso sin coste para universidades, observatorios astronómicos y centros educativos.
+
+- **Uso Docente:** Libre para demostraciones en aulas, proyectos fin de grado (TFG/TFM) y divulgación.
+- **Colaboración Universitaria:** Para acuerdos de investigación o integración de datos personalizados, contactar a través del repositorio con el autor.
+
+---
+
+### 🛡️ 5. Derechos de Autor y Propiedad Intelectual
+> **⚠️ ADVERTENCIA LEGAL:** Este proyecto es **propiedad intelectual exclusiva** de **José Manuel**.
+
+- Queda prohibida la copia comercial no autorizada o la redistribución sin atribución.
+- Consulta el archivo [LICENSE](./LICENSE) para el marco legal completo.
 
 ---
 
 ## 🇬🇧 English
 
-### 🔭 What is the Apocalypse Engine?
-**Apocalypse Engine** is an interactive real-time cosmological simulator built on **WebGL + Three.js**, integrating real astronomical data, orbital physics engines, and a planetary defense system based on the NASA/DART mission.
+### 🔭 1. Project Goal & Impact
+**Apocalypse Engine (TITAN-LAB)** is an open interactive 3D platform for cosmological research, scientific outreach, and real-time planetary defense simulation built on **WebGL + Three.js**.
 
-It allows you to explore the Solar System, the Milky Way, supermassive black holes, and billions of years of cosmic history, all straight from your web browser.
-
-### 🧩 System Architecture
-```
-/ApocalypseEngine
-  /public
-    index.html        ← Main laboratory interface
-    space_engine.js   ← 3D Rendering & physics engine (226KB)
-    style.css         ← Glassmorphism & cyberpunk UI styling
-    /textures         ← NASA planetary textures
-    /data             ← Real astronomical catalogs (Hipparcos, Nebulae)
-  /core               ← DVTRGAS backend core [PROPRIETARY - Not Published]
-  server.py           ← Astronomical data API server
-  fetch_nebulae.py    ← 3D Nebulae catalog generator
-  generate_cosmic_web.py ← Cosmic web filament generator
-  reconstruct_galaxy.py  ← Volumetric galaxy reconstructor
-  nebula_photo_to_3d.py  ← 3D point cloud extractor from NASA/Hubble/JWST photos
-  LICENSE             ← Restricted legal license
-  CHANGELOG.md        ← Version history
-```
-
-### ⚙️ Key Features
-| Module | Description |
-|:---|:---|
-| 🪐 **Dynamic Solar System** | Textured planets with real moons in Keplerian orbits |
-| ☄️ **NEO Asteroid Radar** | Scientific 3D models of Apophis, 'Oumuamua, Ryugu, Eros, Halley, etc. |
-| 🛡️ **DART Mission** | 3D kinetic interceptor, Dimorphos debris plume, and orbital deflection |
-| 🕳️ **Relativistic Black Holes** | Sagittarius A*, M87*, TON 618 with accretion disk and photon ring |
-| 🌌 **Stellarium Mode** | Real Hipparcos catalog + 1M Star Volumetric Galaxy + ZOA |
-| ⏱️ **Cosmic Chronograph** | Bidirectional time travel from the Big Bang to the year 7000 AD |
-| 🔬 **DVTRGAS Lab** | Spatial topology engine with real-time $L_2$ and $L_\infty$ metrics |
-| 🚀 **Hyper-Warp** | Point-to-point light-speed travel with Hermite interpolation |
-| 🛰️ **Chase Cam 3D** | Dynamic chase camera tracking bolides in active orbital transit |
-
-### 🛡️ Copyright and Intellectual Property
-> **⚠️ LEGAL NOTICE:**  
-> This project is the **exclusive intellectual property** of **José Manuel**.
-
-**It is strictly PROHIBITED to:**
-- Copy or reproduce the code, in whole or in part.
-- Redistribute in any form or medium.
-- Modify, transform, or create derivative works.
-- Use for commercial or lucrative purposes.
-- Integrate into other engines or frameworks.
-- Claim authorship or ownership of the code.
-
-All files contain **digital watermarks** for authorship tracking. Violations will be prosecuted under Spanish Intellectual Property Law and the **Berne Convention**. See the [LICENSE](./LICENSE) file for full terms.
-
-### 🚀 Local Setup
-```bash
-# 1. Clone the repository
-git clone https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab.git
-
-# 2. Start the data server
-python server.py
-
-# 3. Open in browser
-http://localhost:8080
-```
+- **Scientific & Cultural Objective:** Democratizing access to complex astronomical simulations (Keplerian orbits, relativistic metric topologies, and NEO transit asteroids) via web browsers without requiring supercomputing hardware.
+- **Educational Outreach:** Designed as a virtual laboratory for schools, universities, and astrophysics enthusiasts to experiment with NASA/DART missions, gravitational lensing, and cosmogonic time travel.
 
 ---
 
-*Created with scientific precision and cosmological vision by **José Manuel** — 2026*
+### 🏛️ 2. Institutional Framework & Grants Alignment
+**TITAN-LAB** is aligned with European and International research, innovation, and cultural funding programs (e.g., Horizon Europe, Creative Europe, and public R&D initiatives).
+
+#### 🗺️ Project Roadmap (6 - 12 Months)
+- **Months 1-3:** 3D spectrometry integration for NASA Exoplanet Archive catalog.
+- **Months 4-6:** Reconstruction of Local Galactic Group (Andromeda M31 & Triangulum M33).
+- **Months 7-9:** Volumetric shaders for polar auroras and planetary atmospheric storms.
+- **Months 10-12:** WebXR module for immersive virtual reality laboratory experiences.
+
+#### 📊 Grant Allocation & Budget Justification
+| Category | Proposed Funding Allocation |
+|:---|:---|
+| 💻 **Serverless Infrastructure** | Dedicated GPU rendering servers and storage for massive NASA/Hipparcos datasets |
+| 🔬 **Research & Development** | Mathematical modeling of new relativistic metrics and N-body physics |
+| 🎓 **Educational Outreach** | Open interactive teaching modules for schools and research centers |
+
+#### 📣 Dissemination Plan
+- Publication of outreach articles in astrophysics portals and academic repositories.
+- Interactive webinars and live demonstrations at universities and observatories.
+- Public web portal indexed for free interactive exploration worldwide.
+
+---
+
+### 🤝 3. Contributing & Community Guidelines
+We welcome proposals, scientific feedback, and code contributions from astronomers, physicists, and software developers!
+
+- **Code of Conduct:** We foster a respectful, scientifically rigorous, and inclusive environment.
+- **How to Contribute:**
+  1. Open an *Issue* detailing your feature request, bug report, or mathematical proposal.
+  2. *Fork* the repo and submit a clean *Pull Request (PR)*.
+- **Open Roles:** WebGL/Three.js Engineers, Physicists/Astronomers, UI/UX Designers, Science Communicators.
+
+---
+
+### 🎓 4. Academic & Institutional Framework
+**TITAN-LAB** offers free institutional usage agreements for universities, observatories, and educational institutes.
+
+- **Educational Use:** Permitted for classroom demonstrations, thesis projects, and outreach.
+- **Academic Collaboration:** For research partnerships or custom data integration, contact the author through the repository.
+
+---
+
+### 🛡️ 5. Copyright & Intellectual Property
+> **⚠️ LEGAL NOTICE:** This project is the **exclusive intellectual property** of **José Manuel**.
+
+- Unauthorized commercial exploitation or redistribution without attribution is strictly prohibited.
+- See the [LICENSE](./LICENSE) file for complete legal terms.
+
+---
+
+*Created with scientific precision and cosmological vision by / Creado por **José Manuel** — 2026*
