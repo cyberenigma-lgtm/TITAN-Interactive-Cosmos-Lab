@@ -6,6 +6,361 @@
  * ============================================================================
  */
 
+// ============================================================================
+// 🔬 BASE DE DATOS CIENTÍFICA — CATÁLOGO DE OBJETOS CELESTES
+// Datos basados en: NASA, ESA, SIMBAD, Hipparcos, IAU
+// ============================================================================
+const COSMIC_DB = {
+    // ===================== SISTEMA SOLAR =====================
+    "Sol": {
+        type: "ESTRELLA — TIPO G2V (Enana Amarilla)", category: "star",
+        mass: "1.989 × 10³⁰ kg (1 M☉)", radius: "696.340 km (1 R☉)",
+        temp: "5.778 K (superficie)", dist: "0 ly (origen)",
+        mag: "-26.74 (visual)", spectral: "G2V",
+        desc: "Nuestra estrella. Tiene 4.600 millones de años y se encuentra en la mitad de su vida. Está en el brazo de Orión de la Vía Láctea, a 26.000 años luz del centro galáctico.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Above_Gotham.jpg/320px-Above_Gotham.jpg",
+        nasaImg: "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_256_HMIIC.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Sol",
+        nasa: "https://solarsystem.nasa.gov/solar-system/sun/overview/",
+        era: "Formado hace 4.600 millones de años — Presente"
+    },
+    "Mercurio": {
+        type: "PLANETA ROCOSO — ORDEN 1", category: "planet",
+        mass: "3.301 × 10²³ kg (0.055 M⊕)", radius: "2.439,7 km",
+        temp: "430°C (día) / -180°C (noche)", dist: "0.39 UA del Sol",
+        mag: "-2.6 (máx)", spectral: "Planeta rocoso",
+        desc: "El planeta más pequeño y más cercano al Sol. Sin atmósfera, con cráteres masivos. Su día dura 59 días terrestres. Explorado por la sonda MESSENGER (2004-2015) y BepiColombo (en camino).",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Mercury_in_true_color.jpg/280px-Mercury_in_true_color.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Mercurio_(planeta)",
+        nasa: "https://solarsystem.nasa.gov/planets/mercury/overview/",
+        era: "Formado hace 4.500 millones de años"
+    },
+    "Venus": {
+        type: "PLANETA ROCOSO — ORDEN 2", category: "planet",
+        mass: "4.867 × 10²⁴ kg (0.815 M⊕)", radius: "6.051,8 km",
+        temp: "465°C (superficie)", dist: "0.72 UA del Sol",
+        mag: "-4.9 (máx)", spectral: "Planeta rocoso",
+        desc: "El planeta más caliente del Sistema Solar. Su atmósfera de CO₂ crea un efecto invernadero extremo. Gira al revés respecto a la mayoría de planetas. Explorado por las sondas Venera soviéticas y Magellan de NASA.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Venus-real_color.jpg/280px-Venus-real_color.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Venus_(planeta)",
+        nasa: "https://solarsystem.nasa.gov/planets/venus/overview/",
+        era: "Formado hace 4.500 millones de años"
+    },
+    "Tierra": {
+        type: "PLANETA ROCOSO — ORDEN 3 (HOGAR)", category: "planet",
+        mass: "5.972 × 10²⁴ kg (1 M⊕)", radius: "6.371 km",
+        temp: "15°C (media superficie)", dist: "1 UA del Sol = 149.6 M km",
+        mag: "-3.9 (desde el espacio)", spectral: "Planeta de Tipo Tierra",
+        desc: "El único planeta conocido con vida. Tiene tectónica de placas activa, océanos líquidos, una luna grande que estabiliza su eje y un campo magnético que protege la vida de la radiación solar.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/280px-The_Earth_seen_from_Apollo_17.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Tierra",
+        nasa: "https://solarsystem.nasa.gov/planets/earth/overview/",
+        era: "Formada hace 4.540 millones de años"
+    },
+    "La Luna": {
+        type: "SATÉLITE NATURAL — TIERRA", category: "moon",
+        mass: "7.342 × 10²² kg (0.012 M⊕)", radius: "1.737,4 km",
+        temp: "127°C (día) / -173°C (noche)", dist: "384.400 km de la Tierra",
+        mag: "-12.7 (luna llena)", spectral: "Satélite rocoso",
+        desc: "Único cuerpo extraterrestre pisado por humanos (Apolo 11, 1969). Estabiliza el eje de la Tierra. Se está alejando 3.8 cm/año. Origen: impacto gigante (Theia) hace 4.500 Ma.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/280px-FullMoon2010.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Luna",
+        nasa: "https://solarsystem.nasa.gov/moons/earths-moon/overview/",
+        era: "Formada hace 4.500 millones de años"
+    },
+    "Marte": {
+        type: "PLANETA ROCOSO — ORDEN 4 (PLANETA ROJO)", category: "planet",
+        mass: "6.417 × 10²³ kg (0.107 M⊕)", radius: "3.389,5 km",
+        temp: "-63°C (media)", dist: "1.52 UA del Sol",
+        mag: "-2.91 (máx)", spectral: "Planeta rocoso",
+        desc: "El planeta más explorado tras la Tierra. Tiene el monte más alto del Sistema Solar (Olympus Mons, 21.9 km) y el cañón más largo (Valles Marineris). Rovers actuales: Perseverance y Curiosity.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/OSIRIS_Mars_true_color.jpg/280px-OSIRIS_Mars_true_color.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Marte_(planeta)",
+        nasa: "https://solarsystem.nasa.gov/planets/mars/overview/",
+        era: "Formado hace 4.500 millones de años"
+    },
+    "Júpiter": {
+        type: "GIGANTE GASEOSO — ORDEN 5", category: "planet",
+        mass: "1.898 × 10²⁷ kg (317.8 M⊕)", radius: "71.492 km",
+        temp: "-145°C (cima nubes)", dist: "5.2 UA del Sol",
+        mag: "-2.94 (máx)", spectral: "Gigante gaseoso (H/He)",
+        desc: "El planeta más grande del Sistema Solar. Su Gran Mancha Roja es una tormenta que lleva activa más de 350 años. Protege a la Tierra de asteroides con su enorme gravedad. Explorado por Juno (NASA).",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Jupiter_and_its_shrunken_Great_Red_Spot.jpg/280px-Jupiter_and_its_shrunken_Great_Red_Spot.jpg",
+        wiki: "https://es.wikipedia.org/wiki/J%C3%BApiter_(planeta)",
+        nasa: "https://solarsystem.nasa.gov/planets/jupiter/overview/",
+        era: "Formado hace 4.500 millones de años"
+    },
+    "Saturno": {
+        type: "GIGANTE GASEOSO — ORDEN 6 (SEÑOR DE LOS ANILLOS)", category: "planet",
+        mass: "5.683 × 10²⁶ kg (95.2 M⊕)", radius: "60.268 km",
+        temp: "-178°C (cima nubes)", dist: "9.58 UA del Sol",
+        mag: "0.46 (máx)", spectral: "Gigante gaseoso (H/He)",
+        desc: "Sus anillos están hechos de hielo y roca, con un grosor de solo 10-100 metros pero un diámetro de 282.000 km. Tiene 146 lunas conocidas, incluyendo Titán con atmósfera y lagos de metano.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Saturn_during_Equinox.jpg/280px-Saturn_during_Equinox.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Saturno_(planeta)",
+        nasa: "https://solarsystem.nasa.gov/planets/saturn/overview/",
+        era: "Formado hace 4.500 millones de años"
+    },
+    "Urano": {
+        type: "GIGANTE HELADO — ORDEN 7", category: "planet",
+        mass: "8.681 × 10²⁵ kg (14.5 M⊕)", radius: "25.559 km",
+        temp: "-216°C (mínima)", dist: "19.18 UA del Sol",
+        mag: "5.38 (máx)", spectral: "Gigante helado (H/He/CH₄)",
+        desc: "Gira de lado con una inclinación axial de 97.77°. Su color azul-verde viene del metano en su atmósfera. Tiene anillos y 28 lunas. Es el planeta más frío del Sistema Solar.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Uranus2.jpg/280px-Uranus2.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Urano_(planeta)",
+        nasa: "https://solarsystem.nasa.gov/planets/uranus/overview/",
+        era: "Formado hace 4.500 millones de años"
+    },
+    "Neptuno": {
+        type: "GIGANTE HELADO — ORDEN 8", category: "planet",
+        mass: "1.024 × 10²⁶ kg (17.1 M⊕)", radius: "24.764 km",
+        temp: "-214°C (cima nubes)", dist: "30.07 UA del Sol",
+        mag: "7.78 (máx)", spectral: "Gigante helado (H/He/CH₄)",
+        desc: "Los vientos más rápidos del Sistema Solar: hasta 2.100 km/h. Su luna Tritón orbita al revés (retrógrada) y se cree que fue capturada del Cinturón de Kuiper. Único planeta descubierto por predicción matemática.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg/280px-Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Neptuno_(planeta)",
+        nasa: "https://solarsystem.nasa.gov/planets/neptune/overview/",
+        era: "Formado hace 4.500 millones de años"
+    },
+    // ===================== NEOs / ASTEROIDES =====================
+    "Apophis": {
+        type: "NEO — ASTEROIDE POTENCIALMENTE PELIGROSO (PHA)", category: "neo",
+        mass: "~2.7 × 10¹⁰ kg (estimado)", radius: "~185 m (diám. 370m)",
+        temp: "~240°C (est.)", dist: "Variable — aprox. 0.97 UA en 2029",
+        mag: "19.7", spectral: "Sq (silicato/metal)",
+        desc: "El asteroide más peligroso conocido. Pasará a 37.900 km de la Tierra el 13 de abril de 2029 — dentro de la órbita de los satélites geoestacionarios. Completamente visible a ojo desnudo. Riesgo de impacto 2068.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/99942_Apophis_basic.png/280px-99942_Apophis_basic.png",
+        wiki: "https://es.wikipedia.org/wiki/Apophis",
+        nasa: "https://cneos.jpl.nasa.gov/sentry/details.html#?des=99942",
+        era: "Presente — Encuentro crítico: 13 Abril 2029"
+    },
+    "Bennu": {
+        type: "NEO — ASTEROIDE TIPO B (OBJETIVO OSIRIS-REX)", category: "neo",
+        mass: "7.329 × 10¹⁰ kg", radius: "245 m (diám. ~490m)",
+        temp: "~80°C (est.)", dist: "Variable — aprox. 1.13 UA",
+        mag: "20.6", spectral: "B (carbonáceo primitivo)",
+        desc: "Contiene material orgánico de los primeros días del Sistema Solar. La sonda OSIRIS-REx recogió 250g de muestras en 2020. Probabilidad de impacto en 2182: 0.037%. Misión OSIRIS-APEX llegará en 2029.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Bennu_mosaic_OSIRIS-REx.jpg/280px-Bennu_mosaic_OSIRIS-REx.jpg",
+        wiki: "https://es.wikipedia.org/wiki/101955_Bennu",
+        nasa: "https://www.nasa.gov/mission_pages/osiris-rex/main",
+        era: "Presente — Riesgo 2182"
+    },
+    "'Oumuamua": {
+        type: "OBJETO INTERESTELAR — 1I/2017 U1", category: "neo",
+        mass: "Desconocida", radius: "~50×10m (muy alargado)",
+        temp: "~17°C (al perihelio)", dist: "Más allá de Neptuno (saliendo)",
+        mag: "22.1", spectral: "Indefinido (sin coma, sin cola)",
+        desc: "Primer objeto interestelar confirmado en nuestro Sistema Solar. Aceleró de forma inexplicable sin eyección de gas visible. Origen probable: sistema de Vega. Su forma extremadamente alargada y aceleración anómala siguen sin explicación definitiva.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Artist%27s_impression_of_%60Oumuamua.jpg/280px-Artist%27s_impression_of_%60Oumuamua.jpg",
+        wiki: "https://es.wikipedia.org/wiki/%CA%BBOumuamua",
+        nasa: "https://solarsystem.nasa.gov/asteroids-comets-and-meteors/other/oumuamua/in-depth/",
+        era: "Detectado: Octubre 2017 — Objeto de paso"
+    },
+    // ===================== AGUJEROS NEGROS =====================
+    "Sgr A*": {
+        type: "AGUJERO NEGRO SUPERMASIVO — CENTRO GALÁCTICO", category: "blackhole",
+        mass: "4.1 × 10⁶ M☉ (4,1 millones de masas solares)", radius: "Horizonte: 12.4 M km",
+        temp: "~10¹² K (disco de acreción)", dist: "26.000 años luz",
+        mag: "N/A (invisible en óptico)", spectral: "Radio/X/Gamma",
+        desc: "El agujero negro supermasivo en el centro de la Vía Láctea. Primera imagen directa obtenida por el Event Horizon Telescope en 2022. Las estrellas de la nube S orbitan a su alrededor a miles de km/s. S2 orbita en solo 16 años.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Black_hole_-_Messier_87_crop_max_res.jpg/280px-Black_hole_-_Messier_87_crop_max_res.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Sagitario_A*",
+        nasa: "https://chandra.harvard.edu/photo/2003/0203long/",
+        era: "Formado: ~10.000 millones de años — Presente"
+    },
+    "M87*": {
+        type: "AGUJERO NEGRO SUPERMASIVO — GALAXIA M87", category: "blackhole",
+        mass: "6.5 × 10⁹ M☉ (6.500 millones de masas solares)", radius: "Horizonte: ~19.000 M km",
+        temp: ">10¹² K", dist: "53,5 millones de años luz",
+        mag: "N/A", spectral: "Radio/X/Gamma",
+        desc: "Primer agujero negro fotografiado directamente (Event Horizon Telescope, 10 Abril 2019). Genera un jet relativista de 5.000 años luz de longitud. Es 1.500 veces más masivo que Sgr A*.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Black_hole_-_Messier_87_crop_max_res.jpg/280px-Black_hole_-_Messier_87_crop_max_res.jpg",
+        wiki: "https://es.wikipedia.org/wiki/M87*",
+        nasa: "https://www.nasa.gov/mission_pages/chandra/news/new-very-long-baseline-array-image-of-m87",
+        era: "Formado: ~1.000 millones de años después del BB"
+    },
+    "TON 618": {
+        type: "CUÁSAR / AGUJERO NEGRO ULTRAMASIVO", category: "blackhole",
+        mass: "6.6 × 10¹⁰ M☉ (66.000 millones de masas solares)", radius: "Horizonte: ~197.000 M km",
+        temp: ">10¹³ K", dist: "10.400 millones de años luz",
+        mag: "15.9", spectral: "QSO (cuásar)",
+        desc: "Uno de los agujeros negros más masivos conocidos. Su horizonte de sucesos cabe 12 veces entre el Sol y Neptuno. Emite tanta luz como 140 billones de soles. Se ve tal como era hace 10.400 millones de años.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Black_hole_-_Messier_87_crop_max_res.jpg/280px-Black_hole_-_Messier_87_crop_max_res.jpg",
+        wiki: "https://es.wikipedia.org/wiki/TON_618",
+        nasa: "https://heasarc.gsfc.nasa.gov/",
+        era: "Luz emitida hace 10.400 millones de años"
+    },
+    // ===================== NEBULOSAS =====================
+    "Nebulosa del Cangrejo": {
+        type: "NEBULOSA DE SUPERNOVA — REMANENTE", category: "nebula",
+        mass: "~10 M☉", radius: "~11 años luz",
+        temp: "~30 millones K (centro)", dist: "6.500 años luz",
+        mag: "8.4", spectral: "Emisión / Sincrotrón",
+        desc: "Restos de la supernova SN 1054, observada por astrónomos chinos y árabes el 4 de julio de 1054. En el centro hay un púlsar que gira 30 veces por segundo. Emite rayos X, gamma y luz visible.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Crab_Nebula.jpg/280px-Crab_Nebula.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Nebulosa_del_Cangrejo",
+        nasa: "https://www.nasa.gov/image-feature/the-crab-nebula",
+        era: "Supernova: 4 Julio 1054 d.C."
+    },
+    "Nebulosa Orión": {
+        type: "NEBULOSA DE EMISIÓN — CUNA ESTELAR", category: "nebula",
+        mass: "~2.000 M☉", radius: "~24 años luz",
+        temp: "~10.000 K (promedio)", dist: "1.344 años luz",
+        mag: "4.0", spectral: "Emisión (HII)",
+        desc: "La región de formación estelar más cercana a la Tierra. Visible a simple vista como el cuarto 'objeto' de la espada de Orión. Contiene más de 700 estrellas en formación. El JWST reveló planetas protoplanetarios en 2023.",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg/280px-Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg",
+        wiki: "https://es.wikipedia.org/wiki/Nebulosa_de_Ori%C3%B3n",
+        nasa: "https://www.nasa.gov/image-feature/goddard/2017/hubble-s-orion",
+        era: "Activa — Edad: ~10 millones de años"
+    }
+};
+
+// ============================================================================
+// ⏱️ MOTOR DE ERA CÓSMICA — Evolución temporal del universo
+// ============================================================================
+const MS_PER_YEAR = 365.25 * 24 * 3600 * 1000;
+const AGE_UNIVERSE_MS = 13.8e9 * MS_PER_YEAR; // 13.800 millones de años en ms
+
+// Umbrales de era (en ms relativos al presente, negativos = pasado)
+const ERA_THRESHOLDS = {
+    BIG_BANG:      -AGE_UNIVERSE_MS,                    // t=0: Big Bang
+    FIRST_STARS:   -(AGE_UNIVERSE_MS - 2e8 * MS_PER_YEAR),  // -13.6B años: primeras estrellas
+    FIRST_GALAXIES:-(AGE_UNIVERSE_MS - 1e9 * MS_PER_YEAR),  // -12.8B años: primeras galaxias
+    MILKY_WAY:     -(AGE_UNIVERSE_MS - 3e9 * MS_PER_YEAR),  // -10.8B años: Vía Láctea
+    SOLAR_SYSTEM:  -4.6e9 * MS_PER_YEAR,                // -4.6B años: Sistema Solar
+    PRESENT:       0
+};
+
+// Esfera de plasma del Big Bang
+let plasmaSphere = null;
+
+function createPlasmaSphere() {
+    if (plasmaSphere) return;
+    const geo = new THREE.SphereGeometry(8000, 32, 32);
+    const mat = new THREE.MeshBasicMaterial({
+        color: 0xff4400,
+        transparent: true,
+        opacity: 0.0,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending
+    });
+    plasmaSphere = new THREE.Mesh(geo, mat);
+    plasmaSphere.visible = false;
+    scene.add(plasmaSphere);
+}
+
+function updateUniverseState(offset) {
+    // offset = cosmicOffset en ms (negativo = pasado)
+    if (!plasmaSphere) createPlasmaSphere();
+
+    const solarSys = typeof solarSystem !== 'undefined' ? solarSystem : null;
+    const mwSphere = window.milkyWaySphere;
+    const hipp = window.hipparcosGroup;
+    const zoa = window.zoaGroup;
+    const cosmicWeb = window.cosmicWeb;
+
+    // === ERA 1: BIG BANG / PLASMA (antes de primeras estrellas) ===
+    if (offset < ERA_THRESHOLDS.FIRST_STARS) {
+        const t = Math.max(0, (offset - ERA_THRESHOLDS.BIG_BANG) / (ERA_THRESHOLDS.FIRST_STARS - ERA_THRESHOLDS.BIG_BANG));
+        plasmaSphere.visible = true;
+        plasmaSphere.material.opacity = Math.max(0, 0.6 - t * 0.6);
+        plasmaSphere.material.color.setHSL(0.05 - t * 0.02, 1, 0.5);
+        if (solarSys) solarSys.visible = false;
+        if (mwSphere) mwSphere.visible = false;
+        if (hipp) hipp.visible = false;
+        if (zoa) zoa.visible = false;
+        if (cosmicWeb) cosmicWeb.visible = false;
+
+    // === ERA 2: PRIMERAS ESTRELLAS (Población III) ===
+    } else if (offset < ERA_THRESHOLDS.FIRST_GALAXIES) {
+        plasmaSphere.visible = true;
+        plasmaSphere.material.opacity = 0.1;
+        if (solarSys) solarSys.visible = false;
+        if (mwSphere) mwSphere.visible = false;
+        if (hipp) { hipp.visible = true; hipp.children.forEach(c => { if(c.material) c.material.opacity = 0.3; }); }
+        if (zoa) zoa.visible = false;
+        if (cosmicWeb) cosmicWeb.visible = true;
+
+    // === ERA 3: PRIMERAS GALAXIAS ===
+    } else if (offset < ERA_THRESHOLDS.MILKY_WAY) {
+        plasmaSphere.visible = false;
+        if (solarSys) solarSys.visible = false;
+        if (mwSphere) mwSphere.visible = false;
+        if (hipp) { hipp.visible = true; hipp.children.forEach(c => { if(c.material) c.material.opacity = 0.5; }); }
+        if (zoa) zoa.visible = true;
+        if (cosmicWeb) cosmicWeb.visible = true;
+
+    // === ERA 4: VÍA LÁCTEA (sin Sistema Solar) ===
+    } else if (offset < ERA_THRESHOLDS.SOLAR_SYSTEM) {
+        plasmaSphere.visible = false;
+        if (solarSys) solarSys.visible = false;
+        if (mwSphere) { mwSphere.visible = true; if(mwSphere.material) mwSphere.material.opacity = 0.7; }
+        if (hipp) { hipp.visible = true; hipp.children.forEach(c => { if(c.material) c.material.opacity = 0.8; }); }
+        if (zoa) zoa.visible = true;
+        if (cosmicWeb) cosmicWeb.visible = true;
+
+    // === ERA 5: SISTEMA SOLAR Y PRESENTE ===
+    } else {
+        plasmaSphere.visible = false;
+        if (solarSys) solarSys.visible = true;
+        if (mwSphere) { mwSphere.visible = true; if(mwSphere.material) mwSphere.material.opacity = 1.0; }
+        if (hipp) { hipp.visible = true; hipp.children.forEach(c => { if(c.material) c.material.opacity = 1.0; }); }
+        if (zoa) zoa.visible = true;
+        if (cosmicWeb) cosmicWeb.visible = true;
+    }
+}
+
+// ============================================================================
+// 🔭 FUNCIÓN GLOBAL: Mostrar datos científicos de cualquier objeto
+// ============================================================================
+function showLabPanel(name, extraData = {}) {
+    const panel = document.getElementById('info-panel');
+    if (!panel) return;
+
+    // Buscar en la base de datos científica
+    const db = COSMIC_DB[name] || {};
+    const data = { ...db, ...extraData };
+
+    // Rellenar campos
+    document.getElementById('target-name').textContent = name;
+    document.getElementById('target-type').textContent = data.type || 'OBJETO CELESTE';
+    document.getElementById('target-desc').textContent = data.desc || 'Cuerpo celeste del laboratorio TITAN-LAB.';
+    document.getElementById('target-dist').textContent = data.dist || '-';
+    document.getElementById('target-mag').textContent = data.mag || '-';
+    document.getElementById('target-temp').textContent = data.temp || '-';
+    document.getElementById('target-mass').textContent = data.mass || '-';
+    document.getElementById('target-radius').textContent = data.radius || '-';
+    document.getElementById('target-spectral').textContent = data.spectral || '-';
+    document.getElementById('target-era').textContent = data.era || '-';
+
+    // Imagen
+    const imgEl = document.getElementById('target-image');
+    const imgSrc = data.nasaImg || data.img || '';
+    if (imgSrc) {
+        imgEl.src = imgSrc;
+        imgEl.style.display = 'block';
+        imgEl.onerror = () => { 
+            if (data.img && imgEl.src !== data.img) { imgEl.src = data.img; }
+            else { imgEl.style.display = 'none'; }
+        };
+        document.getElementById('target-img-source').style.display = 'block';
+    } else {
+        imgEl.style.display = 'none';
+        document.getElementById('target-img-source').style.display = 'none';
+    }
+
+    // Links externos
+    const linksDiv = document.getElementById('target-links');
+    linksDiv.innerHTML = '';
+    const linkStyle = 'display:inline-block;padding:3px 8px;border-radius:3px;font-size:0.65rem;font-weight:bold;text-decoration:none;border:1px solid rgba(255,255,255,0.2);color:white;';
+    if (data.nasa) linksDiv.innerHTML += `<a href="${data.nasa}" target="_blank" style="${linkStyle}background:rgba(0,100,200,0.3);">🚀 NASA</a>`;
+    if (data.wiki) linksDiv.innerHTML += `<a href="${data.wiki}" target="_blank" style="${linkStyle}background:rgba(50,50,50,0.5);">📖 Wiki</a>`;
+    if (data.simbad_url) linksDiv.innerHTML += `<a href="${data.simbad_url}" target="_blank" style="${linkStyle}background:rgba(100,0,100,0.4);">🔭 SIMBAD</a>`;
+
+    panel.classList.remove('hidden');
+}
+
 // Configuración básica de Three.js
 const container = document.getElementById('webgl-container');
 const scene = new THREE.Scene();
@@ -118,38 +473,54 @@ fetch('/data/hipparcos.json')
         logTitan(`Cargadas ${numStars} estrellas del Catálogo Hipparcos.`);
         
         // === ZOA EXTRAPOLATION (Masa Faltante) ===
-        const zoaStars = 35000;
+        const zoaStars = 80000; // Densidad aumentada para rellenar visiblemente el hueco
         const zoaPositions = new Float32Array(zoaStars * 3);
         const zoaColors = new Float32Array(zoaStars * 3);
         let zi = 0; let zc = 0;
         for(let i=0; i<zoaStars; i++) {
             // Generar disco denso para rellenar el hueco ecuatorial galáctico
-            const r = 100 + Math.random() * 7000;
+            // Distribución gaussiana para mayor densidad en el centro del disco
+            const r = 50 + Math.abs((Math.random() + Math.random() + Math.random() - 1.5)) * 4500;
             const theta = Math.random() * Math.PI * 2;
-            const y = (Math.random() - 0.5) * 300; 
+            // Espesor del disco también gaussiano — más denso cerca del plano
+            const y = (Math.random() - 0.5) * (Math.random() * 600);
             
             // Centrados en el origen local (luego se aplica la rotación y el offset global)
             zoaPositions[zi++] = Math.cos(theta) * r;
             zoaPositions[zi++] = y;
             zoaPositions[zi++] = Math.sin(theta) * r;
             
-            // Color realista de polvo estelar atenuado
-            zoaColors[zc++] = 0.6 + Math.random() * 0.4; // R
-            zoaColors[zc++] = 0.6 + Math.random() * 0.4; // G
-            zoaColors[zc++] = 0.8 + Math.random() * 0.2; // B
+            // Color realista: mezcla de polvo rojizo y estrellas azuladas ocultas
+            const starType = Math.random();
+            if (starType < 0.4) {
+                // Estrellas rojizas atenuadas por polvo
+                zoaColors[zc++] = 0.9 + Math.random() * 0.1;
+                zoaColors[zc++] = 0.5 + Math.random() * 0.3;
+                zoaColors[zc++] = 0.3 + Math.random() * 0.2;
+            } else if (starType < 0.7) {
+                // Estrellas blancas/amarillas
+                zoaColors[zc++] = 0.8 + Math.random() * 0.2;
+                zoaColors[zc++] = 0.8 + Math.random() * 0.2;
+                zoaColors[zc++] = 0.7 + Math.random() * 0.3;
+            } else {
+                // Estrellas azuladas de fondo
+                zoaColors[zc++] = 0.5 + Math.random() * 0.3;
+                zoaColors[zc++] = 0.6 + Math.random() * 0.3;
+                zoaColors[zc++] = 0.9 + Math.random() * 0.1;
+            }
         }
         const zoaGeo = new THREE.BufferGeometry();
         zoaGeo.setAttribute('position', new THREE.BufferAttribute(zoaPositions, 3));
         zoaGeo.setAttribute('color', new THREE.BufferAttribute(zoaColors, 3));
         window.zoaGroup = new THREE.Points(zoaGeo, new THREE.PointsMaterial({
-            size: 0.3, vertexColors: true, transparent: true, opacity: 0.1, sizeAttenuation: true, blending: THREE.AdditiveBlending
+            size: 0.5, vertexColors: true, transparent: true, opacity: 0.35, sizeAttenuation: true, blending: THREE.AdditiveBlending
         }));
         
         // Alinear al plano galáctico (Aprox 62.8 grados respecto al ecuador celeste)
         window.zoaGroup.rotation.x = 1.09; 
         window.zoaGroup.rotation.z = 1.07;
         window.zoaGroup.position.set(75, 75, 75); // Centrar en el Sol
-        window.zoaGroup.visible = false;
+        window.zoaGroup.visible = true; // ✅ ACTIVO POR DEFECTO — rellena la ZOA siempre
         window.ourUniverse.add(window.zoaGroup);
         logTitan(`[ZOA] Motor Cuántico: Generadas ${zoaStars} estrellas sintéticas para rellenar la Zona de Evitación.`);
         logTitan(`[ZOA] Masividad Oculta calculada: ~${(zoaStars * 1.2).toFixed(0)} Millones de Masas Solares.`);
@@ -3216,6 +3587,9 @@ function animate() {
     }
     const daysSinceEpoch = engineTime / MS_PER_DAY;
     updateTimelineUI();
+    
+    // ⏱️ Actualizar estado evolutivo del universo según la era cósmica actual
+    updateUniverseState(cosmicOffset);
 
     // === CÁMARA DE SEGUIMIENTO EN TIEMPO REAL A BÓLIDOS/OBJETOS EN MOVIMIENTO ===
     if (window.trackedObject && window.trackedObject.mesh && window.trackedObject.mesh.visible) {
@@ -3957,34 +4331,34 @@ function focusObject(object, dist, name, desc, mass, rad) {
     out.innerHTML += `<div style="color:#ff00ff;">> TITAN: MOTOR WARP ACTIVADO. Fijando salto hacia [${name}]</div>`;
     out.scrollTop = out.scrollHeight;
     
-    document.getElementById('target-name').textContent = name;
-    document.getElementById('target-desc').textContent = desc;
-    document.getElementById('target-mass').textContent = mass;
-    document.getElementById('target-radius').textContent = rad;
+    // === Mostrar Panel de Laboratorio Científico ===
+    showLabPanel(name, {
+        desc: desc,
+        mass: mass,
+        radius: rad
+    });
     
     const dartBtn = document.getElementById('btn-launch-dart');
     if (dartBtn) {
-        if (name.includes('NEO-')) {
+        if (name.includes('NEO-') || name === 'Apophis' || name === 'Bennu') {
             dartBtn.style.display = 'block';
         } else {
             dartBtn.style.display = 'none';
         }
     }
     
-    // Integración de conocimiento (Wikipedia / NASA API Live)
-    const imgEl = document.getElementById('target-image');
-    const descEl = document.getElementById('target-desc');
-    
-    descEl.textContent = desc;
-    imgEl.style.display = 'none';
-    imgEl.src = '';
-    
-    if (astroKnowledge[name]) {
+    // Datos NASA legacy (astroKnowledge) — complementan el panel
+    if (typeof astroKnowledge !== 'undefined' && astroKnowledge[name]) {
         const k = astroKnowledge[name];
-        if (k.descripcion) descEl.textContent = k.descripcion;
+        if (k.descripcion && !COSMIC_DB[name]) {
+            document.getElementById('target-desc').textContent = k.descripcion;
+        }
         if (k.imagen_url) {
-            imgEl.src = k.imagen_url;
-            imgEl.style.display = 'block';
+            const imgEl = document.getElementById('target-image');
+            if (imgEl.style.display === 'none') {
+                imgEl.src = k.imagen_url;
+                imgEl.style.display = 'block';
+            }
         }
     }
     
