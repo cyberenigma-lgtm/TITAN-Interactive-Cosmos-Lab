@@ -567,61 +567,97 @@ fetch('/data/hipparcos.json')
                 logTitan(`Cargadas líneas de constelaciones 3D.`);
             });
         
-        // === SIMBAD (Professional Astronomical Data) ===
+        // === SIMBAD (Professional Astronomical Data & Constellations) ===
         window.simbadGroup = new THREE.Group();
         window.ourUniverse.add(window.simbadGroup);
-        
+        window.namedStars = [];
+
+        function renderSimbadStar(s) {
+            // Tamaño según radio estelar si existe, o por defecto
+            const rVal = parseFloat(s.radius) || 2.0;
+            const size = Math.min(8.0, Math.max(1.5, rVal * 0.15));
+
+            // Malla 3D para la estrella con fotosfera resplandeciente
+            const starGeo = new THREE.SphereGeometry(size, 24, 24);
+            const starMat = new THREE.MeshBasicMaterial({ color: s.color || 0xffddaa });
+            const starMesh = new THREE.Mesh(starGeo, starMat);
+            
+            // Halo estelar exterior
+            const glowGeo = new THREE.SphereGeometry(size * 1.8, 16, 16);
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: s.color || 0xffddaa,
+                transparent: true,
+                opacity: 0.35,
+                blending: THREE.AdditiveBlending
+            });
+            const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+            starMesh.add(glowMesh);
+
+            starMesh.position.set(75 + s.x * 10, 75 + s.y * 10, 75 + s.z * 10);
+            
+            starMesh.userData = {
+                name: s.name,
+                isSIMBAD: true,
+                isExtraSystem: true,
+                spectralColor: s.color,
+                simbad: {
+                    name: s.name,
+                    type: s.sp_type,
+                    distance: `${s.dist_ly} ly`,
+                    mag: s.mag,
+                    temp: s.temp,
+                    mass: s.mass,
+                    radius: s.radius,
+                    img: s.img,
+                    desc: s.desc
+                }
+            };
+            
+            // Crear Etiqueta HTML Flotante para la estrella
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'planet-label star-label';
+            labelDiv.innerHTML = `<span style="color:#ffd700;">★</span> ${s.name} <span style="font-size:9px;color:#00ffcc;opacity:0.8;">[${s.sp_type || 'Estrella'}]</span>`;
+            labelDiv.style.pointerEvents = 'auto';
+            labelDiv.style.cursor = 'pointer';
+            labelDiv.style.borderColor = 'rgba(255, 215, 0, 0.4)';
+            labelDiv.style.background = 'rgba(10, 15, 30, 0.75)';
+
+            labelDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                focusObject(starMesh, size * 6, s.name, s.desc || "Estrella de catálogo astronómico", s.mass || "Desconocida", s.radius || "Desconocido");
+                showLabPanel(s.name, {
+                    type: `ESTRELLA — ${s.sp_type || 'Catálogo SIMBAD'}`,
+                    dist: `${s.dist_ly} ly`,
+                    mag: s.mag,
+                    temp: s.temp,
+                    mass: s.mass,
+                    radius: s.radius,
+                    spectral: s.sp_type,
+                    desc: s.desc,
+                    img: s.img,
+                    simbad_url: `https://simbad.cds.unistra.fr/simbad/sim-basic?Ident=${encodeURIComponent(s.name)}`
+                });
+            });
+
+            labelsContainer.appendChild(labelDiv);
+            window.namedStars.push({ mesh: starMesh, label: labelDiv });
+            window.simbadGroup.add(starMesh);
+        }
+
         fetch('/data/simbad_stars.json')
             .then(res => res.json())
             .then(simbadData => {
-                simbadData.forEach(s => {
-                    // Mesh for raycasting and visual glow
-                    const starGeo = new THREE.SphereGeometry(1.5, 16, 16);
-                    const starMat = new THREE.MeshBasicMaterial({ color: s.color });
-                    const starMesh = new THREE.Mesh(starGeo, starMat);
-                    
-                    starMesh.position.set(75 + s.x * 10, 75 + s.y * 10, 75 + s.z * 10);
-                    
-                    starMesh.userData = {
-                        isSIMBAD: true,
-                        isExtraSystem: true,
-                        spectralColor: s.color,
-                        simbad: {
-                            name: s.name,
-                            type: s.sp_type,
-                            distance: s.dist_ly,
-                            mag: s.mag,
-                            temp: s.temp,
-                            mass: s.mass,
-                            radius: s.radius,
-                            img: s.img,
-                            desc: s.desc
-                        }
-                    };
-                    
-                    // Add a tiny sprite for the label to be always visible from afar
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 256; canvas.height = 64;
-                    const ctx = canvas.getContext('2d');
-                    ctx.font = 'bold 24px Outfit';
-                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                    ctx.fillRect(0,0,256,64);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(s.name, 10, 40);
-                    
-                    const tex = new THREE.CanvasTexture(canvas);
-                    const spriteMat = new THREE.SpriteMaterial({ map: tex, sizeAttenuation: false, depthTest: false });
-                    const sprite = new THREE.Sprite(spriteMat);
-                    sprite.scale.set(0.08, 0.02, 1);
-                    sprite.position.y = 3;
-                    starMesh.add(sprite);
-                    
-                    window.simbadGroup.add(starMesh);
-                });
-                logTitan(`Cargadas ${simbadData.length} estrellas SIMBAD con datos profesionales.`);
+                simbadData.forEach(s => renderSimbadStar(s));
+                logTitan(`Cargadas ${simbadData.length} estrellas conocidas y de constelaciones con etiquetas 3D.`);
             });
+
+        // Registrar función global para añadir descubrimientos en caliente
+        window.addNewStarDiscovery = function(newStar) {
+            renderSimbadStar(newStar);
+            logTitan(`🌟 [NUEVO DESCUBRIMIENTO] Registrada nueva estrella: ${newStar.name}`);
+        };
     })
-    .catch(err => logTitan(`Error cargando Hipparcos: ${err}`));
+    .catch(err => logTitan(`Error cargando Hipparcos/SIMBAD: ${err}`));
 // createStarfield(); - Eliminado para fondo puramente matemático
 
 // === SISTEMA SOLAR COMPLETO ===
@@ -3843,6 +3879,25 @@ function animate() {
             p.jwstOrbit.rotation.y = (daysSinceEpoch / 180) * Math.PI * 2; 
         }
     });
+
+    // Actualizar posiciones de etiquetas de Estrellas Nombradas (Constelaciones / SIMBAD)
+    if (window.namedStars && window.namedStars.length > 0) {
+        const starV = new THREE.Vector3();
+        window.namedStars.forEach(s => {
+            if (s.mesh && s.label) {
+                s.mesh.getWorldPosition(starV);
+                starV.project(camera);
+                if (starV.z > 1) {
+                    s.label.style.display = 'none';
+                } else {
+                    s.label.style.display = 'block';
+                    const x = (starV.x * .5 + .5) * window.innerWidth;
+                    const y = (starV.y * -.5 + .5) * window.innerHeight;
+                    s.label.style.transform = `translate(-50%, -150%) translate(${x}px,${y}px)`;
+                }
+            }
+        });
+    }
 
     // Actualizar Telemetría de Telescopios
     if (window.telescopeLabels && earthObj) {

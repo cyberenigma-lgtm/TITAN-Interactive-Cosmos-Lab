@@ -1,1 +1,82 @@
-[{"name": "Proxima Centauri", "x": -0.47, "y": -0.36, "z": -1.16, "dist_ly": 4.25, "mag": -1.0, "sp_type": "M5.5Ve", "color": 16746598, "mass": "Desconocida", "radius": "Desconocido", "temp": "Desconocida", "desc": "Estrella catalogada por SIMBAD en el vecindario estelar local.", "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Earth%27s_Location_in_the_Universe_SMALLER_%28JPEG%29.jpg/600px-Earth%27s_Location_in_the_Universe_SMALLER_%28JPEG%29.jpg"}]
+[
+  {
+    "name": "Sirius A (Alfa Canis Majoris)",
+    "x": -1.5, "y": -1.2, "z": 1.8,
+    "dist_ly": 8.6, "mag": -1.46, "sp_type": "A1V (Estrella Blanca)",
+    "color": 12644351, "mass": "2.06 M☉", "radius": "1.71 R☉", "temp": "9,940 K",
+    "desc": "La estrella más brillante de todo el cielo nocturno desde la Tierra. Ubicada en la constelación del Can Mayor.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Sirius_A_and_B_artwork.jpg/300px-Sirius_A_and_B_artwork.jpg"
+  },
+  {
+    "name": "Betelgeuse (Alfa Orionis)",
+    "x": -40.0, "y": -90.0, "z": -170.0,
+    "dist_ly": 642.5, "mag": 0.5, "sp_type": "M1-M2Ia-ab (Supergigante Roja)",
+    "color": 16733504, "mass": "16.5 M☉", "radius": "764 R☉", "temp": "3,500 K",
+    "desc": "Supergigante roja en el hombro derecho de la constelación de Orión. Se encuentra en las etapas finales de su vida y colapsará en supernova.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Betelgeuse_captured_by_ALMA.jpg/300px-Betelgeuse_captured_by_ALMA.jpg"
+  },
+  {
+    "name": "Rigel (Beta Orionis)",
+    "x": -130.0, "y": -150.0, "z": 180.0,
+    "dist_ly": 860.0, "mag": 0.13, "sp_type": "B8Iab (Supergigante Azul)",
+    "color": 11591423, "mass": "21.0 M☉", "radius": "78.9 R☉", "temp": "12,100 K",
+    "desc": "La estrella más brillante de la constelación de Orión y la séptima más brillante del cielo nocturno. Sistema estelar múltiple súper masivo.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Rigel_star.jpg/300px-Rigel_star.jpg"
+  },
+  {
+    "name": "Vega (Alfa Lyrae)",
+    "x": 4.2, "y": 6.2, "z": -1.5,
+    "dist_ly": 25.04, "mag": 0.03, "sp_type": "A0V (Estrella Blanca-Azulada)",
+    "color": 13429759, "mass": "2.13 M☉", "radius": "2.36 R☉", "temp": "9,602 K",
+    "desc": "La estrella principal de la constelación de la Lira. Fue la primera estrella en ser fotografiada aparte del Sol.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Vega_star.jpg/300px-Vega_star.jpg"
+  },
+  {
+    "name": "Polaris (Alfa Ursae Minoris)",
+    "x": 0.0, "y": 130.0, "z": 20.0,
+    "dist_ly": 433.0, "mag": 1.98, "sp_type": "F7Ib (Supergigante Amarilla / Cefeida)",
+    "color": 16773530, "mass": "5.4 M☉", "radius": "37.5 R☉", "temp": "6,015 K",
+    "desc": "La Estrella Polar en la constelación de la Osa Menor. Se utiliza tradicionalmente para la navegación en el hemisferio norte.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Polaris_system.jpg/300px-Polaris_system.jpg"
+  },
+  {
+    "name": "Arcturus (Alfa Boötis)",
+    "x": 10.0, "y": 25.0, "z": 15.0,
+    "dist_ly": 36.7, "mag": -0.05, "sp_type": "K1.5III (Gigante Naranja)",
+    "color": 16752640, "mass": "1.08 M☉", "radius": "25.4 R☉", "temp": "4,286 K",
+    "desc": "Estrella gigante naranja en la constelación del Boyero. Es la estrella más brillante del hemisferio celeste norte.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Arcturus_standalone.jpg/300px-Arcturus_standalone.jpg"
+  },
+  {
+    "name": "Antares (Alfa Scorpii)",
+    "x": 70.0, "y": -60.0, "z": -140.0,
+    "dist_ly": 550.0, "mag": 1.06, "sp_type": "M1.5Iab (Supergigante Roja)",
+    "color": 16724736, "mass": "12.0 M☉", "radius": "680 R☉", "temp": "3,660 K",
+    "desc": "El corazón de la constelación de Escorpio. Su nombre significa 'el rival de Marte' por su intenso color rojo rubí.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Antares_star.jpg/300px-Antares_star.jpg"
+  },
+  {
+    "name": "Aldebaran (Alfa Tauri)",
+    "x": -10.0, "y": -10.0, "z": -17.0,
+    "dist_ly": 65.3, "mag": 0.85, "sp_type": "K5III (Gigante Naranja-Roja)",
+    "color": 16744448, "mass": "1.16 M☉", "radius": "44.2 R☉", "temp": "3,910 K",
+    "desc": "El ojo rojo de la constelación de Tauro. Estrella gigante roja avanzada rodeada por el cúmulo de las Híades.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Aldebaran_ESO.jpg/300px-Aldebaran_ESO.jpg"
+  },
+  {
+    "name": "Proxima Centauri",
+    "x": -0.47, "y": -0.36, "z": -1.16,
+    "dist_ly": 4.246, "mag": 11.13, "sp_type": "M5.5Ve (Enana Roja)",
+    "color": 16724787, "mass": "0.122 M☉", "radius": "0.154 R☉", "temp": "3,042 K",
+    "desc": "La estrella más cercana a nuestro Sistema Solar. Posee al menos dos exoplanetas confirmados (Proxima b y c).",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/New_shot_of_Proxima_Centauri%2C_our_nearest_neighbour.jpg/300px-New_shot_of_Proxima_Centauri.jpg"
+  },
+  {
+    "name": "Alpha Centauri A (Rigil Kentaurus)",
+    "x": -0.48, "y": -0.37, "z": -1.18,
+    "dist_ly": 4.37, "mag": 0.01, "sp_type": "G2V (Enana Amarilla)",
+    "color": 16776960, "mass": "1.10 M☉", "radius": "1.22 R☉", "temp": "5,790 K",
+    "desc": "Componente principal del sistema estelar múltiple más cercano. Gemela casi idéntica a nuestro Sol.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Alpha_Centauri_AB.jpg/300px-Alpha_Centauri_AB.jpg"
+  }
+]
