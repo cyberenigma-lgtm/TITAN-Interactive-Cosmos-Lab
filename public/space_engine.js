@@ -2867,13 +2867,24 @@ let physicsWarp = 1.0;
 let currentTopology = 'spherical'; // 'spherical', 'cubic', 'custom'
 let customTopologyFunc = null;
 
-document.getElementById('toggle-cubic-metric').addEventListener('change', (e) => {
-    if (e.target.checked) {
-        currentTopology = 'cubic';
-        logTitan(`Topología espacial mutada a CÚBICA (L∞ DVTRGAS)`);
-    } else {
-        currentTopology = 'spherical';
+document.getElementById('select-topology').addEventListener('change', (e) => {
+    currentTopology = e.target.value;
+    const formulaDisplay = document.getElementById('metric-formula-display');
+    
+    if (currentTopology === 'spherical') {
+        formulaDisplay.textContent = "Ecuación: r² = x² + z²";
         logTitan(`Topología espacial mutada a ESFÉRICA (L2 Euclidiana)`);
+    } else if (currentTopology === 'cubic') {
+        formulaDisplay.textContent = "Ecuación: r = max(|x|, |z|)";
+        logTitan(`Topología espacial mutada a CÚBICA (L∞ Minkowski)`);
+    } else if (currentTopology === 'manhattan') {
+        formulaDisplay.textContent = "Ecuación: r = |x| + |z|";
+        logTitan(`Topología espacial mutada a MANHATTAN (L1 Romboidal)`);
+    } else if (currentTopology === 'lame') {
+        formulaDisplay.textContent = "Ecuación: r = (|x|³ + |z|³)^(1/3)";
+        logTitan(`Topología espacial mutada a CÚBICA DE LAMÉ (Curva Cúbica Real)`);
+    } else if (currentTopology === 'custom') {
+        formulaDisplay.textContent = "Ecuación: Fórmula Custom Definida";
     }
     updateOrbitsGeometry();
 });
@@ -2882,22 +2893,20 @@ document.getElementById('btn-apply-metric').addEventListener('click', () => {
     const input = document.getElementById('custom-metric-input').value;
     if (!input) return;
     try {
-        // Simple parser to extract right side of "r ="
         let exp = input;
         if (input.includes('=')) exp = input.split('=')[1].trim();
         
-        // Convert basic math symbols to Math object properties if needed
         exp = exp.replace(/abs/g, 'Math.abs')
                  .replace(/sqrt/g, 'Math.sqrt')
                  .replace(/max/g, 'Math.max')
                  .replace(/pow/g, 'Math.pow');
                  
         customTopologyFunc = new Function('x', 'y', 'z', `return ${exp};`);
-        // Test it
         customTopologyFunc(1,1,1);
         
         currentTopology = 'custom';
-        document.getElementById('toggle-cubic-metric').checked = false;
+        document.getElementById('select-topology').value = 'custom';
+        document.getElementById('metric-formula-display').textContent = `Ecuación Custom: ${input}`;
         logTitan(`Topología mutada a MÉTRICA CUSTOM: ${input}`);
         updateOrbitsGeometry();
     } catch(e) {
@@ -2910,11 +2919,17 @@ function applyTopologyScale(px, pz) {
     if (currentTopology === 'cubic') {
         return 1.0 / Math.max(Math.abs(px), Math.abs(pz));
     }
+    if (currentTopology === 'manhattan') {
+        return 1.0 / (Math.abs(px) + Math.abs(pz));
+    }
+    if (currentTopology === 'lame') {
+        // Cúbica de Lamé: (|x|^3 + |z|^3)^(1/3)
+        const val = Math.pow(Math.pow(Math.abs(px), 3) + Math.pow(Math.abs(pz), 3), 1/3);
+        return 1.0 / (val === 0 ? 0.0001 : val);
+    }
     if (currentTopology === 'custom' && customTopologyFunc) {
         try {
-            // Evaluamos el radio bajo la nueva métrica (x, 0, z)
             const rNew = customTopologyFunc(px, 0, pz);
-            // Si la métrica euclidiana es 1 (porque px=cos, pz=sin), la escala es 1 / rNew
             return 1.0 / (rNew === 0 ? 0.0001 : rNew);
         } catch(e) { return 1.0; }
     }
