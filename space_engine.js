@@ -3473,17 +3473,6 @@ window.addEventListener('click', (e) => {
             }
             found = true;
             break;
-        }
-            tName.textContent = `Zona de Evitación (ZOA)`;
-            document.getElementById('target-type').textContent = "EXTRAPOLACIÓN MASA OCULTA";
-            document.getElementById('target-type').style.display = "block";
-            document.getElementById('target-mass').textContent = "Materia Oscura Estimada";
-            document.getElementById('target-radius').textContent = "-";
-            document.getElementById('target-dist').textContent = "Plano Ecuatorial";
-            document.getElementById('target-mag').textContent = "-";
-            document.getElementById('target-temp').textContent = "-";
-            found = true;
-            break;
         } else if (obj === window.cosmicWeb) {
             infoPanel.classList.remove('hidden');
             tName.textContent = `Macro-Estructura (Nodo ${intersects[i].index})`;
