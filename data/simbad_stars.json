@@ -1,10 +1,10 @@
-[
+﻿[
   {
     "name": "Sirius A (Alfa Canis Majoris)",
     "x": -1.5, "y": -1.2, "z": 1.8,
     "dist_ly": 8.6, "mag": -1.46, "sp_type": "A1V (Estrella Blanca)",
     "color": 12644351, "mass": "2.06 M☉", "radius": "1.71 R☉", "temp": "9,940 K",
-    "desc": "La estrella más brillante de todo el cielo nocturno desde la Tierra. Ubicada en la constelación del Can Mayor.",
+    "desc": "La estrella más brillante del cielo nocturno. Tiene una compañera enana blanca: Sirius B.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Sirius_A_and_B_artwork.jpg/300px-Sirius_A_and_B_artwork.jpg"
   },
   {
@@ -12,7 +12,7 @@
     "x": -40.0, "y": -90.0, "z": -170.0,
     "dist_ly": 642.5, "mag": 0.5, "sp_type": "M1-M2Ia-ab (Supergigante Roja)",
     "color": 16733504, "mass": "16.5 M☉", "radius": "764 R☉", "temp": "3,500 K",
-    "desc": "Supergigante roja en el hombro derecho de la constelación de Orión. Se encuentra en las etapas finales de su vida y colapsará en supernova.",
+    "desc": "Supergigante roja en Orión. En etapas finales, colapsará en supernova.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Betelgeuse_captured_by_ALMA.jpg/300px-Betelgeuse_captured_by_ALMA.jpg"
   },
   {
@@ -20,7 +20,7 @@
     "x": -130.0, "y": -150.0, "z": 180.0,
     "dist_ly": 860.0, "mag": 0.13, "sp_type": "B8Iab (Supergigante Azul)",
     "color": 11591423, "mass": "21.0 M☉", "radius": "78.9 R☉", "temp": "12,100 K",
-    "desc": "La estrella más brillante de la constelación de Orión y la séptima más brillante del cielo nocturno. Sistema estelar múltiple súper masivo.",
+    "desc": "La más brillante de Orión. Luminosidad 120,000 veces la del Sol.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Rigel_star.jpg/300px-Rigel_star.jpg"
   },
   {
@@ -28,7 +28,7 @@
     "x": 4.2, "y": 6.2, "z": -1.5,
     "dist_ly": 25.04, "mag": 0.03, "sp_type": "A0V (Estrella Blanca-Azulada)",
     "color": 13429759, "mass": "2.13 M☉", "radius": "2.36 R☉", "temp": "9,602 K",
-    "desc": "La estrella principal de la constelación de la Lira. Fue la primera estrella en ser fotografiada aparte del Sol.",
+    "desc": "Estrella principal de la Lira. Primera fotografiada aparte del Sol.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Vega_star.jpg/300px-Vega_star.jpg"
   },
   {
@@ -36,7 +36,7 @@
     "x": 0.0, "y": 130.0, "z": 20.0,
     "dist_ly": 433.0, "mag": 1.98, "sp_type": "F7Ib (Supergigante Amarilla / Cefeida)",
     "color": 16773530, "mass": "5.4 M☉", "radius": "37.5 R☉", "temp": "6,015 K",
-    "desc": "La Estrella Polar en la constelación de la Osa Menor. Se utiliza tradicionalmente para la navegación en el hemisferio norte.",
+    "desc": "La Estrella Polar en la Osa Menor. Cefeida variable utilizada para navegación.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Polaris_system.jpg/300px-Polaris_system.jpg"
   },
   {
@@ -44,7 +44,7 @@
     "x": 10.0, "y": 25.0, "z": 15.0,
     "dist_ly": 36.7, "mag": -0.05, "sp_type": "K1.5III (Gigante Naranja)",
     "color": 16752640, "mass": "1.08 M☉", "radius": "25.4 R☉", "temp": "4,286 K",
-    "desc": "Estrella gigante naranja en la constelación del Boyero. Es la estrella más brillante del hemisferio celeste norte.",
+    "desc": "La más brillante del hemisferio celeste norte. Gigante naranja en el Boyero.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Arcturus_standalone.jpg/300px-Arcturus_standalone.jpg"
   },
   {
@@ -52,7 +52,7 @@
     "x": 70.0, "y": -60.0, "z": -140.0,
     "dist_ly": 550.0, "mag": 1.06, "sp_type": "M1.5Iab (Supergigante Roja)",
     "color": 16724736, "mass": "12.0 M☉", "radius": "680 R☉", "temp": "3,660 K",
-    "desc": "El corazón de la constelación de Escorpio. Su nombre significa 'el rival de Marte' por su intenso color rojo rubí.",
+    "desc": "El corazón de Escorpio. Rival de Marte por su color rojo. Engulliría Marte si sustituyera al Sol.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Antares_star.jpg/300px-Antares_star.jpg"
   },
   {
@@ -60,7 +60,7 @@
     "x": -10.0, "y": -10.0, "z": -17.0,
     "dist_ly": 65.3, "mag": 0.85, "sp_type": "K5III (Gigante Naranja-Roja)",
     "color": 16744448, "mass": "1.16 M☉", "radius": "44.2 R☉", "temp": "3,910 K",
-    "desc": "El ojo rojo de la constelación de Tauro. Estrella gigante roja avanzada rodeada por el cúmulo de las Híades.",
+    "desc": "El ojo de la constelación de Tauro. Gigante roja rodeada por el cúmulo de las Híades.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Aldebaran_ESO.jpg/300px-Aldebaran_ESO.jpg"
   },
   {
@@ -68,7 +68,7 @@
     "x": -0.47, "y": -0.36, "z": -1.16,
     "dist_ly": 4.246, "mag": 11.13, "sp_type": "M5.5Ve (Enana Roja)",
     "color": 16724787, "mass": "0.122 M☉", "radius": "0.154 R☉", "temp": "3,042 K",
-    "desc": "La estrella más cercana a nuestro Sistema Solar. Posee al menos dos exoplanetas confirmados (Proxima b y c).",
+    "desc": "La estrella más cercana al Sol. Al menos dos exoplanetas confirmados (Proxima b y c).",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/New_shot_of_Proxima_Centauri%2C_our_nearest_neighbour.jpg/300px-New_shot_of_Proxima_Centauri.jpg"
   },
   {
@@ -76,7 +76,415 @@
     "x": -0.48, "y": -0.37, "z": -1.18,
     "dist_ly": 4.37, "mag": 0.01, "sp_type": "G2V (Enana Amarilla)",
     "color": 16776960, "mass": "1.10 M☉", "radius": "1.22 R☉", "temp": "5,790 K",
-    "desc": "Componente principal del sistema estelar múltiple más cercano. Gemela casi idéntica a nuestro Sol.",
+    "desc": "Componente del sistema más cercano al Sol. Gemela casi idéntica a nuestra estrella.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Alpha_Centauri_AB.jpg/300px-Alpha_Centauri_AB.jpg"
+  },
+  {
+    "name": "Alpha Centauri B",
+    "x": -0.46, "y": -0.35, "z": -1.17,
+    "dist_ly": 4.37, "mag": 1.33, "sp_type": "K1V (Enana Naranja)",
+    "color": 16752384, "mass": "0.907 M☉", "radius": "0.865 R☉", "temp": "5,260 K",
+    "desc": "Segunda componente del sistema Alfa Centauri. Ligeramente más fría que el Sol.",
+    "img": ""
+  },
+  {
+    "name": "Canopus (Alfa Carinae)",
+    "x": -10.0, "y": -40.0, "z": -290.0,
+    "dist_ly": 310.0, "mag": -0.74, "sp_type": "A9II (Supergigante Blanco-Amarilla)",
+    "color": 16774885, "mass": "8.0 M☉", "radius": "71.0 R☉", "temp": "7,350 K",
+    "desc": "Segunda estrella más brillante del cielo. Usada como referencia de navegación por sondas NASA.",
+    "img": ""
+  },
+  {
+    "name": "Capella (Alfa Aurigae)",
+    "x": -5.0, "y": 18.0, "z": 12.0,
+    "dist_ly": 42.9, "mag": 0.08, "sp_type": "G5III+G0III (Gigante Amarilla Binaria)",
+    "color": 16776448, "mass": "2.57 M☉", "radius": "11.98 R☉", "temp": "4,970 K",
+    "desc": "Sexta más brillante del cielo. Sistema binario de dos gigantes amarillas en el Cochero.",
+    "img": ""
+  },
+  {
+    "name": "Procyon A (Alfa Canis Minoris)",
+    "x": 1.8, "y": -1.0, "z": 1.4,
+    "dist_ly": 11.46, "mag": 0.34, "sp_type": "F5IV (Subgigante Blanca-Amarilla)",
+    "color": 16775168, "mass": "1.50 M☉", "radius": "2.05 R☉", "temp": "6,530 K",
+    "desc": "La más brillante del Can Menor. Octava en brillo del cielo nocturno.",
+    "img": ""
+  },
+  {
+    "name": "Achernar (Alfa Eridani)",
+    "x": -12.0, "y": -50.0, "z": -130.0,
+    "dist_ly": 139.0, "mag": 0.46, "sp_type": "B6Vep (Estrella Azul Rotatoria Rápida)",
+    "color": 9818367, "mass": "6.70 M☉", "radius": "9.16 R☉", "temp": "14,500 K",
+    "desc": "La estrella más achatada conocida. Rota a más de 260 km/s. Novena más brillante del cielo.",
+    "img": ""
+  },
+  {
+    "name": "Hadar (Beta Centauri)",
+    "x": -25.0, "y": -55.0, "z": -390.0,
+    "dist_ly": 392.0, "mag": 0.61, "sp_type": "B1III (Gigante Azul)",
+    "color": 9961471, "mass": "12.0 M☉", "radius": "9.0 R☉", "temp": "25,000 K",
+    "desc": "Segunda estrella del Centauro. Sistema binario de gigantes azules pulsantes.",
+    "img": ""
+  },
+  {
+    "name": "Acrux (Alfa Crucis)",
+    "x": -18.0, "y": -70.0, "z": -310.0,
+    "dist_ly": 321.0, "mag": 0.77, "sp_type": "B0.5IV+B1V (Doble Azul)",
+    "color": 9699327, "mass": "17.8 M☉", "radius": "7.8 R☉", "temp": "28,000 K",
+    "desc": "Estrella más brillante de la Cruz del Sur. Sistema múltiple de cuatro estrellas.",
+    "img": ""
+  },
+  {
+    "name": "Spica (Alfa Virginis)",
+    "x": 30.0, "y": -60.0, "z": -230.0,
+    "dist_ly": 250.0, "mag": 0.98, "sp_type": "B1V+B4V (Binaria Azul)",
+    "color": 10079487, "mass": "10.25 M☉", "radius": "7.40 R☉", "temp": "25,300 K",
+    "desc": "La más brillante de Virgo. Binaria de eclipses que inspiró a Hiparco.",
+    "img": ""
+  },
+  {
+    "name": "Fomalhaut (Alfa Piscis Austrini)",
+    "x": 6.0, "y": -8.0, "z": -20.0,
+    "dist_ly": 25.13, "mag": 1.16, "sp_type": "A3Va (Estrella Blanca)",
+    "color": 12909823, "mass": "1.92 M☉", "radius": "1.84 R☉", "temp": "8,590 K",
+    "desc": "Estrella con disco circumestelar y el primer exoplaneta fotografiado directamente.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Fomalhaut_with_Disk_Ring_and_extrasolar_planet_b.jpg/300px-Fomalhaut_with_Disk_Ring_and_extrasolar_planet_b.jpg"
+  },
+  {
+    "name": "Deneb (Alfa Cygni)",
+    "x": -200.0, "y": 600.0, "z": -1100.0,
+    "dist_ly": 2600.0, "mag": 1.25, "sp_type": "A2Ia (Supergigante Blanca)",
+    "color": 14540287, "mass": "19.0 M☉", "radius": "203 R☉", "temp": "8,525 K",
+    "desc": "Cola del Cisne. 2600 años luz pero con 200,000 veces la luminosidad del Sol.",
+    "img": ""
+  },
+  {
+    "name": "Mira (Omicron Ceti)",
+    "x": 80.0, "y": 20.0, "z": -230.0,
+    "dist_ly": 299.0, "mag": 3.04, "sp_type": "M7IIIe (Gigante Roja Variable)",
+    "color": 16714240, "mass": "1.18 M☉", "radius": "332 R☉", "temp": "3,150 K",
+    "desc": "Estrella variable prototipo de su clase. Su brillo varía un factor 1600 en ~332 días.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Mira_the_star.jpg/300px-Mira_the_star.jpg"
+  },
+  {
+    "name": "Castor (Alfa Geminorum)",
+    "x": -6.0, "y": 12.0, "z": -42.0,
+    "dist_ly": 51.6, "mag": 1.58, "sp_type": "A2V (Sistema Séxtuple)",
+    "color": 13684991, "mass": "2.37 M☉", "radius": "2.09 R☉", "temp": "9,200 K",
+    "desc": "Sistema estelar séxtuple: 6 estrellas en tres pares binarios.",
+    "img": ""
+  },
+  {
+    "name": "Pollux (Beta Geminorum)",
+    "x": -7.0, "y": 10.0, "z": -28.0,
+    "dist_ly": 33.9, "mag": 1.14, "sp_type": "K0III (Gigante Naranja)",
+    "color": 16756224, "mass": "2.04 M☉", "radius": "8.8 R☉", "temp": "4,865 K",
+    "desc": "La más brillante de Géminis. Tiene un exoplaneta confirmado: Pollux b.",
+    "img": ""
+  },
+  {
+    "name": "Regulus (Alfa Leonis)",
+    "x": -15.0, "y": 5.0, "z": -70.0,
+    "dist_ly": 79.3, "mag": 1.35, "sp_type": "B7V (Estrella Azul Joven)",
+    "color": 10921983, "mass": "3.8 M☉", "radius": "3.1 R☉", "temp": "11,668 K",
+    "desc": "El corazón de Leo. Gira tan rápido que su ecuador es 32% más amplio que sus polos.",
+    "img": ""
+  },
+  {
+    "name": "Bellatrix (Gamma Orionis)",
+    "x": -60.0, "y": -70.0, "z": 220.0,
+    "dist_ly": 243.0, "mag": 1.64, "sp_type": "B2III (Gigante Azul)",
+    "color": 9961471, "mass": "8.4 M☉", "radius": "5.7 R☉", "temp": "22,000 K",
+    "desc": "El hombro de la guerrera de Orión. Gigante azul visible desde ambos hemisferios.",
+    "img": ""
+  },
+  {
+    "name": "Eta Carinae",
+    "x": -600.0, "y": -200.0, "z": -7800.0,
+    "dist_ly": 7500.0, "mag": 4.3, "sp_type": "LBV (Luminous Blue Variable)",
+    "color": 9175039, "mass": "100.0 M☉", "radius": "1000 R☉", "temp": "37,200 K",
+    "desc": "Una de las estrellas más masivas y luminosas. Gran erupción en 1843. Candidata a hipernova.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Eta_Carinae%2C_Hubble_Image%2C_2009.jpg/300px-Eta_Carinae%2C_Hubble_Image%2C_2009.jpg"
+  },
+  {
+    "name": "Stephenson 2-18 (St2-18)",
+    "x": -500.0, "y": -300.0, "z": -18000.0,
+    "dist_ly": 19600.0, "mag": 15.0, "sp_type": "M6III (Hipergigante Roja)",
+    "color": 16714240, "mass": "12.0 M☉", "radius": "2150 R☉", "temp": "3,200 K",
+    "desc": "Una de las estrellas más grandes conocidas. Su superficie alcanzaría la órbita de Saturno si sustituyera al Sol.",
+    "img": ""
+  },
+  {
+    "name": "UY Scuti",
+    "x": -200.0, "y": -150.0, "z": -9000.0,
+    "dist_ly": 9500.0, "mag": 8.29, "sp_type": "M4Ia (Hipergigante Roja)",
+    "color": 16714240, "mass": "7.0 M☉", "radius": "1708 R☉", "temp": "3,365 K",
+    "desc": "Una de las estrellas de mayor radio conocido. Volumen 5,000 millones de veces el del Sol.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/UY_Scuti_comparison.png/300px-UY_Scuti_comparison.png"
+  },
+  {
+    "name": "VY Canis Majoris",
+    "x": -400.0, "y": -250.0, "z": -5000.0,
+    "dist_ly": 3900.0, "mag": 6.5, "sp_type": "M3-M4 (Hipergigante Roja)",
+    "color": 16714240, "mass": "17.0 M☉", "radius": "1420 R☉", "temp": "3,490 K",
+    "desc": "Hipergigante roja extrema en el Can Mayor. Pierde masa hacia una nebulosa circundante.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/VY_Canis_Majoris_HST.jpg/300px-VY_Canis_Majoris_HST.jpg"
+  },
+  {
+    "name": "Tau Ceti",
+    "x": 2.5, "y": -3.0, "z": -5.5,
+    "dist_ly": 11.89, "mag": 3.5, "sp_type": "G8V (Enana Amarilla-Naranja)",
+    "color": 16769024, "mass": "0.783 M☉", "radius": "0.793 R☉", "temp": "5,344 K",
+    "desc": "Parecida al Sol con cinco exoplanetas candidatos. Dos posiblemente en la zona habitable.",
+    "img": ""
+  },
+  {
+    "name": "Epsilon Eridani",
+    "x": -1.5, "y": -1.8, "z": -4.0,
+    "dist_ly": 10.52, "mag": 3.73, "sp_type": "K2V (Enana Naranja)",
+    "color": 16752384, "mass": "0.830 M☉", "radius": "0.735 R☉", "temp": "5,084 K",
+    "desc": "Estrella muy estudiada en búsqueda de vida. Disco de polvo y exoplaneta Epsilon Eri b confirmado.",
+    "img": ""
+  },
+  {
+    "name": "Barnard's Star",
+    "x": -0.1, "y": 1.8, "z": -3.4,
+    "dist_ly": 5.96, "mag": 9.54, "sp_type": "M4Ve (Enana Roja)",
+    "color": 16717568, "mass": "0.144 M☉", "radius": "0.196 R☉", "temp": "3,134 K",
+    "desc": "Segunda estrella más cercana al Sol. Mayor movimiento propio observado. Candidata a exoplaneta.",
+    "img": ""
+  },
+  {
+    "name": "Altair (Alfa Aquilae)",
+    "x": 2.5, "y": -1.0, "z": 4.5,
+    "dist_ly": 16.7, "mag": 0.76, "sp_type": "A7V (Estrella Blanca Rotatoria)",
+    "color": 14606847, "mass": "1.86 M☉", "radius": "1.63 R☉", "temp": "7,670 K",
+    "desc": "La más brillante del Águila. Rota cada 9 horas, aplanamiento polar del 20%. Triángulo de Verano.",
+    "img": ""
+  },
+  {
+    "name": "Albireo (Beta Cygni)",
+    "x": -60.0, "y": 150.0, "z": -300.0,
+    "dist_ly": 430.0, "mag": 3.08, "sp_type": "K3II+B8Ve (Par Naranja-Azul)",
+    "color": 16752640, "mass": "5.0 M☉", "radius": "50.0 R☉", "temp": "4,080 K",
+    "desc": "El par de colores más bello del cielo: amarillo-naranja y azul. La cabeza del Cisne.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Albireo_star_system.jpg/300px-Albireo_star_system.jpg"
+  },
+  {
+    "name": "TRAPPIST-1",
+    "x": 15.0, "y": -5.0, "z": -38.0,
+    "dist_ly": 39.46, "mag": 18.8, "sp_type": "M8V (Ultra Enana Roja)",
+    "color": 16711680, "mass": "0.089 M☉", "radius": "0.121 R☉", "temp": "2,566 K",
+    "desc": "Anfitriona de 7 exoplanetas similares a la Tierra, tres en la zona habitable. El más estudiado.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/TRAPPIST-1_planetary_system_%28artist%27s_impression%29.jpg/300px-TRAPPIST-1_planetary_system.jpg"
+  },
+  {
+    "name": "51 Pegasi",
+    "x": -18.0, "y": 15.0, "z": -55.0,
+    "dist_ly": 50.45, "mag": 5.49, "sp_type": "G2IV (Subgigante Amarilla)",
+    "color": 16776960, "mass": "1.06 M☉", "radius": "1.36 R☉", "temp": "5,793 K",
+    "desc": "Primera estrella con exoplaneta confirmado (Dimidium, 1995). Nobel de Física 2019 para sus descubridores.",
+    "img": ""
+  },
+  {
+    "name": "Kepler-452",
+    "x": -400.0, "y": 200.0, "z": -1200.0,
+    "dist_ly": 1402.0, "mag": 13.7, "sp_type": "G2V (Enana Solar)",
+    "color": 16776960, "mass": "1.04 M☉", "radius": "1.11 R☉", "temp": "5,757 K",
+    "desc": "Anfitriona de Kepler-452b, la 'Prima de la Tierra'. Primer análogo terrestre en zona habitable.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Kepler-452b_artist_concept.jpg/300px-Kepler-452b_artist_concept.jpg"
+  },
+  {
+    "name": "Gliese 667C",
+    "x": -4.0, "y": -4.0, "z": -19.0,
+    "dist_ly": 23.62, "mag": 10.22, "sp_type": "M1.5V (Enana Roja)",
+    "color": 16714240, "mass": "0.33 M☉", "radius": "0.337 R☉", "temp": "3,700 K",
+    "desc": "Sistema triple con 7 exoplanetas candidatos, tres posiblemente en la zona habitable.",
+    "img": ""
+  },
+  {
+    "name": "R136a1",
+    "x": -900.0, "y": -600.0, "z": -162000.0,
+    "dist_ly": 163000.0, "mag": 12.0, "sp_type": "WN5h (Hipermasa)",
+    "color": 6750207, "mass": "315.0 M☉", "radius": "35.4 R☉", "temp": "53,000 K",
+    "desc": "La estrella más masiva conocida. En la Nebulosa de la Tarántula (LMC). Supera todos los modelos clásicos.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Hubble_Tarantula_Nebula_2014.jpg/300px-Hubble_Tarantula_Nebula_2014.jpg"
+  },
+  {
+    "name": "Alnilam (Epsilon Orionis)",
+    "x": -200.0, "y": -180.0, "z": -1300.0,
+    "dist_ly": 1350.0, "mag": 1.69, "sp_type": "B0Ia (Supergigante Azul)",
+    "color": 9699327, "mass": "40.0 M☉", "radius": "32.4 R☉", "temp": "27,000 K",
+    "desc": "La estrella central del Cinturón de Orión. Supergigante azul de enorme luminosidad.",
+    "img": ""
+  },
+  {
+    "name": "Alnitak (Zeta Orionis)",
+    "x": -180.0, "y": -160.0, "z": -800.0,
+    "dist_ly": 800.0, "mag": 1.77, "sp_type": "O9.7Ib (Supergigante Azul Caliente)",
+    "color": 9699327, "mass": "33.0 M☉", "radius": "20.0 R☉", "temp": "29,500 K",
+    "desc": "Estrella oriental del Cinturón de Orión. Ioniza la Nebulosa de la Llama.",
+    "img": ""
+  },
+  {
+    "name": "Mintaka (Delta Orionis)",
+    "x": -160.0, "y": -140.0, "z": -900.0,
+    "dist_ly": 900.0, "mag": 2.23, "sp_type": "O9.5II (Gigante Azul Caliente)",
+    "color": 9699327, "mass": "22.0 M☉", "radius": "12.0 R☉", "temp": "29,500 K",
+    "desc": "Estrella occidental del Cinturón de Orión. La más lejana del cinturón.",
+    "img": ""
+  },
+  {
+    "name": "Delta Cephei",
+    "x": -50.0, "y": 200.0, "z": -600.0,
+    "dist_ly": 887.0, "mag": 3.95, "sp_type": "F5Ib-G2Ib (Cefeida Prototipo)",
+    "color": 16774400, "mass": "4.5 M☉", "radius": "44.5 R☉", "temp": "5,900 K",
+    "desc": "Prototipo de las estrellas Cefeidas. Su período de 5.4 días calibró las distancias cósmicas.",
+    "img": ""
+  },
+  {
+    "name": "Denebola (Beta Leonis)",
+    "x": -7.0, "y": 12.0, "z": -30.0,
+    "dist_ly": 35.9, "mag": 2.14, "sp_type": "A3V (Estrella Blanca)",
+    "color": 13684991, "mass": "1.78 M☉", "radius": "1.73 R☉", "temp": "8,500 K",
+    "desc": "La cola del León. Disco de polvo detectado por exceso infrarrojo.",
+    "img": ""
+  },
+  {
+    "name": "Enif (Epsilon Pegasi)",
+    "x": 180.0, "y": 30.0, "z": -630.0,
+    "dist_ly": 690.0, "mag": 2.38, "sp_type": "K2Ib (Supergigante Naranja)",
+    "color": 16752640, "mass": "7.1 M☉", "radius": "211 R☉", "temp": "4,462 K",
+    "desc": "El hocico del Pegaso. Supergigante naranja con erupciones estelares periódicas.",
+    "img": ""
+  },
+  {
+    "name": "Shaula (Lambda Scorpii)",
+    "x": 55.0, "y": -80.0, "z": -320.0,
+    "dist_ly": 365.0, "mag": 1.62, "sp_type": "B2IV (Subgigante Azul)",
+    "color": 9961471, "mass": "10.0 M☉", "radius": "6.5 R☉", "temp": "25,000 K",
+    "desc": "El aguijón del Escorpión. Sistema estelar triple en la cola de Scorpio.",
+    "img": ""
+  },
+  {
+    "name": "Dubhe (Alfa Ursae Majoris)",
+    "x": -50.0, "y": 90.0, "z": -60.0,
+    "dist_ly": 123.0, "mag": 1.79, "sp_type": "K0II-III (Gigante Naranja)",
+    "color": 16752640, "mass": "4.25 M☉", "radius": "17.0 R☉", "temp": "4,660 K",
+    "desc": "Una de las Poceras de la Osa Mayor. Señala hacia la Estrella Polar.",
+    "img": ""
+  },
+  {
+    "name": "Alioth (Epsilon Ursae Majoris)",
+    "x": -42.0, "y": 95.0, "z": -58.0,
+    "dist_ly": 82.6, "mag": 1.76, "sp_type": "A0p (Peculiar Metálica)",
+    "color": 14671839, "mass": "2.91 M☉", "radius": "4.14 R☉", "temp": "9,020 K",
+    "desc": "La más brillante de la Osa Mayor. Estrella peculiar con variaciones de campo magnético.",
+    "img": ""
+  },
+  {
+    "name": "Mizar (Zeta Ursae Majoris)",
+    "x": -43.0, "y": 97.0, "z": -60.0,
+    "dist_ly": 82.9, "mag": 2.23, "sp_type": "A2V (Cuádruple Blanca)",
+    "color": 13421567, "mass": "2.5 M☉", "radius": "2.4 R☉", "temp": "8,900 K",
+    "desc": "Sistema cuádruple en el mango de la Osa Mayor. Primer binario espectroscópico descubierto.",
+    "img": ""
+  },
+  {
+    "name": "Kochab (Beta Ursae Minoris)",
+    "x": -10.0, "y": 125.0, "z": 30.0,
+    "dist_ly": 130.9, "mag": 2.07, "sp_type": "K4III (Gigante Naranja)",
+    "color": 16744448, "mass": "2.2 M☉", "radius": "42.06 R☉", "temp": "4,030 K",
+    "desc": "Beta de la Osa Menor. Fue la Estrella Polar hace 3,000 años.",
+    "img": ""
+  },
+  {
+    "name": "Spica (Alfa Virginis)",
+    "x": 30.0, "y": -60.0, "z": -230.0,
+    "dist_ly": 250.0, "mag": 0.98, "sp_type": "B1V+B4V (Binaria Azul)",
+    "color": 10079487, "mass": "10.25 M☉", "radius": "7.40 R☉", "temp": "25,300 K",
+    "desc": "La más brillante de Virgo. Inspiró a Hiparco en el descubrimiento de la precesión.",
+    "img": ""
+  },
+  {
+    "name": "Mimosa (Beta Crucis)",
+    "x": -20.0, "y": -75.0, "z": -330.0,
+    "dist_ly": 353.0, "mag": 1.25, "sp_type": "B0.5III (Gigante Azul Brillante)",
+    "color": 9699327, "mass": "16.0 M☉", "radius": "8.4 R☉", "temp": "30,000 K",
+    "desc": "Segunda más brillante de la Cruz del Sur. Variable beta Cephei con período de ~5 horas.",
+    "img": ""
+  },
+  {
+    "name": "Gacrux (Gamma Crucis)",
+    "x": -5.0, "y": -38.0, "z": -85.0,
+    "dist_ly": 88.6, "mag": 1.63, "sp_type": "M3.5III (Gigante Roja)",
+    "color": 16714240, "mass": "1.3 M☉", "radius": "84 R☉", "temp": "3,689 K",
+    "desc": "La más al norte de la Cruz del Sur. Única gigante roja prominente de la constelación.",
+    "img": ""
+  },
+  {
+    "name": "Pollux (Beta Geminorum)",
+    "x": -7.5, "y": 10.5, "z": -28.5,
+    "dist_ly": 33.9, "mag": 1.14, "sp_type": "K0III (Gigante Naranja)",
+    "color": 16756224, "mass": "2.04 M☉", "radius": "8.8 R☉", "temp": "4,865 K",
+    "desc": "La más brillante de Géminis. Gigante naranja más cercana al Sol con exoplaneta Pollux b.",
+    "img": ""
+  },
+  {
+    "name": "Castor A (Alfa Geminorum)",
+    "x": -6.5, "y": 12.5, "z": -42.5,
+    "dist_ly": 51.6, "mag": 1.58, "sp_type": "A2V (Sistema Séxtuple)",
+    "color": 13684991, "mass": "2.37 M☉", "radius": "2.09 R☉", "temp": "9,200 K",
+    "desc": "Sistema séxtuple: 6 estrellas en tres pares binarios en la constelación de Géminis.",
+    "img": ""
+  },
+  {
+    "name": "HD 209458 (Osiris)",
+    "x": -70.0, "y": 60.0, "z": -120.0,
+    "dist_ly": 159.0, "mag": 7.65, "sp_type": "G0V (Enana Amarilla con Exoplaneta)",
+    "color": 16776960, "mass": "1.14 M☉", "radius": "1.20 R☉", "temp": "6,117 K",
+    "desc": "Primera estrella con tránsito exoplanetario detectado. Su planeta Osiris pierde atmósfera al espacio.",
+    "img": ""
+  },
+  {
+    "name": "WR 102 (Wolf-Rayet 102)",
+    "x": -100.0, "y": -50.0, "z": -8000.0,
+    "dist_ly": 7400.0, "mag": 12.0, "sp_type": "WO2 (Wolf-Rayet de Oxígeno)",
+    "color": 5570559, "mass": "19.0 M☉", "radius": "0.5 R☉", "temp": "210,000 K",
+    "desc": "Una de las estrellas más calientes del universo conocido. Temperatura superficial: 210,000 K.",
+    "img": ""
+  },
+  {
+    "name": "Sirius B (Enana Blanca)",
+    "x": -1.52, "y": -1.22, "z": 1.82,
+    "dist_ly": 8.6, "mag": 8.44, "sp_type": "DA2 (Enana Blanca)",
+    "color": 13421567, "mass": "1.018 M☉", "radius": "0.0084 R☉", "temp": "25,200 K",
+    "desc": "La primera enana blanca descubierta. Compañera de Sirius A. Masa solar en volumen terrestre.",
+    "img": ""
+  },
+  {
+    "name": "Lalande 21185",
+    "x": -1.5, "y": 5.0, "z": -6.0,
+    "dist_ly": 8.29, "mag": 7.47, "sp_type": "M2V (Enana Roja)",
+    "color": 16714240, "mass": "0.46 M☉", "radius": "0.393 R☉", "temp": "3,828 K",
+    "desc": "Cuarta estrella más cercana al Sol. Sistema de exoplanetas candidatos.",
+    "img": ""
+  },
+  {
+    "name": "61 Cygni A",
+    "x": 0.5, "y": 6.8, "z": -9.2,
+    "dist_ly": 11.4, "mag": 5.2, "sp_type": "K5V (Enana Naranja)",
+    "color": 16752384, "mass": "0.70 M☉", "radius": "0.665 R☉", "temp": "4,526 K",
+    "desc": "Primera estrella en tener su paralaje medido (Bessel, 1838). Binaria de enanas naranjas.",
+    "img": ""
+  },
+  {
+    "name": "Regulus (Alfa Leonis)",
+    "x": -15.5, "y": 5.5, "z": -70.5,
+    "dist_ly": 79.3, "mag": 1.35, "sp_type": "B7V (Estrella Azul Joven)",
+    "color": 10921983, "mass": "3.8 M☉", "radius": "3.1 R☉", "temp": "11,668 K",
+    "desc": "El corazón de Leo. Gira tan rápido que su ecuador supera en 32% el diámetro polar.",
+    "img": ""
   }
 ]
