@@ -681,6 +681,16 @@
         const discoveryModal = document.getElementById('discovery-modal');
         const discoveryForm = document.getElementById('discovery-form');
 
+        // Función para abrir el modal pre-llenado desde una estrella sin catalogar
+        window.openCatalogModalForStar = function(suggestedName, x, y, z) {
+            if (!discoveryModal) return;
+            document.getElementById('disc-name').value = suggestedName;
+            document.getElementById('disc-x').value = x;
+            document.getElementById('disc-y').value = y;
+            document.getElementById('disc-z').value = z;
+            discoveryModal.style.display = 'flex';
+        };
+
         if (btnOpenModal && discoveryModal) {
             btnOpenModal.addEventListener('click', () => {
                 discoveryModal.style.display = 'flex';
@@ -711,7 +721,6 @@
                     window.addNewStarDiscovery(newStar);
                 }
                 discoveryModal.style.display = 'none';
-                alert(`🌟 Estrella ${newStar.name} añadida con éxito al espacio 3D.`);
             });
         }
     </script>
