@@ -4406,18 +4406,14 @@ function setDeepSpaceMode(active) {
         setToggle('toggle-meteors', false);
         setToggle('toggle-warp-effect', false);
         
-        // Hide Constellations (Lines inside hipparcosGroup)
         if (typeof hipparcosGroup !== 'undefined') {
             hipparcosGroup.children.forEach(c => {
                 if (c.type === "LineSegments") c.visible = false;
             });
         }
-        
-        // Reduce Bloom and Warp Slider
         if (typeof bloomPass !== 'undefined') bloomPass.strength = 0.05;
         document.getElementById('slider-warp').value = 0;
         physicsWarp = 0;
-        
     } else {
         logTitan("Restaurando HUD de Laboratorio Físico...");
         setToggle('toggle-orbits', true);
@@ -4430,48 +4426,68 @@ function setDeepSpaceMode(active) {
                 if (c.type === "LineSegments") c.visible = true;
             });
         }
-        
         if (typeof bloomPass !== 'undefined') bloomPass.strength = 0.3;
         document.getElementById('slider-warp').value = 100;
         physicsWarp = 1.0;
     }
 }
+
 function focusObject(object, dist, name, desc, mass, rad) {
     currentTarget = object;
+    
+    // === FIX MATERIALIZACIÓN Y GESTIÓN DE CAPAS VISIBLES ===
+    const systemNames = ["Sol", "Mercurio", "Venus", "Tierra", "La Luna", "Marte", "Ceres", "Júpiter", "Saturno", "Urano", "Neptuno", "Plutón", "Haumea", "Makemake", "Eris", "Apophis", "Bennu", "'Oumuamua"];
+    
+    if (systemNames.some(s => name.includes(s))) {
+        if (typeof solarSystem !== 'undefined') solarSystem.visible = true;
+        if (typeof currentExoSystem !== 'undefined' && currentExoSystem) {
+            scene.remove(currentExoSystem);
+            currentExoSystem = null;
+        }
+    } else if (object.userData && object.userData.isExtraSystem) {
+        if (typeof generateStarSystem === 'function') {
+            generateStarSystem(name, object.userData.spectralColor);
+            if (currentExoSystem) currentExoSystem.position.copy(object.position);
+        }
+        if (typeof solarSystem !== 'undefined') solarSystem.visible = false;
+    }
+
+    // Forzar materialización del objeto 3D
+    object.traverse((child) => {
+        if (child.isMesh && child.material) {
+            child.visible = true;
+            child.material.needsUpdate = true;
+        }
+    });
+
     const pos = new THREE.Vector3();
     object.getWorldPosition(pos);
     lastTargetPos.copy(pos);
     
-    // Iniciar Motor de Curvatura (Warp Drive)
+    // Motor de Curvatura (Warp Drive)
     warpActive = true;
     warpT = 0;
     warpStartCameraPos.copy(camera.position);
     warpStartLookAt.copy(controls.target);
-    warpTargetCameraPos.copy(pos).add(new THREE.Vector3(dist, dist * 0.2, dist));
+    warpTargetCameraPos.copy(pos).add(new THREE.Vector3(dist, dist * 0.25, dist));
     warpTargetLookAt.copy(pos);
     originalTimeSpeed = document.getElementById('speed-slider').value / 10;
     
     const out = document.getElementById('console-output');
-    out.innerHTML += `<div style="color:#ff00ff;">> TITAN: MOTOR WARP ACTIVADO. Fijando salto hacia [${name}]</div>`;
-    out.scrollTop = out.scrollHeight;
+    if (out) {
+        out.innerHTML += `<div style="color:#ff00ff;">> TITAN: MOTOR WARP ACTIVADO. Materializando [${name}]</div>`;
+        out.scrollTop = out.scrollHeight;
+    }
     
-    // === Mostrar Panel de Laboratorio Científico ===
-    showLabPanel(name, {
-        desc: desc,
-        mass: mass,
-        radius: rad
-    });
+    // Panel de Laboratorio Científico
+    showLabPanel(name, { desc: desc, mass: mass, radius: rad });
     
     const dartBtn = document.getElementById('btn-launch-dart');
     if (dartBtn) {
-        if (name.includes('NEO-') || name === 'Apophis' || name === 'Bennu') {
-            dartBtn.style.display = 'block';
-        } else {
-            dartBtn.style.display = 'none';
-        }
+        dartBtn.style.display = (name.includes('NEO-') || name === 'Apophis' || name === 'Bennu') ? 'block' : 'none';
     }
     
-    // Datos NASA legacy (astroKnowledge) — complementan el panel
+    // Datos NASA legacy (astroKnowledge)
     if (typeof astroKnowledge !== 'undefined' && astroKnowledge[name]) {
         const k = astroKnowledge[name];
         if (k.descripcion && !COSMIC_DB[name]) {
@@ -4479,33 +4495,204 @@ function focusObject(object, dist, name, desc, mass, rad) {
         }
         if (k.imagen_url) {
             const imgEl = document.getElementById('target-image');
-            if (imgEl.style.display === 'none') {
+            if (imgEl && imgEl.style.display === 'none') {
                 imgEl.src = k.imagen_url;
                 imgEl.style.display = 'block';
             }
         }
     }
-    
-    // Consulta en vivo a la API oficial de la NASA (images-api.nasa.gov)
+
+    // Consulta NASA Image API
     if (window.fetchNasaImageData) {
         window.fetchNasaImageData(name);
     }
-    
-    // Aterrizaje Planetario (Google Earth Style)
+
+    // Botón de Aterrizaje Planetario
     const btnContainer = document.getElementById('landing-btn-container');
     if (btnContainer) {
         if (["Tierra", "Marte", "Mercurio", "Venus", "Júpiter", "Saturno", "Urano", "Neptuno", "La Luna", "Fobos", "Deimos"].includes(name) || (object.userData && object.userData.isExoplanet)) {
-            btnContainer.innerHTML = `<button id="btn-land" style="width:100%; padding: 10px; background: rgba(0, 255, 0, 0.4); border: 1px solid lime; color: white; cursor: pointer; border-radius: 5px; font-weight:bold; font-size:1.1rem; text-shadow: 0 0 5px lime;">🔥 ATERRIZAR EN SUPERFICIE</button>`;
-            document.getElementById('btn-land').addEventListener('click', () => {
-                landOn(object, name);
-            });
+            btnContainer.innerHTML = `<button id="btn-land" style="width:100%; padding:10px; background:rgba(0,255,0,0.4); border:1px solid lime; color:white; cursor:pointer; border-radius:5px; font-weight:bold; font-size:1.1rem; text-shadow:0 0 5px lime;">🔥 ATERRIZAR EN SUPERFICIE</button>`;
+            document.getElementById('btn-land').addEventListener('click', () => landOn(object, name));
         } else {
-            btnContainer.innerHTML = ""; 
+            btnContainer.innerHTML = "";
         }
     }
-    
+
     panel.classList.remove('hidden');
 }
+
+// ============================================================================
+// 🚀 MOTOR DE TOURS GUIADOS COSMOLÓGICOS INTERACTIVOS
+// ============================================================================
+const COSMIC_TOURS = {
+    solarsystem: {
+        category: "🪐 TOUR SISTEMA SOLAR E INTERCEPTOR DART",
+        steps: [
+            { name: "Sol", dist: 50, desc: "El centro gravitacional de nuestro sistema. Estrella de secuencia principal tipo G2V." },
+            { name: "Mercurio", dist: 12, desc: "El planeta más cercano al Sol. Superficie repleta de cráteres de impacto." },
+            { name: "Venus", dist: 16, desc: "Efecto invernadero descontrolado con presiones superficiales aplastantes." },
+            { name: "Tierra", dist: 18, desc: "Nuestro hogar planetario con océanos de agua líquida y atmósfera protectora." },
+            { name: "Marte", dist: 15, desc: "El planeta rojo. Objetivo principal para la exploración humana y terraformación." },
+            { name: "Júpiter", dist: 40, desc: "El gigante gaseoso más masivo del sistema con su Gran Mancha Roja." },
+            { name: "Saturno", dist: 35, desc: "Espectacular sistema de anillos glaciales y lunas complejas." },
+            { name: "Apophis", dist: 10, desc: "Asteroide NEO de defensa planetaria. Objetivo del interceptor DART." }
+        ]
+    },
+    blackholes: {
+        category: "🕳️ TOUR AGUJEROS NEGROS SUPERMASIVOS",
+        steps: [
+            { name: "Sgr A*", dist: 60, desc: "El agujero negro supermasivo en el corazón galáctico de la Vía Láctea (4.1M masas solares)." },
+            { name: "M87*", dist: 80, desc: "El primer agujero negro fotografiado en la historia. Emite un jet relativista masivo." },
+            { name: "TON 618", dist: 120, desc: "El monstruo del cosmos: agujero negro ultramasivo de 66.000 millones de masas solares." }
+        ]
+    },
+    stars: {
+        category: "🌟 TOUR ESTRELLAS Y CUNAS ESTELARES",
+        steps: [
+            { name: "Sirius A (Alfa Canis Majoris)", dist: 25, desc: "La estrella más brillante del cielo nocturno terrestre en la constelación del Can Mayor." },
+            { name: "Betelgeuse (Alfa Orionis)", dist: 40, desc: "Supergigante roja moribunda en Orión a punto de convertirse en supernova." },
+            { name: "Rigel (Beta Orionis)", dist: 35, desc: "Supergigante azul ultrapotente en el pie de Orión." },
+            { name: "Vega (Alfa Lyrae)", dist: 25, desc: "Estrella blanca emblemática de la constelación de la Lira." },
+            { name: "Nebulosa Orión", dist: 60, desc: "Región de formación estelar masiva y cuna de nuevos sistemas exoplanetarios." },
+            { name: "Nebulosa del Cangrejo", dist: 50, desc: "Remanente de la supernova de 1054 d.C. con un púlsar girando en su interior." }
+        ]
+    }
+};
+
+let currentTour = null;
+let currentTourIndex = 0;
+let tourTimer = null;
+let isTourPaused = false;
+
+function startCosmicTour(tourKey) {
+    if (!COSMIC_TOURS[tourKey]) return;
+    currentTour = COSMIC_TOURS[tourKey];
+    currentTourIndex = 0;
+    isTourPaused = false;
+
+    // Menú dropdown auto-hide
+    const drop = document.getElementById('tours-dropdown');
+    if (drop) drop.style.display = 'none';
+
+    // HUD reproductor show
+    const hud = document.getElementById('tour-hud-player');
+    if (hud) hud.style.display = 'block';
+
+    const btnPause = document.getElementById('btn-tour-pause');
+    if (btnPause) btnPause.textContent = "⏸ Pausar";
+
+    logTitan(`🚀 Iniciando ${currentTour.category}...`);
+    executeTourStep();
+}
+
+function executeTourStep() {
+    if (!currentTour || !currentTour.steps[currentTourIndex]) return;
+    const step = currentTour.steps[currentTourIndex];
+
+    // Actualizar HUD reproductor
+    document.getElementById('tour-category-title').textContent = currentTour.category;
+    document.getElementById('tour-step-title').textContent = `Destino ${currentTourIndex + 1}/${currentTour.steps.length}: ${step.name}`;
+    document.getElementById('tour-step-desc').textContent = step.desc;
+
+    // Buscar objeto por nombre
+    let targetMesh = null;
+    
+    // Buscar en Planetas
+    const pFound = planets.find(p => p.data && p.data.name.includes(step.name));
+    if (pFound) targetMesh = pFound.mesh;
+    
+    // Buscar en Sol
+    if (!targetMesh && step.name === "Sol") targetMesh = typeof sun !== 'undefined' ? sun : null;
+
+    // Buscar en Estrellas Nombradas / SIMBAD
+    if (!targetMesh && window.namedStars) {
+        const sFound = window.namedStars.find(s => s.mesh && s.mesh.userData && s.mesh.userData.name.includes(step.name));
+        if (sFound) targetMesh = sFound.mesh;
+    }
+
+    // Buscar en Agujeros Negros o Nebulosas en COSMIC_DB
+    if (!targetMesh) {
+        // Crear dummy en posición o usar origen
+        const dummy = new THREE.Object3D();
+        if (step.name === "Sgr A*") dummy.position.set(75, 75, 75);
+        else dummy.position.set(150, 75, -200);
+        targetMesh = dummy;
+    }
+
+    // Saltar con el Motor Warp hacia el objetivo
+    if (targetMesh) {
+        focusObject(targetMesh, step.dist, step.name, step.desc, "-", "-");
+    }
+
+    // Reiniciar temporizador para avanzar automáticamente en 10 segundos si no está pausado
+    clearTimeout(tourTimer);
+    if (!isTourPaused) {
+        tourTimer = setTimeout(() => {
+            if (!isTourPaused) nextTourStep();
+        }, 12000);
+    }
+}
+
+function nextTourStep() {
+    if (!currentTour) return;
+    currentTourIndex++;
+    if (currentTourIndex >= currentTour.steps.length) {
+        currentTourIndex = 0; // Bucle continuo o final
+    }
+    executeTourStep();
+}
+
+function prevTourStep() {
+    if (!currentTour) return;
+    currentTourIndex--;
+    if (currentTourIndex < 0) {
+        currentTourIndex = currentTour.steps.length - 1;
+    }
+    executeTourStep();
+}
+
+function toggleTourPause() {
+    isTourPaused = !isTourPaused;
+    const btnPause = document.getElementById('btn-tour-pause');
+    if (btnPause) {
+        btnPause.textContent = isTourPaused ? "▶ Reanudar" : "⏸ Pausar";
+        btnPause.style.background = isTourPaused ? "rgba(0,255,204,0.2)" : "rgba(255,215,0,0.2)";
+        btnPause.style.borderColor = isTourPaused ? "#00ffcc" : "#ffd700";
+        btnPause.style.color = isTourPaused ? "#00ffcc" : "#ffd700";
+    }
+    if (isTourPaused) {
+        clearTimeout(tourTimer);
+        logTitan("⏸ Tour pausado por el usuario.");
+    } else {
+        logTitan("▶ Reanudando Tour...");
+        executeTourStep();
+    }
+}
+
+function stopCosmicTour() {
+    clearTimeout(tourTimer);
+    currentTour = null;
+    isTourPaused = false;
+    const hud = document.getElementById('tour-hud-player');
+    if (hud) hud.style.display = 'none';
+    logTitan("✕ Tour guiado finalizado.");
+}
+
+// Toggle para el menú dropdown de tours en el navbar
+document.addEventListener('DOMContentLoaded', () => {
+    const btnToursMenu = document.getElementById('btn-tours-menu');
+    const toursDropdown = document.getElementById('tours-dropdown');
+    if (btnToursMenu && toursDropdown) {
+        btnToursMenu.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toursDropdown.style.display = toursDropdown.style.display === 'none' ? 'block' : 'none';
+        });
+        document.addEventListener('click', () => {
+            toursDropdown.style.display = 'none';
+        });
+    }
+});
 
 let streetViewSphere = null;
 
