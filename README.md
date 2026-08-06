@@ -2,7 +2,7 @@
 > **Author & Creator / Autor:** José Manuel (`cyberenigma-lgtm`)  
 > **Copyright © 2026 José Manuel. All Rights Reserved / Todos los Derechos Reservados.**  
 > **License:** Private Intellectual Property (Open Educational & Institutional Access).
-> ** https://cyberenigma-lgtm.github.io/TITAN-Interactive-Cosmos-Lab/ **
+> **https://cyberenigma-lgtm.github.io/TITAN-Interactive-Cosmos-Lab/**
 
 ---
 
