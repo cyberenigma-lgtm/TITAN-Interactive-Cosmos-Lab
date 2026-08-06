@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================================================
  * APOCALYPSE ENGINE — SIMULADOR COSMOLÓGICO Y MOTOR DE DEFENSA PLANETARIA 3D
  * Autor y Creador Original: José Manuel
@@ -416,7 +416,7 @@ const axesHelper = new THREE.AxesHelper(1000); // X=Rojo, Y=Verde, Z=Azul
 axesHelper.visible = false;
 scene.add(axesHelper);
 
-const gridHelper = new THREE.GridHelper(2000, 100, 0x4cc9f0, 0x222222);
+const gridHelper = new THREE.GridHelper(2000, 100, 0x2a3a4a, 0x222222);
 gridHelper.visible = false;
 scene.add(gridHelper);
 
@@ -736,7 +736,10 @@ solarSystem.add(sun);
 
 const sunLight = new THREE.PointLight(0xffffff, 2.5, 10000);
 sun.add(sunLight);
-scene.add(new THREE.AmbientLight(0x0a0a1a, 0.6));
+// Espacio profundo real: sin luz ambiental global.
+// Hemisferio muy tenue como fill mínimo (luz difusa del fondo cósmico de microondas)
+const cosmicFill = new THREE.HemisphereLight(0x0d1520, 0x000000, 0.04);
+scene.add(cosmicFill);
 
 // PROTUBERANCIAS SOLARES (LENGUAS DE FUEGO EN 3D)
 const solarProminencesGroup = new THREE.Group();
@@ -2857,30 +2860,36 @@ composer.addPass(renderPass);
 
 // Añadir Bloom fotorrealista para el resplandor del sol y estrellas
 // Añadir Bloom fotorrealista para el resplandor del sol y estrellas (ESPECTÁCULO VISUAL)
-const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-bloomPass.threshold = 0.85; // ALTO: Solo el Sol, Sgr A* y estrellas muy cercanas brillarán, evitando que la Vía Láctea ciegue la cámara.
-bloomPass.strength = 1.2;  // Brillo moderado pero notorio
-bloomPass.radius = 0.4;    // Expansión
+// === BLOOM HDR FÍSICO — Espacio Profundo Real ===
+// threshold alto: solo superficies estelares y núcleos brillan (sin neon-glow ambiental)
+// strength bajo: halo tenue y puntual, como observaciones reales del Hubble
+const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.45, 0.22, 0.92);
+bloomPass.threshold = 0.92;   // Solo núcleos estelares muy luminosos
+bloomPass.strength  = 0.45;   // Halo físico mínimo — sin glow excesivo
+bloomPass.radius    = 0.22;   // Difusión puntual, no expansiva
 composer.addPass(bloomPass);
 
-// === ILUMINACIÓN VOLUMÉTRICA Y POLVO CÓSMICO ===
-// Simulamos polvo espacial volumétrico para dar profundidad
+// === POLVO INTERESTELAR — Medio Interestelar (ISM) Real ===
+// Distribución volumétrica de gas y polvo interestelar:
+// color gris-azul frío (ISM real: silicatos y carbono), tamaño sub-pixel, muy transparente
 const dustGeo = new THREE.BufferGeometry();
-const dustCount = 15000;
+const dustCount = 8000;
 const dustPos = new Float32Array(dustCount * 3);
-for(let i=0; i<dustCount * 3; i++) {
-    dustPos[i] = (Math.random() - 0.5) * 8000; // Nubes esparcidas en un radio de 4000
+for (let i = 0; i < dustCount; i++) {
+    // Distribución en disco galáctico aplanado (plano Y más comprimido)
+    dustPos[i*3]   = (Math.random() - 0.5) * 2400 + 75;
+    dustPos[i*3+1] = (Math.random() - 0.5) * 180  + 75;
+    dustPos[i*3+2] = (Math.random() - 0.5) * 2400 + 75;
 }
 dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-
-// Creamos un material de partículas suaves y transparentes
+// Silicatos interestelares: gris-azul frío, muy pequeños, casi invisibles a distancia
 const dustMat = new THREE.PointsMaterial({
-    color: 0x4466aa,
-    size: 20,
+    color: 0x8899bb,    // Gris-azul: silicatos y grafito ISM real
+    size: 0.15,         // Sub-pixel — visible solo cerca
     transparent: true,
-    opacity: 0.05,
+    opacity: 0.22,
     depthWrite: false,
-    blending: THREE.AdditiveBlending
+    sizeAttenuation: true
 });
 const cosmicDust = new THREE.Points(dustGeo, dustMat);
 scene.add(cosmicDust);
@@ -4157,27 +4166,53 @@ function animate() {
         }
     });
 
-    // Sistema de Curvatura (Warp Engine)
+    // === MOTOR DE CURVATURA (WARP ENGINE) — Ease Cúbico Realista ===
     if (warpActive) {
-        warpT += 0.015;
+        // Velocidad de avance del warp: 0.007 = ~2.2s a 60fps (cinemático)
+        warpT = Math.min(1.0, warpT + 0.007);
         if (warpT >= 1.0) {
             warpActive = false;
             camera.fov = 75;
             camera.updateProjectionMatrix();
             timeSpeed = originalTimeSpeed;
         } else {
-            // Distorsión del campo visual (FOV)
-            camera.fov = 75 + Math.sin(warpT * Math.PI) * 60;
-            camera.updateProjectionMatrix();
-            // Dilatación temporal cósmica (DVTRGAS acelera)
-            timeSpeed = originalTimeSpeed * (1 + Math.sin(warpT * Math.PI) * 50);
+            // Ease-in-out cúbico: aceleración suave inicial, desaceleración suave al llegar
+            const t = warpT;
+            const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
             
-            // Interpolación Hermite (Smooth)
-            const ease = warpT < 0.5 ? 2 * warpT * warpT : -1 + (4 - 2 * warpT) * warpT;
+            // Compresión FOV mínima (distorsión de métrica Alcubierre leve)
+            camera.fov = 75 + Math.sin(t * Math.PI) * 18;
+            camera.updateProjectionMatrix();
+            
+            // Dilatación temporal (DVTRGAS)
+            timeSpeed = originalTimeSpeed * (1 + Math.sin(t * Math.PI) * 12);
+            
+            // Interpolación de posición y target con curva cúbica
             camera.position.lerpVectors(warpStartCameraPos, warpTargetCameraPos, ease);
             controls.target.lerpVectors(warpStartLookAt, warpTargetLookAt, ease);
         }
-        
+    }
+
+    // === ANIMACIÓN KEPLERIANA DE EXOPLANETAS ===
+    // Orbita cada exoplaneta según su velocidad angular (T² ∝ a³)
+    if (window.currentExoPlanets && window.currentExoPlanets.length > 0) {
+        window.currentExoPlanets.forEach(p => {
+            if (!p.parent) return; // Ya limpiado de la escena
+            p.userData.orbitAngle += p.userData.orbitSpeed * timeSpeed;
+            const a = p.userData.orbitAngle;
+            const d = p.userData.orbitDist;
+            p.position.set(Math.cos(a) * d, p.position.y, Math.sin(a) * d);
+        });
+    }
+    // Animar lunas alrededor de sus planetas
+    if (window.currentExoMoons && window.currentExoMoons.length > 0) {
+        window.currentExoMoons.forEach(m => {
+            if (!m.parent) return;
+            m.userData.orbitAngle += m.userData.orbitSpeed * timeSpeed;
+            const a = m.userData.orbitAngle;
+            const d = m.userData.orbitDist;
+            m.position.set(Math.cos(a) * d, m.position.y, Math.sin(a) * d);
+        });
     }
 
     // Sistema de Vuelo Libre Desacoplado (WASD)
@@ -4475,7 +4510,7 @@ function focusObject(object, dist, name, desc, mass, rad) {
     
     const out = document.getElementById('console-output');
     if (out) {
-        out.innerHTML += `<div style="color:#ff00ff;">> TITAN: MOTOR WARP ACTIVADO. Materializando [${name}]</div>`;
+        out.innerHTML += `<div style="color:#7a9e6a;">> TITAN: MOTOR WARP ACTIVADO. Materializando [${name}]</div>`;
         out.scrollTop = out.scrollHeight;
     }
     
@@ -4714,8 +4749,10 @@ function generateStarSystem(starID, spectralColor) {
         currentExoSystem = null;
     }
     
-    // Si volvemos al Sol, no generamos nada extra (ya tenemos planetsData)
-    if (starID === "Sol") return;
+    // Limpiar registro de exoplanetas animados
+    window.currentExoPlanets = [];
+    window.currentExoMoons = [];
+
     
     currentExoSystem = new THREE.Group();
     scene.add(currentExoSystem);
@@ -4752,7 +4789,7 @@ function generateStarSystem(starID, spectralColor) {
         
         // Ángulo orbital inicial aleatorio para NO alinear los planetas en fila recta
         let initAngle = seededRandom(seed++) * Math.PI * 2;
-        let orbitInc = (seededRandom(seed++) - 0.5) * 0.15; // Ligera inclinación orbital
+        let orbitInc = (seededRandom(seed++) - 0.5) * 0.55; // Inclinación orbital variada (±31°)
 
         let rColor = Math.floor(seededRandom(seed++) * 200 + 55);
         let gColor = Math.floor(seededRandom(seed++) * 200 + 55);
@@ -4780,9 +4817,16 @@ function generateStarSystem(starID, spectralColor) {
             isGasGiant: isGasGiant,
             dist: pDist,
             period: pPeriod,
-            angle: initAngle
+            angle: initAngle,
+            // === ANIMACIÓN KEPLERIANA ===
+            orbitAngle: initAngle,
+            orbitDist: pDist,
+            // Ley de Kepler: T² ∝ a³ → velocidad ∝ 1/√a
+            orbitSpeed: 0.00028 / Math.sqrt(pDist)
         };
         orbitGroup.add(pMesh);
+        // Registrar para animación en el bucle animate()
+        window.currentExoPlanets.push(pMesh);
         
         // Lunas ordenadas orbitando alrededor del propio planeta (como hijas de pMesh)
         let numMoons = isGasGiant ? Math.floor(seededRandom(seed++) * 3) + 1 : (seededRandom(seed++) > 0.7 ? 1 : 0);
@@ -4797,8 +4841,14 @@ function generateStarSystem(starID, spectralColor) {
             
             // Posición relativa al planeta
             mMesh.position.set(Math.cos(mAngle) * mDist, 0, Math.sin(mAngle) * mDist);
-            mMesh.userData = { name: `${starID} - Exoplaneta ${i+1} Luna ${m+1}` };
+            mMesh.userData = { 
+                name: `${starID} - Exoplaneta ${i+1} Luna ${m+1}`,
+                orbitAngle: mAngle,
+                orbitDist: mDist,
+                orbitSpeed: 0.0012 / Math.sqrt(mDist)
+            };
             pMesh.add(mMesh);
+            window.currentExoMoons.push(mMesh);
         }
         
         // Dibujar línea de órbita circular
@@ -4968,7 +5018,7 @@ window.deployedProbes = [];
 // Función genérica para desplegar sonda
 function deployProbeAt(pos, targetName) {
     const probeGeo = new THREE.CylinderGeometry(0.5, 0.5, 3, 8);
-    const probeMat = new THREE.MeshStandardMaterial({ color: 0x4cc9f0, wireframe: false, roughness: 0.2, metalness: 0.8 });
+    const probeMat = new THREE.MeshStandardMaterial({ color: 0x2a3a4a, wireframe: false, roughness: 0.2, metalness: 0.8 });
     const probeMesh = new THREE.Mesh(probeGeo, probeMat);
     
     const panelGeo = new THREE.BoxGeometry(8, 0.2, 2);
@@ -5389,3 +5439,4 @@ if (btnSave && btnLoad && btnReset) {
         textNotes.value = "";
     });
 }
+
