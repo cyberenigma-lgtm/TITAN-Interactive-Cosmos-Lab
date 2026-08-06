@@ -3403,36 +3403,77 @@ window.addEventListener('click', (e) => {
             found = true;
             break;
         } else if (window.hipparcosGroup && window.hipparcosGroup.children.length > 0 && obj === window.hipparcosGroup.children[0]) {
-            infoPanel.classList.remove('hidden');
-            tName.textContent = `Estrella Local (Hipparcos ID: ${intersects[i].index})`;
-            document.getElementById('target-type').textContent = "CATÁLOGO HIPPARCOS";
-            document.getElementById('target-type').style.display = "block";
-            document.getElementById('target-mass').textContent = "~1 M☉";
-            document.getElementById('target-radius').textContent = "~1 R☉";
-            document.getElementById('target-dist').textContent = "Vecindario Solar (<1000 ly)";
-            document.getElementById('target-mag').textContent = "-";
-            document.getElementById('target-temp').textContent = "-";
-            
             const pos = new THREE.Vector3();
             pos.fromBufferAttribute(obj.geometry.attributes.position, intersects[i].index);
             pos.applyMatrix4(obj.matrixWorld);
+
+            // Coordenadas relativas al origen
+            const rawX = ((pos.x - 75) / 10).toFixed(2);
+            const rawY = ((pos.y - 75) / 10).toFixed(2);
+            const rawZ = ((pos.z - 75) / 10).toFixed(2);
+
+            const starName = `Anomalía Estelar (HIP ${intersects[i].index})`;
+            showLabPanel(starName, {
+                type: "❓ OBJETO ESTELAR NO CATALOGADO",
+                dist: `${(pos.distanceTo(solarSystem.position) * 3.26).toFixed(1)} ly`,
+                mag: "No medida",
+                temp: "Sin espectrometría",
+                mass: "Estimada ~1 M☉",
+                radius: "Desconocido",
+                spectral: "Sin clasificar",
+                desc: `Estrella registrada en el catálogo fotométrico Hipparcos (ID: ${intersects[i].index}). Requiere espectroscopía y registro oficial en el laboratorio.`
+            });
+
+            // Botón directo para catalogar esta estrella
+            const btnContainer = document.getElementById('landing-btn-container');
+            if (btnContainer) {
+                btnContainer.innerHTML = `<button onclick="openCatalogModalForStar('${starName}', ${rawX}, ${rawY}, ${rawZ})" style="width:100%; margin-top:8px; background:linear-gradient(90deg, #ffd700, #ffaa00); border:none; color:#000; font-weight:bold; padding:8px; border-radius:4px; cursor:pointer; font-family:'Outfit',sans-serif;">🔬 CATALOGAR ESTA ESTRELLA (Añadir Nombre)</button>`;
+            }
+
             controls.target.copy(pos);
             found = true;
             break;
         } else if (obj === window.milkyWaySphere) {
-            infoPanel.classList.remove('hidden');
-            tName.textContent = `Vía Láctea (Sector Espiral)`;
-            document.getElementById('target-type').textContent = "POLVO Y ESTRELLAS (1 Millón)";
-            document.getElementById('target-type').style.display = "block";
-            document.getElementById('target-mass').textContent = "Densidad Local";
-            document.getElementById('target-radius').textContent = "-";
-            document.getElementById('target-dist').textContent = "Brazo de Orión";
-            document.getElementById('target-mag').textContent = "-";
-            document.getElementById('target-temp').textContent = "-";
+            const hitPoint = intersects[i].point;
+            const rawX = ((hitPoint.x - 75) / 10).toFixed(2);
+            const rawY = ((hitPoint.y - 75) / 10).toFixed(2);
+            const rawZ = ((hitPoint.z - 75) / 10).toFixed(2);
+
+            const starName = `Objeto Volumétrico (${rawX}, ${rawY}, ${rawZ})`;
+            showLabPanel(starName, {
+                type: "🌌 FUENTE GALÁCTICA NO CATALOGADA",
+                dist: `${(hitPoint.distanceTo(solarSystem.position) * 3.26).toFixed(1)} ly`,
+                mag: "-", temp: "-", mass: "Densidad local", radius: "-",
+                desc: "Punto de emisión estelar no catalogado en la galaxia volumétrica. Puedes registrar este objeto e incorporarlo a la base de datos de descubrimientos del laboratorio."
+            });
+
+            const btnContainer = document.getElementById('landing-btn-container');
+            if (btnContainer) {
+                btnContainer.innerHTML = `<button onclick="openCatalogModalForStar('${starName}', ${rawX}, ${rawY}, ${rawZ})" style="width:100%; margin-top:8px; background:linear-gradient(90deg, #ffd700, #ffaa00); border:none; color:#000; font-weight:bold; padding:8px; border-radius:4px; cursor:pointer; font-family:'Outfit',sans-serif;">🔬 CATALOGAR / BAUTIZAR ESTA ESTRELLA</button>`;
+            }
             found = true;
             break;
         } else if (obj === window.zoaGroup) {
-            infoPanel.classList.remove('hidden');
+            const hitPoint = intersects[i].point;
+            const rawX = ((hitPoint.x - 75) / 10).toFixed(2);
+            const rawY = ((hitPoint.y - 75) / 10).toFixed(2);
+            const rawZ = ((hitPoint.z - 75) / 10).toFixed(2);
+
+            const starName = `Anomalía ZOA (${rawX}, ${rawY}, ${rawZ})`;
+            showLabPanel(starName, {
+                type: "🔬 ESTRELLA SINTÉTICA (Zona de Evitación)",
+                dist: `${(hitPoint.distanceTo(solarSystem.position) * 3.26).toFixed(1)} ly`,
+                mag: "Oculta por polvo", temp: "-", mass: "Masa oculta extrapolada",
+                desc: "Estrella extrapolada por el algoritmo cuántico DVTRGAS en la Zona de Evitación. Puedes asignarle un nombre e información formal."
+            });
+
+            const btnContainer = document.getElementById('landing-btn-container');
+            if (btnContainer) {
+                btnContainer.innerHTML = `<button onclick="openCatalogModalForStar('${starName}', ${rawX}, ${rawY}, ${rawZ})" style="width:100%; margin-top:8px; background:linear-gradient(90deg, #ffd700, #ffaa00); border:none; color:#000; font-weight:bold; padding:8px; border-radius:4px; cursor:pointer; font-family:'Outfit',sans-serif;">🔬 REGISTRAR ESTRELLA DE LA ZOA</button>`;
+            }
+            found = true;
+            break;
+        }
             tName.textContent = `Zona de Evitación (ZOA)`;
             document.getElementById('target-type').textContent = "EXTRAPOLACIÓN MASA OCULTA";
             document.getElementById('target-type').style.display = "block";
