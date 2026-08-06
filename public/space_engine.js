@@ -308,6 +308,30 @@ function updateUniverseState(offset) {
         if (hipp) { hipp.visible = true; hipp.children.forEach(c => { if(c.material) c.material.opacity = 1.0; }); }
         if (zoa) zoa.visible = true;
         if (cosmicWeb) cosmicWeb.visible = true;
+
+        // ☀️ Evolución Física Dinámica del Sol (Tamaño y Espectro)
+        if (typeof sun !== 'undefined' && sun) {
+            if (offset < 0) {
+                // Hacia el pasado (Joven Sol): T Tauri Protoestrella
+                // Se expande gradualmente hasta 2.2x y se vuelve más rojiza/anaranjada
+                const t = Math.min(1.0, Math.abs(offset) / Math.abs(ERA_THRESHOLDS.SOLAR_SYSTEM));
+                const targetScale = 1.0 + t * 1.2;
+                sun.scale.set(targetScale, targetScale, targetScale);
+                if (sun.material) {
+                    // Cambiar color a naranja/rojo
+                    sun.material.color.setRGB(1.0, 1.0 - t * 0.5, 1.0 - t * 0.8);
+                }
+            } else {
+                // Hacia el futuro lejanísimo (Gigante Roja)
+                // Escala aumenta de forma exponencial
+                const t = Math.min(1.0, offset / 1e12); // Límite de escala en el futuro
+                const targetScale = 1.0 + t * 4.0;
+                sun.scale.set(targetScale, targetScale, targetScale);
+                if (sun.material) {
+                    sun.material.color.setRGB(1.0, 1.0 - t * 0.7, 1.0 - t * 0.9);
+                }
+            }
+        }
     }
 }
 
