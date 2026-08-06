@@ -222,13 +222,13 @@ const COSMIC_DB = {
 const MS_PER_YEAR = 365.25 * 24 * 3600 * 1000;
 const AGE_UNIVERSE_MS = 13.8e9 * MS_PER_YEAR; // 13.800 millones de años en ms
 
-// Umbrales de era (en ms relativos al presente, negativos = pasado)
+// Umbrales de era alineados con la escala temporal de la UI (COSMIC_ERAS)
 const ERA_THRESHOLDS = {
-    BIG_BANG:      -AGE_UNIVERSE_MS,                    // t=0: Big Bang
-    FIRST_STARS:   -(AGE_UNIVERSE_MS - 2e8 * MS_PER_YEAR),  // -13.6B años: primeras estrellas
-    FIRST_GALAXIES:-(AGE_UNIVERSE_MS - 1e9 * MS_PER_YEAR),  // -12.8B años: primeras galaxias
-    MILKY_WAY:     -(AGE_UNIVERSE_MS - 3e9 * MS_PER_YEAR),  // -10.8B años: Vía Láctea
-    SOLAR_SYSTEM:  -4.6e9 * MS_PER_YEAR,                // -4.6B años: Sistema Solar
+    BIG_BANG:      -4e17,                               // t=0: Big Bang
+    FIRST_STARS:   -4e14,                               // Primeras estrellas
+    FIRST_GALAXIES:-2.5e14,                             // Primeras galaxias
+    MILKY_WAY:     -1.4e14,                             // Vía Láctea
+    SOLAR_SYSTEM:  -1.3e14,                             // Formación del Sistema Solar (después de la galaxia)
     PRESENT:       0
 };
 
