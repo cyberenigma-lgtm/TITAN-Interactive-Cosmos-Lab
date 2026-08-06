@@ -4537,73 +4537,94 @@ function generateStarSystem(starID, spectralColor) {
     let seed = 0;
     for(let i = 0; i < starID.toString().length; i++) seed += starID.toString().charCodeAt(i) * Math.pow(10, i);
     
-    // Cuántos planetas tendrá esta estrella? (1 a 8)
-    let numPlanets = Math.floor(seededRandom(seed++) * 8) + 1;
-    
-    // Colores base por tipo espectral para iluminar el sistema
-    let starLightColor = new THREE.Color(spectralColor || 0xffffff);
-    const starLight = new THREE.PointLight(starLightColor.getHex(), 1.5, 500);
+    // 🌟 Crear la estrella central del exosistema en (0,0,0)
+    const starColorHex = spectralColor || 0x4488ff;
+    const centralStarGeo = new THREE.SphereGeometry(15, 32, 32);
+    const centralStarMat = new THREE.MeshBasicMaterial({ color: starColorHex });
+    const centralStarMesh = new THREE.Mesh(centralStarGeo, centralStarMat);
+    centralStarMesh.userData = { name: starID, mass: "Estrella Central", radius: "Fotosfera Estelar" };
+    currentExoSystem.add(centralStarMesh);
+
+    // Halo luminoso exterior
+    const glowGeo = new THREE.SphereGeometry(25, 24, 24);
+    const glowMat = new THREE.MeshBasicMaterial({ color: starColorHex, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending });
+    centralStarMesh.add(new THREE.Mesh(glowGeo, glowMat));
+
+    // Luz puntual de la estrella
+    const starLight = new THREE.PointLight(starColorHex, 2.5, 2000);
     currentExoSystem.add(starLight);
     
+    // Cuántos planetas tendrá esta estrella? (2 a 6)
+    let numPlanets = Math.floor(seededRandom(seed++) * 5) + 2;
+    
     for (let i = 0; i < numPlanets; i++) {
-        // Características del planeta
-        let isGasGiant = seededRandom(seed++) > 0.7; // 30% gigantes gaseosos
-        let pRadius = isGasGiant ? (seededRandom(seed++) * 5 + 3) : (seededRandom(seed++) * 2 + 0.5);
-        let pDist = (i + 1) * 15 + seededRandom(seed++) * 10;
+        let isGasGiant = seededRandom(seed++) > 0.6; // 40% gigantes gaseosos
+        let pRadius = isGasGiant ? (seededRandom(seed++) * 4 + 3) : (seededRandom(seed++) * 1.8 + 0.8);
+        let pDist = 35 + (i + 1) * 25 + seededRandom(seed++) * 15;
         let pPeriod = pDist * (seededRandom(seed++) * 2 + 1);
         
-        let rColor = Math.floor(seededRandom(seed++) * 255);
-        let gColor = Math.floor(seededRandom(seed++) * 255);
-        let bColor = Math.floor(seededRandom(seed++) * 255);
+        // Ángulo orbital inicial aleatorio para NO alinear los planetas en fila recta
+        let initAngle = seededRandom(seed++) * Math.PI * 2;
+        let orbitInc = (seededRandom(seed++) - 0.5) * 0.15; // Ligera inclinación orbital
+
+        let rColor = Math.floor(seededRandom(seed++) * 200 + 55);
+        let gColor = Math.floor(seededRandom(seed++) * 200 + 55);
+        let bColor = Math.floor(seededRandom(seed++) * 200 + 55);
         let pColor = (rColor << 16) | (gColor << 8) | bColor;
         
         const orbitGroup = new THREE.Group();
+        orbitGroup.rotation.x = orbitInc;
         currentExoSystem.add(orbitGroup);
         
         const pGeo = new THREE.SphereGeometry(pRadius, 32, 32);
         const pMat = new THREE.MeshStandardMaterial({ 
             color: pColor, 
-            roughness: isGasGiant ? 0.2 : 0.8 
+            roughness: isGasGiant ? 0.3 : 0.85,
+            metalness: 0.1
         });
         const pMesh = new THREE.Mesh(pGeo, pMat);
-        pMesh.position.x = pDist;
+        
+        // Posicionar en su ángulo orbital único alrededor de la estrella
+        pMesh.position.set(Math.cos(initAngle) * pDist, 0, Math.sin(initAngle) * pDist);
+        
         pMesh.userData = { 
             name: `${starID} - Exoplaneta ${i+1}${isGasGiant ? ' (Gaseoso)' : ' (Rocoso)'}`,
             isExoplanet: true,
             isGasGiant: isGasGiant,
-            starColor: starLightColor.getHex(),
             dist: pDist,
-            period: pPeriod
+            period: pPeriod,
+            angle: initAngle
         };
         orbitGroup.add(pMesh);
         
-        // Añadir lunas procedurales
-        let numMoons = isGasGiant ? Math.floor(seededRandom(seed++) * 5) : (seededRandom(seed++) > 0.8 ? 1 : 0);
+        // Lunas ordenadas orbitando alrededor del propio planeta (como hijas de pMesh)
+        let numMoons = isGasGiant ? Math.floor(seededRandom(seed++) * 3) + 1 : (seededRandom(seed++) > 0.7 ? 1 : 0);
         for(let m = 0; m < numMoons; m++) {
-            let mRadius = pRadius * (seededRandom(seed++) * 0.2 + 0.05);
-            let mDist = pRadius + seededRandom(seed++) * 2 + 1;
+            let mRadius = pRadius * 0.25;
+            let mDist = pRadius * 2.2 + m * 2.5;
+            let mAngle = seededRandom(seed++) * Math.PI * 2;
+            
             const mGeo = new THREE.SphereGeometry(mRadius, 16, 16);
-            const mMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 1.0 });
+            const mMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
             const mMesh = new THREE.Mesh(mGeo, mMat);
-            mMesh.position.x = pMesh.position.x + mDist;
+            
+            // Posición relativa al planeta
+            mMesh.position.set(Math.cos(mAngle) * mDist, 0, Math.sin(mAngle) * mDist);
             mMesh.userData = { name: `${starID} - Exoplaneta ${i+1} Luna ${m+1}` };
-            orbitGroup.add(mMesh);
+            pMesh.add(mMesh);
         }
         
-        // Órbita visual
+        // Dibujar línea de órbita circular
         const oGeo = new THREE.BufferGeometry();
         const pts = [];
         for (let j = 0; j <= 64; j++) {
             let a = (j / 64) * Math.PI * 2;
-            pts.push(Math.cos(a)*pDist, 0, Math.sin(a)*pDist);
+            pts.push(Math.cos(a) * pDist, 0, Math.sin(a) * pDist);
         }
         oGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-        const oMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 });
+        const oMat = new THREE.LineBasicMaterial({ color: starColorHex, transparent: true, opacity: 0.15 });
         const oLine = new THREE.Line(oGeo, oMat);
-        currentExoSystem.add(oLine);
-        
-        // Agregar a la animación y al raycaster local temporal
-        // Aquí podríamos añadir un array temporal de exoplanetas
+        orbitGroup.add(oLine);
     }
 }
 
