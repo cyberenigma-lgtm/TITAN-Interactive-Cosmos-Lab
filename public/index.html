@@ -1,4 +1,4 @@
-<!--
+﻿<!--
   ============================================================================
   APOCALYPSE ENGINE — INTERFAZ Y LABORATORIO COSMOLÓGICO 3D
   Autor y Creador Original: José Manuel
@@ -106,10 +106,10 @@
     </div>
 
     <aside id="dvtrgas-console" class="glass-card panel-draggable" style="position:absolute; top: 6rem; left: 2rem; width: 350px; height: 350px; font-family:'Courier New', monospace; font-size:12px; pointer-events:auto; z-index:100; display:flex; flex-direction:column;">
-        <h3 class="drag-handle" style="color:#f72585; border-bottom: 1px solid #f72585; margin-bottom:10px; font-family:'Outfit', sans-serif; padding-bottom:5px;">TITAN // LIVE CONSOLE</h3>
+        <h3 class="drag-handle" style="color:#d4a843; border-bottom: 1px solid #d4a843; margin-bottom:10px; font-family:'Outfit', sans-serif; padding-bottom:5px;">TITAN // LIVE CONSOLE</h3>
         <div id="console-output" style="color:#00ff00; line-height:1.4; flex-grow:1; overflow-y:auto; margin-bottom:10px;"></div>
         <div style="display:flex; border-top: 1px solid #444; padding-top:10px;">
-            <span style="color:#f72585;">TITAN$&nbsp;</span>
+            <span style="color:#d4a843;">TITAN$&nbsp;</span>
             <input type="text" id="console-input" style="background:transparent; border:none; color:white; font-family:'Courier New', monospace; outline:none; width:100%;" autocomplete="off" spellcheck="false" placeholder="_">
         </div>
     </aside>
@@ -128,10 +128,10 @@
         </div>
     </aside>
     <aside id="state-manager" class="glass-card panel-draggable" style="position:absolute; top: calc(6rem + 640px); left: 2rem; width: 350px; font-family:'Outfit', sans-serif; pointer-events:auto; z-index:100; padding:15px;">
-        <h3 class="drag-handle" style="color:#f72585; border-bottom: 1px solid #f72585; margin-bottom:10px; padding-bottom:5px;">💾 BLOC DE NOTAS COSMOLÓGICO</h3>
+        <h3 class="drag-handle" style="color:#d4a843; border-bottom: 1px solid #d4a843; margin-bottom:10px; padding-bottom:5px;">💾 BLOC DE NOTAS COSMOLÓGICO</h3>
         
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button id="btn-save-state" style="flex:1; background: rgba(247,37,133,0.2); border: 1px solid #f72585; color: white; padding: 5px; cursor: pointer; border-radius:3px; font-size:11px;">GUARDAR ESTADO</button>
+            <button id="btn-save-state" style="flex:1; background: rgba(212,168,67,0.2); border: 1px solid #d4a843; color: white; padding: 5px; cursor: pointer; border-radius:3px; font-size:11px;">GUARDAR ESTADO</button>
             <button id="btn-load-state" style="flex:1; background: rgba(67,97,238,0.2); border: 1px solid #4361ee; color: white; padding: 5px; cursor: pointer; border-radius:3px; font-size:11px;">CARGAR ESTADO</button>
             <button id="btn-reset-state" style="flex:1; background: rgba(255,0,0,0.2); border: 1px solid red; color: white; padding: 5px; cursor: pointer; border-radius:3px; font-size:11px;">RESET</button>
         </div>
@@ -142,7 +142,7 @@
 
     <main class="hud">
 
-        <section id="info-panel" class="glass-card panel-draggable hidden" style="width: 380px; max-width: calc(100vw - 2rem); max-height: 82vh; overflow-y: auto; border: 1px solid rgba(0,240,255,0.3);">
+        <section id="info-panel" class="glass-card panel-draggable hidden" style="width: 380px; max-width: calc(100vw - 2rem); max-height: 82vh; overflow-y: auto; border: 1px solid rgba(126,184,212,0.3);">
             <!-- Header -->
             <div class="drag-handle" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                 <h3 id="target-name" style="font-size:1.15rem;word-break:break-word;color:#fff;margin:0;">Objetivo</h3>
@@ -153,7 +153,7 @@
 
             <!-- Foto NASA/real -->
             <div style="position:relative;">
-                <img id="target-image" src="" alt="Fotografía real" style="width:100%;border-radius:6px;display:none;object-fit:cover;max-height:180px;border:1px solid rgba(0,240,255,0.4);">
+                <img id="target-image" src="" alt="Fotografía real" style="width:100%;border-radius:6px;display:none;object-fit:cover;max-height:180px;border:1px solid rgba(126,184,212,0.4);">
                 <div id="target-img-source" style="position:absolute;bottom:4px;right:6px;font-size:0.6rem;color:rgba(255,255,255,0.5);display:none;">© NASA / ESA</div>
             </div>
 
@@ -168,7 +168,7 @@
                 </div>
                 <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px;">
                     <div style="color:#888;font-size:0.65rem;margin-bottom:2px;">MAGNITUD</div>
-                    <div id="target-mag" style="color:#f72585;font-weight:bold;">-</div>
+                    <div id="target-mag" style="color:#d4a843;font-weight:bold;">-</div>
                 </div>
                 <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:6px;">
                     <div style="color:#888;font-size:0.65rem;margin-bottom:2px;">TEMPERATURA</div>
@@ -219,7 +219,7 @@
         <!-- Ecuación de Gravitación / Órbitas -->
         <div style="margin-bottom: 15px;">
             <div style="color:white; font-size:12px; margin-bottom:5px; font-family:monospace;">
-                <span style="color:#f72585;">[KEPLER]</span> v = √(G*M/r)
+                <span style="color:#d4a843;">[KEPLER]</span> v = √(G*M/r)
             </div>
             <div style="display:flex; justify-content:space-between; color:#aaa; font-size:11px;">
                 <span>Constante Gravitacional (G)</span>
@@ -231,7 +231,7 @@
         <!-- Ecuación de Acreción de Agujero Negro -->
         <div style="margin-bottom: 15px;">
             <div style="color:white; font-size:12px; margin-bottom:5px; font-family:monospace;">
-                <span style="color:#f72585;">[SCHWARZSCHILD]</span> Ṁ = 4πr²ρv
+                <span style="color:#d4a843;">[SCHWARZSCHILD]</span> Ṁ = 4πr²ρv
             </div>
             <div style="display:flex; justify-content:space-between; color:#aaa; font-size:11px;">
                 <span>Tasa de Acreción (Ṁ)</span>
@@ -243,7 +243,7 @@
         <!-- Ecuación de Warp / Distorsión del Espacio-Tiempo -->
         <div style="margin-bottom: 15px;">
             <div style="color:white; font-size:12px; margin-bottom:5px; font-family:monospace;">
-                <span style="color:#f72585;">[ALCUBIERRE]</span> ds² = -dt² + (dx - v_s f(r_s) dt)²
+                <span style="color:#d4a843;">[ALCUBIERRE]</span> ds² = -dt² + (dx - v_s f(r_s) dt)²
             </div>
             <div style="display:flex; justify-content:space-between; color:#aaa; font-size:11px;">
                 <span>Intensidad de Curvatura (W)</span>
@@ -273,19 +273,19 @@
             </div>
 
             <!-- Ecuación activa visualizada -->
-            <div id="metric-formula-display" style="color:#f72585; font-size:10px; font-family:monospace; margin-bottom:8px; background:rgba(0,0,0,0.3); padding:4px; border-radius:3px;">
+            <div id="metric-formula-display" style="color:#d4a843; font-size:10px; font-family:monospace; margin-bottom:8px; background:rgba(0,0,0,0.3); padding:4px; border-radius:3px;">
                 Ecuación: r² = x² + z²
             </div>
 
             <div style="color:white; font-size:11px; font-family:monospace; margin-top:5px;">
-                <span style="color:#f72585;">[CUSTOM]</span> <input type="text" id="custom-metric-input" placeholder="r = Math.pow(x*x*x + z*z*z, 1/3)" style="width: 140px; background: rgba(0,0,0,0.5); border: 1px solid #4cc9f0; color: #00ffcc; font-size: 10px; padding: 2px;">
+                <span style="color:#d4a843;">[CUSTOM]</span> <input type="text" id="custom-metric-input" placeholder="r = Math.pow(x*x*x + z*z*z, 1/3)" style="width: 140px; background: rgba(0,0,0,0.5); border: 1px solid #4cc9f0; color: #00ffcc; font-size: 10px; padding: 2px;">
                 <button id="btn-apply-metric" style="background: rgba(76,201,240,0.3); border: 1px solid #4cc9f0; color: white; cursor: pointer; padding: 2px 5px; font-size: 9px; border-radius: 2px;">APLICAR</button>
             </div>
         </div>
 
         <!-- CATÁLOGO DE NEBULOSAS — TELESCOPIO INTEGRADO -->
         <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 10px;">
-            <div style="color:#f72585; font-size:12px; font-family:monospace; margin-bottom: 8px; letter-spacing:1px;">
+            <div style="color:#d4a843; font-size:12px; font-family:monospace; margin-bottom: 8px; letter-spacing:1px;">
                 🔭 TELESCOPIO // CATÁLOGO NGC
             </div>
             <div id="nebula-catalog" style="display:flex; flex-direction:column; gap:4px; max-height: 200px; overflow-y:auto;">
@@ -352,7 +352,7 @@
     </aside>
 
     <!-- REAL-TIME SPATIAL DISTANCE TELEMETRY HUD -->
-    <div id="distance-vector-hud" class="glass-card" style="position: absolute; top: 75px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(0, 240, 255, 0.4); background: rgba(5, 12, 24, 0.85); display: flex; align-items: center; gap: 20px; font-family: monospace; backdrop-filter: blur(10px); pointer-events: auto;">
+    <div id="distance-vector-hud" class="glass-card" style="position: absolute; top: 75px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(126,184,212, 0.4); background: rgba(5, 12, 24, 0.85); display: flex; align-items: center; gap: 20px; font-family: monospace; backdrop-filter: blur(10px); pointer-events: auto;">
         <div>
             <div style="font-size: 10px; color: #4cc9f0; font-weight: bold; letter-spacing: 1px;">🎯 OBJETIVO EN OBSERVACIÓN</div>
             <div id="hud-target-name" style="font-size: 13px; color: #ffffff; font-weight: bold;">Tierra / Sistema Solar</div>
@@ -360,7 +360,7 @@
         <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.2);"></div>
         <div>
             <div style="font-size: 10px; color: #00ffcc; font-weight: bold; letter-spacing: 1px;">📏 DISTANCIA REAL DESDE LA TIERRA</div>
-            <div id="hud-dist-value" style="font-size: 14px; color: #00f0ff; font-weight: bold;">0.00 ly (0.00 UA)</div>
+            <div id="hud-dist-value" style="font-size: 14px; color: #7eb8d4; font-weight: bold;">0.00 ly (0.00 UA)</div>
         </div>
         <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.2);"></div>
         <div>
@@ -402,7 +402,7 @@
         <!-- Top row: date display + datetime picker + LIVE button -->
         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; gap: 12px; flex-wrap: wrap;">
             <div style="display:flex; flex-direction:column; gap:2px;">
-                <div id="date-display" style="font-size: 1.35rem; font-weight: 800; color: #00f0ff; letter-spacing: 2px; font-family:'Outfit',sans-serif;">
+                <div id="date-display" style="font-size: 1.35rem; font-weight: 800; color: #7eb8d4; letter-spacing: 2px; font-family:'Outfit',sans-serif;">
                     Cargando Tiempo...
                 </div>
                 <div id="cosmic-era-label" style="font-size:9px; color:#888; letter-spacing:1px; font-family:monospace; text-transform:uppercase;">
@@ -411,19 +411,19 @@
             </div>
 
             <!-- Datetime picker -->
-            <div style="display:flex; align-items:center; gap:8px; background:rgba(0,240,255,0.05); border:1px solid rgba(0,240,255,0.2); border-radius:6px; padding:6px 10px;">
-                <span style="font-size:10px; color:#00f0ff; font-family:monospace; white-space:nowrap;">📅 SALTAR A:</span>
+            <div style="display:flex; align-items:center; gap:8px; background:rgba(126,184,212,0.05); border:1px solid rgba(126,184,212,0.2); border-radius:6px; padding:6px 10px;">
+                <span style="font-size:10px; color:#7eb8d4; font-family:monospace; white-space:nowrap;">📅 SALTAR A:</span>
                 <input type="datetime-local" id="datetime-picker"
-                    style="background:rgba(0,0,0,0.5); border:1px solid rgba(0,240,255,0.3); color:#00f0ff; font-family:'Outfit',sans-serif; font-size:12px; padding:4px 8px; border-radius:4px; cursor:pointer; outline:none;"
+                    style="background:rgba(0,0,0,0.5); border:1px solid rgba(126,184,212,0.3); color:#7eb8d4; font-family:'Outfit',sans-serif; font-size:12px; padding:4px 8px; border-radius:4px; cursor:pointer; outline:none;"
                     title="Seleccionar fecha y hora exacta">
-                <button id="btn-jump-date" style="background:rgba(0,240,255,0.2); border:1px solid #00f0ff; color:#00f0ff; font-size:10px; padding:4px 10px; border-radius:4px; cursor:pointer; font-weight:bold; white-space:nowrap;">⚡ IR</button>
+                <button id="btn-jump-date" style="background:rgba(126,184,212,0.2); border:1px solid #7eb8d4; color:#7eb8d4; font-size:10px; padding:4px 10px; border-radius:4px; cursor:pointer; font-weight:bold; white-space:nowrap;">⚡ IR</button>
             </div>
 
             <!-- Time direction + LIVE -->
             <div style="display:flex; align-items:center; gap:6px;">
                 <button id="btn-time-backward" title="Retroceder el tiempo" style="background:rgba(255,100,0,0.25); border:1px solid rgba(255,100,0,0.6); color:#ff6400; font-size:14px; padding:4px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">◀◀</button>
                 <button id="btn-time-pause" title="Pausar simulación" style="background:rgba(255,255,255,0.1); border:1px solid #555; color:#ccc; font-size:14px; padding:4px 10px; border-radius:4px; cursor:pointer;">⏸</button>
-                <button id="btn-time-forward" title="Avanzar el tiempo" style="background:rgba(0,240,255,0.2); border:1px solid rgba(0,240,255,0.5); color:#00f0ff; font-size:14px; padding:4px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">▶▶</button>
+                <button id="btn-time-forward" title="Avanzar el tiempo" style="background:rgba(126,184,212,0.2); border:1px solid rgba(126,184,212,0.5); color:#7eb8d4; font-size:14px; padding:4px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">▶▶</button>
                 <button id="btn-live" style="background: rgba(255,0,0,0.6); border: 1px solid red; color: white; padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size:12px; white-space:nowrap;">
                     🔴 LIVE
                 </button>
@@ -458,7 +458,7 @@
                 🧠 HOMO SAPIENS
             </button>
             <button class="cosmic-preset-btn" data-offset="0" data-label="PRESENTE" data-display="AHORA"
-                style="background:rgba(0,240,255,0.2); border:1px solid #00f0ff; color:#00f0ff; font-size:9px; padding:3px 7px; border-radius:3px; cursor:pointer; font-family:monospace; font-weight:bold; white-space:nowrap;">
+                style="background:rgba(126,184,212,0.2); border:1px solid #7eb8d4; color:#7eb8d4; font-size:9px; padding:3px 7px; border-radius:3px; cursor:pointer; font-family:monospace; font-weight:bold; white-space:nowrap;">
                 🔴 PRESENTE
             </button>
             <button class="cosmic-preset-btn" data-offset="157680000000" data-label="FUTURO LEJANO (+5000 años)" data-display="+5,000 años"
@@ -472,7 +472,7 @@
 
         <div style="display: flex; justify-content: space-between; width: 100%; font-size: 0.75rem; color: #555; font-family:monospace;">
             <span>◀ -100 Años</span>
-            <span id="timeline-direction-label" style="color:#00f0ff; font-weight:bold;">▶ AVANZANDO</span>
+            <span id="timeline-direction-label" style="color:#7eb8d4; font-weight:bold;">▶ AVANZANDO</span>
             <span>+100 Años ▶</span>
         </div>
     </div>
@@ -488,7 +488,7 @@
         
         <!-- Bottom Dashboard Frame -->
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 300" style="width: 100%; height: auto; position: absolute; bottom: 0; left: 0;">
-            <path d="M0 300 L1920 300 L1920 150 L1600 50 L320 50 L0 150 Z" fill="#111" stroke="#f72585" stroke-width="2" opacity="0.95"/>
+            <path d="M0 300 L1920 300 L1920 150 L1600 50 L320 50 L0 150 Z" fill="#111" stroke="#d4a843" stroke-width="2" opacity="0.95"/>
             <rect x="860" y="80" width="200" height="120" fill="#222" stroke="#00ffcc" stroke-width="1" rx="10"/>
         </svg>
         
@@ -502,8 +502,8 @@
         <div id="cockpit-dashboard" class="glass-card panel-draggable" style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); font-family: 'Courier New', monospace; color: #00ffcc; text-shadow: 0 0 10px #00ffcc; text-align: center; z-index: 51; pointer-events: auto; padding: 15px;">
             <h3 class="drag-handle" style="font-size: 1rem; color: #4cc9f0; border-bottom: 1px solid #4cc9f0; margin-bottom: 10px; cursor: grab; padding-bottom: 5px;">PANEL DE NAVEGACIÓN</h3>
             <div id="cockpit-status" style="font-size: 1.5rem; font-weight: bold;">WARP DRIVE ENGAGED</div>
-            <div style="font-size: 1rem; margin-top: 5px; color: #f72585;" id="cockpit-speed">TARGET ACQUIRED</div>
-            <button id="btn-exit-cockpit" style="pointer-events: auto; margin-top: 15px; padding: 8px 25px; background: rgba(247, 37, 133, 0.3); border: 1px solid #f72585; color: white; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 1rem; transition: 0.2s;" onmouseover="this.style.background='rgba(247, 37, 133, 0.6)'" onmouseout="this.style.background='rgba(247, 37, 133, 0.3)'">[X] SALIR DE CABINA</button>
+            <div style="font-size: 1rem; margin-top: 5px; color: #d4a843;" id="cockpit-speed">TARGET ACQUIRED</div>
+            <button id="btn-exit-cockpit" style="pointer-events: auto; margin-top: 15px; padding: 8px 25px; background: rgba(212,168,67, 0.3); border: 1px solid #d4a843; color: white; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 1rem; transition: 0.2s;" onmouseover="this.style.background='rgba(212,168,67, 0.6)'" onmouseout="this.style.background='rgba(212,168,67, 0.3)'">[X] SALIR DE CABINA</button>
         </div>
     </div>
 
@@ -695,7 +695,7 @@
                     <label style="color:#aaa; display:block; margin-bottom:2px;">Descripción Científica:</label>
                     <textarea id="disc-desc" rows="2" style="width:100%; background:rgba(0,0,0,0.6); border:1px solid #444; color:#fff; padding:4px; border-radius:4px;">Sistema estelar registrado en el laboratorio TITAN-LAB.</textarea>
                 </div>
-                <button type="submit" style="margin-top:8px; background:linear-gradient(90deg, #00f0ff, #7000ff); border:none; color:#fff; font-family:'Outfit',sans-serif; font-weight:bold; padding:8px; border-radius:4px; cursor:pointer;">
+                <button type="submit" style="margin-top:8px; background:rgba(126,184,212,0.15); border:none; color:#fff; font-family:'Outfit',sans-serif; font-weight:bold; padding:8px; border-radius:4px; cursor:pointer;">
                     🚀 Añadir Descubrimiento al Catálogo 3D
                 </button>
             </form>
@@ -756,3 +756,4 @@
     <script src="space_engine.js?v=74"></script>
 </body>
 </html>
+
