@@ -224,26 +224,34 @@
             <input type="range" id="slider-warp" min="0" max="500" value="100" style="width:100%;">
         </div>
 
+        </div>
+
         <!-- Comparador de Topologías -->
         <div style="margin-bottom: 5px;">
             <div style="color:#00ffcc; font-size:12px; margin-bottom:5px; font-family:monospace; border-bottom:1px solid #444; padding-bottom:5px;">
                 MÉTRICAS TOPOLÓGICAS
             </div>
-            <div style="color:white; font-size:11px; font-family:monospace;">
-                <span style="color:#f72585;">[ESFÉRICA L2]</span> r² = x² + y² + z²
+            
+            <!-- Selector de Ecuación Métrica -->
+            <div style="margin-bottom: 8px;">
+                <label style="color:#aaa; font-size:10px; display:block; margin-bottom:3px; font-family:monospace;">ECUACIÓN MÁSTER:</label>
+                <select id="select-topology" style="width:100%; background:rgba(0,0,0,0.8); border:1px solid #4cc9f0; color:#00ffcc; font-size:11px; padding:3px; font-family:monospace; cursor:pointer;">
+                    <option value="spherical">L2 Esférica (Euclidiana)</option>
+                    <option value="cubic">L∞ Cúbica (Minkowski/Chebyshev)</option>
+                    <option value="manhattan">L1 Manhattan (Métrica del Taxi)</option>
+                    <option value="lame">Cúbica de Lamé (Superelipse)</option>
+                    <option value="custom">Fórmula Custom (ver abajo)</option>
+                </select>
             </div>
-            <div style="color:white; font-size:11px; font-family:monospace; margin-top:5px;">
-                <span style="color:#f72585;">[CÚBICA L∞]</span> r = max(|x|, |y|, |z|)
+
+            <!-- Ecuación activa visualizada -->
+            <div id="metric-formula-display" style="color:#f72585; font-size:10px; font-family:monospace; margin-bottom:8px; background:rgba(0,0,0,0.3); padding:4px; border-radius:3px;">
+                Ecuación: r² = x² + z²
             </div>
+
             <div style="color:white; font-size:11px; font-family:monospace; margin-top:5px;">
-                <span style="color:#f72585;">[CUSTOM]</span> <input type="text" id="custom-metric-input" placeholder="r = sqrt(x*x + y*y)" style="width: 140px; background: rgba(0,0,0,0.5); border: 1px solid #4cc9f0; color: #00ffcc; font-size: 10px; padding: 2px;">
+                <span style="color:#f72585;">[CUSTOM]</span> <input type="text" id="custom-metric-input" placeholder="r = Math.pow(x*x*x + z*z*z, 1/3)" style="width: 140px; background: rgba(0,0,0,0.5); border: 1px solid #4cc9f0; color: #00ffcc; font-size: 10px; padding: 2px;">
                 <button id="btn-apply-metric" style="background: rgba(76,201,240,0.3); border: 1px solid #4cc9f0; color: white; cursor: pointer; padding: 2px 5px; font-size: 9px; border-radius: 2px;">APLICAR</button>
-            </div>
-            <div style="margin-top: 10px;">
-                <label style="display:flex; align-items:center; color:#ccc; font-size:11px; cursor:pointer;">
-                    <input type="checkbox" id="toggle-cubic-metric" style="margin-right:8px;"> 
-                    Forzar Topología Cúbica (DVTRGAS)
-                </label>
             </div>
         </div>
 
