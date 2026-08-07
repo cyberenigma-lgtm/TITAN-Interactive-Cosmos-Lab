@@ -3077,20 +3077,23 @@ const TitanShader = {
                 // bhActive es el radio aparente de Schwarzschild proyectado en pantalla
                 if (distToBh > 0.0) {
                     // Métrica de Schwarzschild aproximada en Screen Space
-                    // La deflexión de la luz es inversamente proporcional a la distancia al centro
-                    // Alpha = 4GM / (c^2 b)
-                    float massTerm = bhActive * bhActive * 0.5; 
-                    float deflexion = massTerm / (distToBh + 0.001);
+                    float massTerm = bhActive * bhActive * 0.2; // Reducido para evitar que empuje los UVs fuera de la pantalla
+                    float deflexion = massTerm / (distToBh + 0.01);
                     
-                    // Asegurarnos de no sobre-distorsionar la pantalla entera (corte suave a lo lejos)
-                    deflexion *= smoothstep(1.5, 0.0, distToBh);
+                    // Asegurarnos de que el efecto de lente solo ocurra LOCALMENTE alrededor del agujero
+                    // Si distToBh es mayor que bhActive * 6, el efecto desaparece rápidamente
+                    deflexion *= smoothstep(bhActive * 8.0, bhActive * 1.5, distToBh);
                     
                     // El horizonte de sucesos (Sombra Negra Absoluta)
-                    if (distToBh < bhActive * 0.95) { // 0.95 para dejar el anillo de fotones brillar
-                        // Dentro del agujero no hay luz del fondo (lo pinta negro si queremos, pero la malla 3D ya es negra)
+                    if (distToBh < bhActive * 0.95) { 
+                        // Opcional: pintar de negro profundo si queremos ocultar fallos de profundidad
+                        // gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                        // return;
                     } else {
                         // Curvar la luz hacia afuera (efecto lente gravitacional)
-                        uv += normalize(dirToBh) * deflexion;
+                        vec2 targetUv = uv + normalize(dirToBh) * deflexion;
+                        // Clampear para que no lea fuera de la pantalla y cree el "cuadrado feo"
+                        uv = clamp(targetUv, vec2(0.001), vec2(0.999));
                     }
                 }
             }
