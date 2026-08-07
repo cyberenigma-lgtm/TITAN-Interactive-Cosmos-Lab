@@ -1609,7 +1609,8 @@ fetch('/data/cosmic_web.bin').then(res => {
     window.cosmicWeb = new THREE.Points(geometry, material);
     window.ourUniverse.add(window.cosmicWeb);
     window.cosmicWebLines = window.cosmicWeb; // Referencia para el UI
-    window.cosmicWebLines.visible = false; // Oculto por defecto
+    const toggleBtn = document.getElementById('toggle-cosmicweb');
+    window.cosmicWebLines.visible = toggleBtn ? toggleBtn.checked : false; 
     
     // === MEMBRANA CMB (Fondo Cósmico de Microondas) ===
     const cmbGeo = new THREE.SphereGeometry(350000, 64, 64);
