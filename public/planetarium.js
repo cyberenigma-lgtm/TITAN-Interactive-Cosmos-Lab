@@ -1,0 +1,238 @@
+/**
+ * TITAN PLANETARIUM MODULE
+ * Lógica matemática para Street View del Cielo y Posicionamiento Global.
+ */
+
+window.Planetarium = {
+    // Diccionario social de ubicaciones
+    locations: [
+        { name: "Sede Central TITAN (Berriosuso, Navarra)", lat: 42.858111, lon: -1.686611 }, // Tu ubicación!
+        { name: "Pamplona, España", lat: 42.81687, lon: -1.64323 },
+        { name: "Galicia (Santiago), España", lat: 42.8782, lon: -8.5448 },
+        { name: "Madrid, España", lat: 40.4168, lon: -3.7038 },
+        { name: "Buenos Aires, Argentina", lat: -34.6037, lon: -58.3816 },
+        { name: "CDMX, México", lat: 19.4326, lon: -99.1332 },
+        { name: "Tokio, Japón", lat: 35.6762, lon: 139.6503 }
+    ],
+
+    active: false,
+    cameraCache: null,
+    controlsCache: null,
+    
+    // Variables para mirar alrededor con el ratón
+    isDragging: false,
+    previousMousePosition: { x: 0, y: 0 },
+    lon: 0,
+    lat: 0,
+
+    initUI: function() {
+        const container = document.createElement('div');
+        container.id = 'planetarium-ui';
+        container.className = 'glass-card panel-draggable lab-panel';
+        container.style.position = 'absolute';
+        container.style.top = '140px';
+        container.style.left = '50%';
+        container.style.transform = 'translateX(-50%)';
+        container.style.width = '350px';
+        container.style.zIndex = '150';
+        container.style.padding = '15px';
+        container.style.display = 'none';
+
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4cc9f0; padding-bottom:8px; margin-bottom:10px;">
+                <h3 class="drag-handle" style="color:#4cc9f0; font-family:'Outfit', sans-serif; margin:0; font-size:14px;">🌍 STREET VIEW DEL CIELO</h3>
+                <button id="btn-close-planetarium" style="background:none; border:none; color:#888; font-size:16px; cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size:11px; color:#aaa; margin-bottom:10px;">Selecciona una ubicación para aterrizar y ver el cielo real.</div>
+            <select id="planetarium-select" style="width:100%; background:rgba(0,0,0,0.5); border:1px solid #4cc9f0; color:#fff; padding:6px; margin-bottom:10px; font-family:'Outfit', sans-serif;">
+                <option value="-1">-- Selecciona un Destino --</option>
+        `;
+
+        this.locations.forEach((loc, idx) => {
+            html += `<option value="${idx}">${loc.name}</option>`;
+        });
+
+        html += `
+            </select>
+            <button id="btn-land-surface" style="width:100%; background:rgba(76,201,240,0.2); border:1px solid #4cc9f0; color:#4cc9f0; padding:8px; font-weight:bold; cursor:pointer; font-family:'Outfit', sans-serif;">
+                🚀 ATERRIZAR EN LA SUPERFICIE
+            </button>
+            <button id="btn-leave-surface" style="width:100%; background:rgba(255,0,0,0.2); border:1px solid red; color:red; padding:8px; font-weight:bold; cursor:pointer; font-family:'Outfit', sans-serif; margin-top:5px; display:none;">
+                🛰️ VOLVER A ÓRBITA (SALIR)
+            </button>
+            <div id="planetarium-info" style="font-size:10px; color:#00ffcc; margin-top:10px; font-family:monospace;"></div>
+        `;
+
+        container.innerHTML = html;
+        document.getElementById('ui-overlay').appendChild(container);
+
+        document.getElementById('btn-close-planetarium').addEventListener('click', () => {
+            container.style.display = 'none';
+        });
+
+        document.getElementById('btn-land-surface').addEventListener('click', () => this.landOnSurface());
+        document.getElementById('btn-leave-surface').addEventListener('click', () => this.leaveSurface());
+        
+        // Manejo de cámara local (Mouselook)
+        document.addEventListener('mousedown', (e) => {
+            if (this.active && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'SELECT') {
+                this.isDragging = true;
+            }
+        });
+        document.addEventListener('mouseup', () => { this.isDragging = false; });
+        document.addEventListener('mousemove', (e) => this.onMouseMove(e));
+    },
+
+    togglePanel: function() {
+        const p = document.getElementById('planetarium-ui');
+        if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    },
+
+    landOnSurface: function() {
+        const select = document.getElementById('planetarium-select');
+        const idx = parseInt(select.value);
+        if (idx === -1) return;
+
+        const loc = this.locations[idx];
+        const earthObj = planets.find(p => p.data && p.data.name === "Tierra");
+        
+        if (!earthObj || !earthObj.mesh) {
+            if(typeof logTitan !== 'undefined') logTitan("[PLANETARIUM ERROR] No se encontró el objeto Tierra.");
+            return;
+        }
+
+        // Cachear estado anterior
+        if (!this.active) {
+            this.cameraCache = {
+                parent: camera.parent,
+                position: camera.position.clone(),
+                rotation: camera.rotation.clone()
+            };
+            if (typeof controls !== 'undefined') {
+                this.controlsCache = controls.enabled;
+                controls.enabled = false;
+            }
+        }
+
+        this.active = true;
+        document.getElementById('btn-land-surface').style.display = 'none';
+        document.getElementById('btn-leave-surface').style.display = 'block';
+
+        const info = document.getElementById('planetarium-info');
+        info.innerHTML = `LAT: ${loc.lat}° | LON: ${loc.lon}°<br>Calculando bóveda celeste...`;
+
+        // 2. Calcular posición en la superficie de la esfera
+        const earthRadius = earthObj.data.radius || 4.5;
+        const radius = earthRadius * 1.005; // Ligeramente por encima de la superficie para evitar clipping
+        
+        // Conversión Esférica -> Cartesiana (Alineado con mapa UV estándar de ThreeJS)
+        const phi = (90 - loc.lat) * (Math.PI / 180);
+        const theta = (loc.lon + 90) * (Math.PI / 180);
+
+        camera.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        camera.position.y = radius * Math.cos(phi);
+        camera.position.z = radius * Math.sin(phi) * Math.sin(theta);
+
+        // Crear una máscara de horizonte (suelo oscuro) anclada a la cámara
+        if (!this.horizonMask) {
+            const hGeo = new THREE.CylinderGeometry(10, 10, 20, 32, 1, true, 0, Math.PI * 2);
+            // Rotar y posicionar para que tape la mitad inferior
+            const hMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide });
+            this.horizonMask = new THREE.Mesh(hGeo, hMat);
+            
+            // Creamos un grupo para la cámara que mantenga el horizonte
+            this.cameraRig = new THREE.Group();
+            this.cameraRig.add(camera);
+            this.cameraRig.add(this.horizonMask);
+            
+            // El horizonte debe estar justo debajo de la vista de la cámara
+            this.horizonMask.position.set(0, -10.1, 0); 
+        }
+
+        // 1. Añadir el rig completo como hijo de la Tierra
+        earthObj.mesh.add(this.cameraRig);
+
+        // Copiar posición calculada al Rig
+        this.cameraRig.position.copy(camera.position);
+        
+        // La cámara debe estar en el centro del Rig
+        camera.position.set(0,0,0);
+        
+        // Orientar el rig para que el eje Y local del rig apunte HACIA ARRIBA (lejos del centro de la Tierra)
+        this.cameraRig.quaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            this.cameraRig.position.clone().normalize()
+        );
+
+        // 3. Configurar vista inicial hacia el horizonte / cenit
+        this.lat = 0; // Mirando al horizonte inicialmente
+        this.lon = loc.lon; // Apuntando hacia afuera
+        this.updateCameraLook();
+
+        if (typeof logTitan !== 'undefined') logTitan(`[PLANETARIUM] Aterrizaje exitoso en: ${loc.name}`);
+    },
+
+    leaveSurface: function() {
+        if (!this.active) return;
+        this.active = false;
+
+        document.getElementById('btn-land-surface').style.display = 'block';
+        document.getElementById('btn-leave-surface').style.display = 'none';
+        document.getElementById('planetarium-info').innerHTML = '';
+
+        // Restaurar estado de cámara
+        if (this.cameraCache) {
+            if (this.cameraCache.parent) {
+                this.cameraCache.parent.add(camera);
+            } else {
+                scene.add(camera); // Fallback
+            }
+            camera.position.copy(this.cameraCache.position);
+            camera.rotation.copy(this.cameraCache.rotation);
+        }
+        
+        if (this.cameraRig && this.cameraRig.parent) {
+            this.cameraRig.parent.remove(this.cameraRig);
+        }
+
+        if (typeof controls !== 'undefined') {
+            controls.enabled = this.controlsCache;
+        }
+
+        if (typeof logTitan !== 'undefined') logTitan(`[PLANETARIUM] Vuelta a Órbita (Modo Libre).`);
+    },
+
+    onMouseMove: function(event) {
+        if (!this.active || !this.isDragging) return;
+
+        const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+        const deltaY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+        // Sensibilidad
+        this.lon -= deltaX * 0.2;
+        this.lat -= deltaY * 0.2;
+
+        // Limitar la inclinación para no romper el cuello
+        this.lat = Math.max(-85, Math.min(85, this.lat));
+
+        this.updateCameraLook();
+    },
+
+    updateCameraLook: function() {
+        // En base a this.lon y this.lat, rotamos LA CÁMARA (no el rig)
+        const phi = THREE.MathUtils.degToRad(this.lat); // pitch (arriba/abajo)
+        const theta = THREE.MathUtils.degToRad(this.lon); // yaw (izquierda/derecha)
+        
+        // Orden YXZ para simular casco First Person
+        camera.rotation.order = 'YXZ';
+        camera.rotation.y = theta;
+        camera.rotation.x = phi;
+    }
+};
+
+// Auto-inicializar cuando el DOM esté listo
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        Planetarium.initUI();
+    }, 1000); // Esperar a que la UI principal se monte
+});
