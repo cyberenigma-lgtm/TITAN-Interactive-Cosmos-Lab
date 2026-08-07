@@ -6114,7 +6114,8 @@ if (btnDesi) {
             window.desiCosmicWeb.visible = true;
             
             // 3. Ajustar Cámara a Escala Cosmológica Extrema
-            camera.far = 50000000; // 50 millones
+            camera.far = 250000000; // 250 millones para que no desaparezca la malla
+            controls.maxDistance = 25000000; // Límite físico para que el usuario no se salga de la simulación
             camera.updateProjectionMatrix();
             
             // 4. Zoom out épico hacia el vacío intergaláctico
@@ -6145,6 +6146,7 @@ if (btnDesi) {
             
             // 3. Restaurar Cámara
             camera.far = 10000000;
+            controls.maxDistance = Infinity; // Restaurar límite infinito para el resto del motor
             camera.updateProjectionMatrix();
             
             // 4. Zoom in de vuelta a la Vía Láctea (Sagitario A*)
