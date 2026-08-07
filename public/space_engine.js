@@ -2237,12 +2237,12 @@ sgrAGroup.userData.bhLabel = sgrALabelDiv;
 const panalGroup = new THREE.Group();
 scene.add(panalGroup);
 // Convertir celdas matemáticas en Estrellas Cercanas (OBAFGKM)
-const cellGeo = new THREE.SphereGeometry(2, 16, 16);
+const cellGeo = new THREE.SphereGeometry(0.5, 8, 8);
 const cellMat = new THREE.MeshStandardMaterial({ 
-    color: 0x444444, 
-    emissive: 0x111111,
+    color: 0x888888, 
+    emissive: 0x222222,
     transparent: true, 
-    opacity: 0.3 
+    opacity: 0.8 
 });
 const cellMesh = new THREE.InstancedMesh(cellGeo, cellMat, 15*15*15);
 cellMesh.userData = { isDVTRGASStars: true };
@@ -2643,18 +2643,22 @@ async function fetchDVTRGAS() {
         // Actualizar Celdas Cúbico-Hexagonales
         cellMesh.count = data.celdas.length;
         data.celdas.forEach((celda, i) => {
-            dummy.position.set(celda.x * cellSize, celda.y * cellSize, celda.z * cellSize);
+            // Centrar la cuadrícula de 300u sobre el Sistema Solar (75, 75, 75) restando el offset del centro de masa matemático
+            const offsetX = (celda.x * cellSize) - 140 + 75;
+            const offsetY = (celda.y * cellSize) - 140 + 75;
+            const offsetZ = (celda.z * cellSize) - 140 + 75;
+            dummy.position.set(offsetX, offsetY, offsetZ);
             
-            // Asignación de colores por estado de ecuación simulando catálogo estelar
+            // Asignación de colores brillantes simulando catálogo estelar
             if (celda.estado === 'colapsada') {
-                dummyColor.setHex(0x661111); // Estrella tipo M (Enana Roja)
+                dummyColor.setHex(0xff3333); // Estrella tipo M (Enana Roja brillante)
                 dummy.scale.set(1.5, 1.5, 1.5);
             } else if (celda.estado === 'regenerando') {
-                dummyColor.setHex(0x1166aa); // Estrella tipo O (Gigante Azul)
+                dummyColor.setHex(0x55aaff); // Estrella tipo O (Gigante Azul luminosa)
                 dummy.scale.set(1.2, 1.2, 1.2);
             } else if (celda.estado === 'activa' || celda.masa > 0) {
-                dummyColor.setHex(0x665544); // Estrella tipo G (Amarilla/Blanca)
-                dummy.scale.set(0.8, 0.8, 0.8);
+                dummyColor.setHex(0xffcc88); // Estrella tipo G (Amarilla/Blanca como el Sol)
+                dummy.scale.set(1.0, 1.0, 1.0);
             } else {
                 dummyColor.setHex(0x000000); 
                 dummy.scale.set(0, 0, 0); // Ocultar por completo
