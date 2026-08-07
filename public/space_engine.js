@@ -3117,6 +3117,32 @@ document.getElementById('toggle-hipparcos').addEventListener('change', (e) => {
     hipparcosGroup.visible = e.target.checked;
 });
 
+const toggleMilkyway = document.getElementById('toggle-milkyway');
+if (toggleMilkyway) {
+    toggleMilkyway.addEventListener('change', (e) => {
+        if (window.milkyWaySphere) {
+            window.milkyWaySphere.visible = e.target.checked;
+            if (e.target.checked) {
+                logTitan(`[SISTEMA SOLAR] Renderizando 1M estrellas (Galaxia Volumétrica)...`);
+            }
+        }
+    });
+}
+
+const toggleCosmicWeb = document.getElementById('toggle-cosmicweb');
+if (toggleCosmicWeb) {
+    toggleCosmicWeb.addEventListener('change', (e) => {
+        if (window.cosmicWebLines) {
+            window.cosmicWebLines.visible = e.target.checked;
+            if (e.target.checked) {
+                logTitan(`[MACRO] Filamentos de Materia Oscura (Red Neuronal Cósmica) Activados.`);
+            } else {
+                logTitan(`[MACRO] Filamentos de Materia Oscura ocultos.`);
+            }
+        }
+    });
+}
+
 const toggleZoa = document.getElementById('toggle-zoa');
 if (toggleZoa) {
     toggleZoa.addEventListener('change', (e) => {
