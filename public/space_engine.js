@@ -3929,6 +3929,20 @@ function animate() {
     
     // Animar planetas y cometas (EPHEMÉRIDES KEPLERIANAS SIMPLIFICADAS)
     planets.forEach(p => {
+        // Actualizar etiqueta DOM proyectando coords 3D a 2D (Para planetas y lunas)
+        if (p.label) {
+            p.mesh.getWorldPosition(tempV);
+            tempV.project(camera);
+            if (tempV.z > 1) {
+                p.label.style.display = 'none'; // Detrás de la cámara
+            } else {
+                p.label.style.display = 'block';
+                const x = (tempV.x * .5 + .5) * window.innerWidth;
+                const y = (tempV.y * -.5 + .5) * window.innerHeight;
+                p.label.style.transform = `translate(-50%, -150%) translate(${x}px,${y}px)`;
+            }
+        }
+        
         if (p.data && p.data.isMoon) return; // Las lunas orbitan dinámicamente dentro de p.moonOrbits en su planeta madre
         
         if (p.isComet) {
@@ -4012,19 +4026,7 @@ function animate() {
             }
         }
         
-        if (p.label) {
-            p.mesh.getWorldPosition(tempV);
-            tempV.project(camera);
-            if (tempV.z > 1) {
-                p.label.style.display = 'none'; // Detrás de la cámara
-            } else {
-                p.label.style.display = 'block';
-                const x = (tempV.x * .5 + .5) * window.innerWidth;
-                const y = (tempV.y * -.5 + .5) * window.innerHeight;
-                p.label.style.transform = `translate(-50%, -150%) translate(${x}px,${y}px)`;
-            }
-        }
-
+        // (La lógica de p.label se ha movido arriba para que funcione también con las lunas)
         if (p.satPoints) {
             p.satPoints.rotation.x += 0.005 * timeSpeed;
             p.satPoints.rotation.y += 0.02 * timeSpeed;

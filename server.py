@@ -141,12 +141,22 @@ universo = UniversoDVTRGAS()
 
 # === EL PUENTE (API) ===
 class CosmosAPIHandler(BaseHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'X-Requested-With, Content-type')
+        self.send_header('Access-Control-Allow-Private-Network', 'true')
+        super().end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
+
     def do_GET(self):
         # 1. Rutas de la API (JSON)
         if self.path == '/api/galaxias':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             # Extraemos las coordenadas inmensas reales para visualización profunda y datos astronómicos
             galaxias = [{
@@ -164,7 +174,6 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
         if self.path == '/api/knowledge':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             try:
                 with open(os.path.join(os.path.dirname(__file__), '../DVTRGAS/astro_knowledge.json'), 'r', encoding='utf-8') as f:
@@ -176,7 +185,6 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
         if self.path == '/api/simulacion':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
             # Avanzamos y calculamos solo cuando los ojos lo piden (render loop tick)
