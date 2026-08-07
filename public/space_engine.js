@@ -1989,6 +1989,7 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
         fragmentShader: `
             uniform vec3 color;
             uniform float rShadow;
+            uniform float time;
             varying vec3 vPos;
             varying vec2 vUv;
             
@@ -2005,9 +2006,13 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
                 
                 float density = (band1 * 2.0) + (band2 * 1.0) + (band3 * 0.5);
                 
-                // Ruido angular para simular turbulencia en el plasma
+                // ESPIRAL DE SUCCIÓN Y TURBULENCIA ANIMADA
                 float angle = atan(vPos.y, vPos.x);
-                float noise = rand(vec2(angle * 10.0, r * 0.1)) * 0.2 + 0.8;
+                // Curvar el ángulo basándonos en el radio crea los brazos espirales, sumando el tiempo gira la espiral hacia adentro
+                float spiralAngle = angle + (rShadow * 6.0 / (r + rShadow * 0.1)) + time * 3.0;
+                
+                // Generar nubes de plasma moviéndose en espiral
+                float noise = rand(vec2(spiralAngle * 3.0, r * 0.05 - time * 2.0)) * 0.4 + 0.6;
                 density *= noise;
                 
                 // Efecto Doppler (El plasma acercándose brilla más y se desplaza al azul)
@@ -3997,10 +4002,18 @@ function animate() {
     }
     
     // Rotar Discos de Acreción de Agujeros Negros en su plano ecuatorial
-    if (sgrADisk) sgrADisk.rotation.y += 0.003 * timeSpeed * physicsAcc;
+    if (sgrADisk) {
+        sgrADisk.rotation.y += 0.003 * timeSpeed * physicsAcc;
+        if (sgrADisk.material.uniforms && sgrADisk.material.uniforms.time) {
+            sgrADisk.material.uniforms.time.value = engineTime * 0.001;
+        }
+    }
     extraSystems.children.forEach(sys => {
         if (sys.userData.isAccretion && sys.userData.disk) {
             sys.userData.disk.rotation.y += 0.003 * timeSpeed * physicsAcc;
+            if (sys.userData.disk.material.uniforms && sys.userData.disk.material.uniforms.time) {
+                sys.userData.disk.material.uniforms.time.value = engineTime * 0.001;
+            }
         }
         if (sys.userData.bhLabel) {
             if (sys.visible && document.getElementById('toggle-blackholes').checked) {
