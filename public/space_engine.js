@@ -474,7 +474,7 @@ let skyboxSphere;
 const hipparcosGroup = new THREE.Group();
 window.ourUniverse.add(hipparcosGroup);
 
-fetch('/data/hipparcos.json')
+fetch('./data/hipparcos.json')
     .then(res => res.json())
     .then(data => {
         // data es [x,y,z, r,g,b, x,y,z, r,g,b...]
@@ -567,7 +567,7 @@ fetch('/data/hipparcos.json')
         logTitan(`[ZOA] Masividad Oculta calculada: ~${(zoaStars * 1.2).toFixed(0)} Millones de Masas Solares.`);
         
         // === CONSTELLATIONS (3D Lines) ===
-        fetch('/data/constellations_3d.json')
+        fetch('./data/constellations_3d.json')
             .then(res => res.json())
             .then(lineData => {
                 const linePositions = new Float32Array(lineData.length);
@@ -661,7 +661,7 @@ fetch('/data/hipparcos.json')
             window.simbadGroup.add(starMesh);
         }
 
-        fetch('/data/simbad_stars.json')
+        fetch('./data/simbad_stars.json')
             .then(res => res.json())
             .then(simbadData => {
                 simbadData.forEach(s => renderSimbadStar(s));
@@ -1062,7 +1062,7 @@ planetsData.forEach(data => {
 // === MILKY WAY DATA-DRIVEN RECONSTRUCTION ===
 // Galaxia volumétrica extaprolada mediante Simetría Rotacional (Datos Reales Hipparcos)
 window.milkyWaySphere = null;
-fetch('/data/milky_way.bin').then(res => {
+fetch('./data/milky_way.bin').then(res => {
     if (!res.ok) throw new Error("Milky Way bin not found");
     return res.arrayBuffer();
 }).then(buffer => {
@@ -1133,7 +1133,7 @@ fetch('/data/milky_way.bin').then(res => {
 window.nebulaeGroup = new THREE.Group();
 window.ourUniverse.add(window.nebulaeGroup);
 
-fetch('/data/nebulae.json').then(res => res.json()).then(nebulaeData => {
+fetch('./data/nebulae.json').then(res => res.json()).then(nebulaeData => {
 
     // === GENERADOR DE TEXTURAS PROCEDURALES DE NEBULOSA ===
     // 3 tipos de textura: núcleo brillante, filamento tenue, capa exterior
@@ -1613,7 +1613,7 @@ window.fetchNasaImageData = function(queryName) {
 
 // === MACRO-UNIVERSO (Red Cósmica y Simetría Cuántica) ===
 window.cosmicWeb = null;
-fetch('/data/cosmic_web.bin').then(res => {
+fetch('./data/cosmic_web.bin').then(res => {
     if (!res.ok) throw new Error("Cosmic web bin not found");
     return res.arrayBuffer();
 }).then(buffer => {
@@ -1914,7 +1914,7 @@ function createMoonMesh(m) {
 defaultMajorMoons.forEach(m => createMoonMesh(m));
 
 // Cargar lunas adicionales desde moons.json si está disponible
-fetch('/data/moons.json').then(r => r.json()).then(moons => {
+fetch('./data/moons.json').then(r => r.json()).then(moons => {
     moons.forEach(m => {
         if (!defaultMajorMoons.some(dm => dm.name.toLowerCase() === m.name.toLowerCase())) {
             createMoonMesh({
@@ -3142,10 +3142,15 @@ if (tHipp) {
 const toggleMilkyway = document.getElementById('toggle-milkyway');
 if (toggleMilkyway) {
     toggleMilkyway.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
         if (window.milkyWaySphere) {
-            window.milkyWaySphere.visible = e.target.checked;
-            if (e.target.checked) logTitan(`[SISTEMA SOLAR] Renderizando 1M estrellas (Galaxia Volumétrica)...`);
+            window.milkyWaySphere.visible = isChecked;
         }
+        // También ocultar/mostrar el fondo 8K
+        if (typeof scene !== 'undefined') {
+            scene.background = isChecked ? (window.milkyWayTex || new THREE.Color(0x000000)) : new THREE.Color(0x000000);
+        }
+        logTitan(isChecked ? `[SISTEMA SOLAR] Renderizando Galaxia Volumétrica y Skybox...` : `[SISTEMA SOLAR] Ocultando fondo galáctico.`);
     });
 }
 
