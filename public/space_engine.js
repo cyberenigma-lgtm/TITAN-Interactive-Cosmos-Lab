@@ -408,8 +408,7 @@ container.appendChild(renderer.domElement);
 
 const textureLoader = new THREE.TextureLoader();
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
+FX.ApplyCameraInertia(controls);
 
 // === EJES Y CUADRÍCULA (Laboratorio Cosmológico) ===
 const axesHelper = new THREE.AxesHelper(1000); // X=Rojo, Y=Verde, Z=Azul
@@ -1092,6 +1091,7 @@ fetch('/data/milky_way.bin').then(res => {
     });
     
     window.milkyWaySphere = new THREE.Points(geometry, mwMat);
+    FX.ApplyStarHDR(window.milkyWaySphere, 0xffffff, 2.5); // Halo volumétrico HDR
     
     milkyWaySphere.rotation.x = Math.PI / 10;
     milkyWaySphere.rotation.z = Math.PI / 12;
@@ -1607,6 +1607,7 @@ fetch('/data/cosmic_web.bin').then(res => {
     });
     
     window.cosmicWeb = new THREE.Points(geometry, material);
+    FX.ApplyVolumetric(window.cosmicWeb, 800, 0x88bbff); // Hacer que la Red Cósmica interactúe con el Post-Procesado HDR
     window.ourUniverse.add(window.cosmicWeb);
     window.cosmicWebLines = window.cosmicWeb; // Referencia para el UI
     const toggleBtn = document.getElementById('toggle-cosmicweb');
@@ -2239,13 +2240,13 @@ const panalGroup = new THREE.Group();
 scene.add(panalGroup);
 // Convertir celdas matemáticas en Estrellas Cercanas (OBAFGKM)
 const cellGeo = new THREE.SphereGeometry(0.5, 8, 8);
-const cellMat = new THREE.MeshStandardMaterial({ 
-    color: 0x888888, 
-    emissive: 0x222222,
+const cellMat = new THREE.MeshBasicMaterial({ 
+    color: 0xffffff, // El color base debe ser blanco para que el setColorAt multiplique correctamente
     transparent: true, 
-    opacity: 0.8 
+    opacity: 1.0 
 });
 const cellMesh = new THREE.InstancedMesh(cellGeo, cellMat, 15*15*15);
+FX.ApplyStarHDR(cellMesh, 0xffffff, 2.5); // Boost HDR para la malla instanciada
 cellMesh.userData = { isDVTRGASStars: true };
 cellMesh.visible = false;
 panalGroup.add(cellMesh);
@@ -2945,20 +2946,9 @@ const TitanShader = {
     `
 };
 
-const composer = new THREE.EffectComposer(renderer);
-const renderPass = new THREE.RenderPass(scene, camera);
-composer.addPass(renderPass);
-
-// Añadir Bloom fotorrealista para el resplandor del sol y estrellas
-// Añadir Bloom fotorrealista para el resplandor del sol y estrellas (ESPECTÁCULO VISUAL)
-// === BLOOM HDR FÍSICO — Espacio Profundo Real ===
-// threshold alto: solo superficies estelares y núcleos brillan (sin neon-glow ambiental)
-// strength bajo: halo tenue y puntual, como observaciones reales del Hubble
-const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.45, 0.22, 0.92);
-bloomPass.threshold = 0.92;   // Solo núcleos estelares muy luminosos
-bloomPass.strength  = 0.45;   // Halo físico mínimo — sin glow excesivo
-bloomPass.radius    = 0.22;   // Difusión puntual, no expansiva
-composer.addPass(bloomPass);
+// Inicializar Módulo FX Cinematográfico Global
+FX.init(scene, camera, renderer);
+const composer = FX.composer;
 
 // === POLVO INTERESTELAR — Medio Interestelar (ISM) Real ===
 // Distribución volumétrica de gas y polvo interestelar:
@@ -2983,6 +2973,7 @@ const dustMat = new THREE.PointsMaterial({
     sizeAttenuation: true
 });
 const cosmicDust = new THREE.Points(dustGeo, dustMat);
+FX.ApplyCosmicDust(cosmicDust);
 scene.add(cosmicDust);
 
 const titanPass = new THREE.ShaderPass(TitanShader);
@@ -4546,7 +4537,7 @@ function animate() {
     // SAFEGUARD: Desactivar TitanPass si falla
     try {
         if (controls.enabled) controls.update();
-        composer.render();
+        FX.ApplyPostProcessing();
     } catch (e) {
         renderer.render(scene, camera); // Fallback a render raw si composer falla
     }
