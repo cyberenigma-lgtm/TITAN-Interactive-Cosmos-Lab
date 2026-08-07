@@ -3188,13 +3188,13 @@ const TitanShader = {
             // Usar la distancia de pantalla pura (sin corregir aspecto) para efectos perimetrales como Vignette o SNR
             float screenDist = distance(vUv, vec2(0.5));
             
-            // 🧠 SNR Visual (Aberración Energética perimetral)
-            float snrWeight = smoothstep(0.4, 0.8, screenDist); // SNR activo solo en los bordes de la pantalla
-            
-            // Modulador de color (Rojo colapso, Azul expansión)
-            texColor.r += snrWeight * 0.15 * (sin(time * 2.0) * 0.5 + 0.5);
-            texColor.b += snrWeight * 0.15 * (cos(time * 2.0) * 0.5 + 0.5);
-            texColor.g *= (1.0 - snrWeight * 0.1); // Oscurecer verdes
+            // 🧠 SNR Visual (Aberración Energética perimetral) - ELIMINADO
+            // El usuario reportó pulsaciones rojas/moradas en los bordes. Desactivamos la aberración cromática
+            // para mantener la pureza visual de la simulación del Cosmos.
+            // float snrWeight = smoothstep(0.4, 0.8, screenDist); 
+            // texColor.r += snrWeight * 0.15 * (sin(time * 2.0) * 0.5 + 0.5);
+            // texColor.b += snrWeight * 0.15 * (cos(time * 2.0) * 0.5 + 0.5);
+            // texColor.g *= (1.0 - snrWeight * 0.1); 
             
             gl_FragColor = texColor;
         }
