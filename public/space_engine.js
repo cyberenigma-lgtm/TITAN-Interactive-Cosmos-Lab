@@ -417,6 +417,7 @@ container.appendChild(renderer.domElement);
 
 const textureLoader = new THREE.TextureLoader();
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
+window.controls = controls; // Exponer a módulos externos (Planetarium)
 FX.ApplyCameraInertia(controls);
 
 // === EJES Y CUADRÍCULA (Laboratorio Cosmológico) ===
