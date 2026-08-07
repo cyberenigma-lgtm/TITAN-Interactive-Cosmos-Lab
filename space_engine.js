@@ -6064,15 +6064,27 @@ function generateDESICosmicWeb() {
     webGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     webGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     
+    // Crear textura radial ultra-suave localmente para asegurar que no se rendericen cuadrados blancos
+    const desiCanvas = document.createElement('canvas');
+    desiCanvas.width = 64; desiCanvas.height = 64;
+    const desiCtx = desiCanvas.getContext('2d');
+    const desiGrad = desiCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    desiGrad.addColorStop(0, 'rgba(255,255,255,1)');
+    desiGrad.addColorStop(0.1, 'rgba(255,255,255,0.5)');
+    desiGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    desiCtx.fillStyle = desiGrad;
+    desiCtx.fillRect(0,0,64,64);
+    const desiTex = new THREE.CanvasTexture(desiCanvas);
+    
     const webMat = new THREE.PointsMaterial({
         size: 3500, // En esta escala, cada punto es una galaxia entera
         vertexColors: true,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.6, // Reducida para que la superposición sea suave
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         sizeAttenuation: true,
-        map: window.FX ? window.FX.createStarTexture() : null
+        map: desiTex
     });
     
     const webSystem = new THREE.Points(webGeo, webMat);
