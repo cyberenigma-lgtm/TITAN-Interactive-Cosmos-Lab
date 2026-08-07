@@ -120,7 +120,20 @@ window.Planetarium = {
         document.getElementById('btn-leave-surface').style.display = 'block';
 
         const info = document.getElementById('planetarium-info');
-        info.innerHTML = `LAT: ${loc.lat}° | LON: ${loc.lon}°<br>Calculando bóveda celeste...`;
+        info.innerHTML = `LAT: ${loc.lat}° | LON: ${loc.lon}°<br>Geolocalizando...`;
+
+        // Reverse Geocoding para obtener la calle y población
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lon}&zoom=18&addressdetails=1`)
+            .then(res => res.json())
+            .then(data => {
+                const address = data.address || {};
+                const street = address.road || address.pedestrian || "Calle desconocida";
+                const city = address.city || address.town || address.village || address.municipality || "Población desconocida";
+                info.innerHTML = `LAT: ${loc.lat}° | LON: ${loc.lon}°<br><span style="color:#00ffcc">📍 ${street}, ${city}</span><br>Calculando bóveda celeste...`;
+            })
+            .catch(e => {
+                info.innerHTML = `LAT: ${loc.lat}° | LON: ${loc.lon}°<br>Calculando bóveda celeste...`;
+            });
 
         // 2. Calcular posición en la superficie de la esfera
         const earthRadius = earthObj.data.radius || 4.5;
@@ -138,11 +151,17 @@ window.Planetarium = {
         if (!this.horizonMask) {
             // Plano gigante que actúa como suelo opaco (horizonte)
             const hGeo = new THREE.CircleGeometry(5000, 64);
-            const hMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide });
+            const hMat = new THREE.MeshBasicMaterial({ color: 0x020813, side: THREE.DoubleSide });
             this.horizonMask = new THREE.Mesh(hGeo, hMat);
             
             // Rotarlo para que esté horizontal
             this.horizonMask.rotation.x = -Math.PI / 2;
+
+            // Añadir una cuadrícula para que el suelo sea visible y no se confunda con el espacio
+            const grid = new THREE.GridHelper(5000, 100, 0x00ffcc, 0x113344);
+            grid.rotation.x = Math.PI / 2;
+            grid.position.z = 0.1; // Ligeramente encima del plano para evitar z-fighting
+            this.horizonMask.add(grid);
             
             // Creamos un grupo para la cámara que mantenga el horizonte
             this.cameraRig = new THREE.Group();
