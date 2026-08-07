@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ============================================================================
  * APOCALYPSE ENGINE — SIMULADOR COSMOLÓGICO Y MOTOR DE DEFENSA PLANETARIA 3D
  * Autor y Creador Original: José Manuel
@@ -727,9 +727,11 @@ function createSunPhotosphereTexture() {
     return new THREE.CanvasTexture(canvas);
 }
 
-// === EL SOL (FOTOSFERA, PROTUBERANCIAS Y LENGUAS DE FUEGO) ===
-const sunTexture = createSunPhotosphereTexture();
-const sunMat = new THREE.MeshBasicMaterial({ map: sunTexture, color: 0xffffff });
+// === EL SOL (FOTOSFERA REAL EN ALTA RESOLUCIÓN) ===
+const sunMat = new THREE.MeshBasicMaterial({ 
+    map: textureLoader.load("/textures/sun.jpg"), 
+    color: 0xffffff 
+});
 const sun = new THREE.Mesh(new THREE.SphereGeometry(18, 64, 64), sunMat);
 sun.userData = { name: "Sol (Estrella G2V)", mass: "1.989 × 10^30 kg", radius: "696,340 km" };
 solarSystem.add(sun);
@@ -838,13 +840,36 @@ planetsData.forEach(data => {
         wireframe: false
     });
     
-    // Si tiene textura (y PBR)
-    if (data.texture) {
-        planetMat.map = textureLoader.load(data.texture, function() {
-            planetMat.color.setHex(0xffffff); // reset color
+    // Carga de texturas dinámicas (El usuario puede añadir más texturas)
+    const textureName = data.name.toLowerCase().replace(/ /g, '_');
+    const customTexUrl = data.texture || `/textures/${textureName}.jpg`;
+    const nightTexUrl = `/textures/${textureName}_night.jpg`;
+    
+    // Intentamos cargar la textura, si falla, se queda con el color base (fotorrealismo a demanda)
+    textureLoader.load(
+        customTexUrl, 
+        function(tex) {
+            planetMat.map = tex;
+            planetMat.color.setHex(0xffffff); // Resetear color base
             planetMat.needsUpdate = true;
-        });
-    }
+        }, 
+        undefined, 
+        function(err) {}
+    );
+    
+    // Intentamos cargar mapa nocturno (Luces de ciudad, lava, bioluminiscencia)
+    textureLoader.load(
+        nightTexUrl,
+        function(tex) {
+            planetMat.emissiveMap = tex;
+            planetMat.emissive = new THREE.Color(0xffaa55); // Tono cálido para ciudades
+            planetMat.emissiveIntensity = 2.0; // Brillo cinematográfico
+            planetMat.needsUpdate = true;
+        },
+        undefined,
+        function(err) {}
+    );
+
     if (data.normalMap) {
         planetMat.normalMap = textureLoader.load(data.normalMap);
         planetMat.normalScale = new THREE.Vector2(2, 2);
@@ -867,25 +892,74 @@ planetsData.forEach(data => {
     planetMesh.userData = { name: data.name, mass: data.mass, radius: data.radius };
     orbitGroup.add(planetMesh);
     
-    // Modo Superficie Planetaria: Atmósfera y Halo
+    // Modo Superficie Planetaria: Atmósfera y Halo (Fotorealismo)
     let atmosMesh = null;
-    if (data.name !== "Mercurio") { // Mercurio no tiene atmósfera
-        const atmosGeo = new THREE.SphereGeometry(data.radius * 1.02, 32, 32);
-        const atmosMat = new THREE.MeshPhongMaterial({
-            color: 0xffffff,
+    const gasGiants = ["Júpiter", "Saturno", "Urano", "Neptuno"];
+    const noAtmos = ["Mercurio", "Ceres", "Plutón", "Haumea", "Makemake", "Eris"];
+    
+    if (!noAtmos.includes(data.name) && !gasGiants.includes(data.name)) {
+        // Shaders para un borde atmosférico volumétrico (Fresnel)
+        const vertexShader = `
+            varying vec3 vNormal;
+            varying vec3 vPositionNormal;
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                vPositionNormal = normalize((modelViewMatrix * vec4(position, 1.0)).xyz);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+        const fragmentShader = `
+            varying vec3 vNormal;
+            varying vec3 vPositionNormal;
+            uniform vec3 glowColor;
+            uniform float coefficient;
+            uniform float power;
+            void main() {
+                float intensity = pow(coefficient - dot(vNormal, vPositionNormal), power);
+                gl_FragColor = vec4(glowColor, intensity);
+            }
+        `;
+        
+        let atmosColor = new THREE.Color(0x88bbff); // Azul terrestre por defecto
+        if (data.name === "Marte") atmosColor = new THREE.Color(0xff8844);
+        if (data.name === "Venus") atmosColor = new THREE.Color(0xffddaa);
+        
+        const customAtmosMat = new THREE.ShaderMaterial({
+            uniforms: {
+                glowColor: { type: "c", value: atmosColor },
+                coefficient: { type: "f", value: 0.6 }, // Ajustar grosor del borde
+                power: { type: "f", value: 3.5 } // Ajustar difuminado
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: THREE.BackSide, // Renderizar por detrás para el halo exterior
+            blending: THREE.AdditiveBlending,
             transparent: true,
-            opacity: 0.8,
-            blending: THREE.NormalBlending,
-            side: THREE.FrontSide,
             depthWrite: false
         });
+        
+        // El halo debe ser ligeramente más grande que el planeta
+        const atmosGeo = new THREE.SphereGeometry(data.radius * 1.15, 64, 64);
+        const haloMesh = new THREE.Mesh(atmosGeo, customAtmosMat);
+        haloMesh.scale.set(sx, sy, sz);
+        haloMesh.position.x = data.distance;
+        orbitGroup.add(haloMesh);
+        
+        // Capa de nubes físicas (solo Tierra por ahora)
         if (data.name === "Tierra") {
-            atmosMat.map = textureLoader.load("/textures/earth_clouds.png");
+            const cloudsGeo = new THREE.SphereGeometry(data.radius * 1.01, 64, 64);
+            const cloudsMat = new THREE.MeshStandardMaterial({
+                map: textureLoader.load("/textures/earth_clouds.png"),
+                transparent: true,
+                opacity: 0.95,
+                blending: THREE.AdditiveBlending, // Mezcla aditiva para que resplandezcan bajo el sol
+                depthWrite: false
+            });
+            atmosMesh = new THREE.Mesh(cloudsGeo, cloudsMat);
+            atmosMesh.scale.set(sx, sy, sz);
+            atmosMesh.position.x = data.distance;
+            orbitGroup.add(atmosMesh);
         }
-        atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
-        atmosMesh.scale.set(sx, sy, sz); // Escalar atmósfera según la forma del planeta
-        atmosMesh.position.x = data.distance;
-        orbitGroup.add(atmosMesh);
     }
     
     // Anillos de Saturno y Urano
@@ -1007,11 +1081,11 @@ fetch('/data/milky_way.bin').then(res => {
     const mwTex = new THREE.CanvasTexture(mwCanvas);
 
     const mwMat = new THREE.PointsMaterial({
-        size: 35, // Reducido drásticamente
+        size: 80, // Aumentado para mayor efecto volumétrico
         map: mwTex,
         vertexColors: true,
         transparent: true,
-        opacity: 0.15, // Muy sutil para que el millón de estrellas se mezcle bien
+        opacity: 0.65, // Aumentado para saturar el AdditiveBlending y provocar Bloom
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         sizeAttenuation: true
@@ -1019,7 +1093,6 @@ fetch('/data/milky_way.bin').then(res => {
     
     window.milkyWaySphere = new THREE.Points(geometry, mwMat);
     
-    // Rotar para la inclinación galáctica
     milkyWaySphere.rotation.x = Math.PI / 10;
     milkyWaySphere.rotation.z = Math.PI / 12;
     
@@ -1168,105 +1241,67 @@ fetch('/data/nebulae.json').then(res => res.json()).then(nebulaeData => {
                 window.nebulaeGroup.add(bgSpr);
             }
 
-            // === BILLBOARD PRINCIPAL: imagen procedural en forma de pilares ===
-            // Generamos una textura canvas que recrea la silueta de los pilares
-            function makePillarTexture() {
-                const c = document.createElement('canvas');
-                c.width = 512; c.height = 512;
-                const ctx = c.getContext('2d');
-                ctx.clearRect(0, 0, 512, 512);
+            // === BILLBOARD PRINCIPAL: Pilares Volumétricos (DVTRGAS 3D Point Cloud) ===
+            // En lugar de un sprite 2D cutre, generamos una nube de gas real en 3D
+            const pillarParticles = 100000;
+            const pGeo = new THREE.BufferGeometry();
+            const pPos = new Float32Array(pillarParticles * 3);
+            const pCol = new Float32Array(pillarParticles * 3);
+            
+            const pColorCore = new THREE.Color(0x110804); // Marrón oscuro polvo
+            const pColorEdge = new THREE.Color(0x995522); // Borde brillante iluminado
+            const pColorGas = new THREE.Color(0x224488);  // Gas ionizado azul
+            
+            for (let i = 0; i < pillarParticles; i++) {
+                // 3 Pilares principales
+                const pillarIdx = Math.random();
+                let cx, h, r;
+                if (pillarIdx < 0.5) { cx = -R*0.3; h = R*1.2; r = R*0.25; }
+                else if (pillarIdx < 0.8) { cx = 0; h = R*0.8; r = R*0.2; }
+                else { cx = R*0.3; h = R*0.5; r = R*0.15; }
                 
-                // Fondo azul nebulosa
-                const bgG = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-                bgG.addColorStop(0,   'rgba(40, 80, 180, 0.6)');
-                bgG.addColorStop(0.5, 'rgba(20, 50, 130, 0.3)');
-                bgG.addColorStop(1,   'rgba(5,  15,  60, 0.0)');
-                ctx.fillStyle = bgG;
-                ctx.fillRect(0, 0, 512, 512);
-
-                // Dibujar 3 pilares tipo silueta oscura marrón
-                const pillars = [
-                    { cx: 180, baseW: 80, topW: 35, h: 320, bot: 512 },
-                    { cx: 290, baseW: 65, topW: 25, h: 240, bot: 512 },
-                    { cx: 380, baseW: 50, topW: 20, h: 180, bot: 512 },
-                ];
-                pillars.forEach((p, i) => {
-                    // Cuerpo del pilar con gradiente (oscuro base, luminoso en bordes)
-                    const pillarGrad = ctx.createLinearGradient(p.cx - p.baseW, 0, p.cx + p.baseW, 0);
-                    pillarGrad.addColorStop(0,    'rgba(80,  45, 10, 0.0)');
-                    pillarGrad.addColorStop(0.15, 'rgba(100, 60, 15, 0.9)'); // borde luminoso
-                    pillarGrad.addColorStop(0.35, 'rgba(30,  15,  5, 0.95)'); // interior oscuro
-                    pillarGrad.addColorStop(0.65, 'rgba(25,  12,  4, 0.95)');
-                    pillarGrad.addColorStop(0.85, 'rgba(100, 60, 15, 0.9)'); // borde luminoso
-                    pillarGrad.addColorStop(1,    'rgba(80,  45, 10, 0.0)');
-                    ctx.fillStyle = pillarGrad;
-                    
-                    // Forma trapezoidal del pilar
-                    const topY = p.bot - p.h;
-                    ctx.beginPath();
-                    ctx.moveTo(p.cx - p.baseW * 0.5, p.bot);
-                    ctx.lineTo(p.cx + p.baseW * 0.5, p.bot);
-                    ctx.lineTo(p.cx + p.topW * 0.5,  topY + 20);
-                    // Punta irregular
-                    ctx.lineTo(p.cx + p.topW * 0.3,  topY + 5);
-                    ctx.lineTo(p.cx,                  topY);
-                    ctx.lineTo(p.cx - p.topW * 0.3,  topY + 8);
-                    ctx.lineTo(p.cx - p.topW * 0.5,  topY + 20);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    // Protuberancias laterales (dedos de gas)
-                    const numFingers = 2 + i;
-                    for (let f = 0; f < numFingers; f++) {
-                        const fy = topY + (f + 1) * (p.h / (numFingers + 1));
-                        const side = f % 2 === 0 ? 1 : -1;
-                        const fw = p.baseW * (0.25 + Math.random() * 0.2);
-                        const fh = fw * (1.5 + Math.random());
-                        ctx.beginPath();
-                        ctx.ellipse(
-                            p.cx + side * (p.baseW * 0.5 + fw * 0.3),
-                            fy, fw, fh, side * 0.4, 0, Math.PI * 2
-                        );
-                        ctx.fillStyle = `rgba(25, 12, 4, 0.8)`;
-                        ctx.fill();
-                    }
-
-                    // Brillo en la punta (estrella en formación)
-                    const tipG = ctx.createRadialGradient(p.cx, topY, 0, p.cx, topY, p.topW * 1.5);
-                    tipG.addColorStop(0,   `rgba(200, 220, 255, 0.8)`);
-                    tipG.addColorStop(0.4, `rgba(100, 150, 255, 0.3)`);
-                    tipG.addColorStop(1,   `rgba(50,  80, 200, 0.0)`);
-                    ctx.fillStyle = tipG;
-                    ctx.fillRect(0, 0, 512, 512);
-                });
-
-                // Estrellas dispersas de fondo
-                for (let s = 0; s < 80; s++) {
-                    const sx = Math.random() * 512;
-                    const sy = Math.random() * 512;
-                    const sr = 0.5 + Math.random() * 1.5;
-                    const brightness = 150 + Math.floor(Math.random() * 105);
-                    const warm = Math.random() > 0.5;
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-                    ctx.fillStyle = warm ? `rgba(${brightness}, ${brightness-20}, ${brightness-60}, 0.9)` : `rgba(${brightness-20}, ${brightness-30}, ${brightness}, 0.9)`;
-                    ctx.fill();
-                }
-                return new THREE.CanvasTexture(c);
+                // Distribuir a lo largo de la altura del pilar (más ancho en la base)
+                const y = (Math.random() - 0.5) * h;
+                const widthAtY = r * (1.0 - (y / (h*0.5)) * 0.3); // Cono invertido ligero
+                
+                // Distribución radial desde el centro del pilar
+                const angle = Math.random() * Math.PI * 2;
+                const radiusDist = Math.random();
+                const currentR = radiusDist * widthAtY;
+                
+                const px = cx + Math.cos(angle) * currentR;
+                const pz = Math.sin(angle) * currentR;
+                
+                // Desplazamiento global a la nebulosa
+                pPos[i*3] = neb.x + px;
+                pPos[i*3+1] = neb.y + y;
+                pPos[i*3+2] = neb.z + pz;
+                
+                // Color según densidad (borde vs núcleo)
+                let c;
+                if (radiusDist > 0.8) c = pColorEdge; // Borde iluminado
+                else if (Math.random() > 0.95) c = pColorGas; // Estrellas/gas incrustado
+                else c = pColorCore; // Núcleo oscuro
+                
+                pCol[i*3] = c.r;
+                pCol[i*3+1] = c.g;
+                pCol[i*3+2] = c.b;
             }
-
-            const pillarTex  = makePillarTexture();
-            const pillarMat  = new THREE.SpriteMaterial({
-                map: pillarTex,
+            
+            pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+            pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+            
+            const pMat = new THREE.PointsMaterial({
+                size: 2.5,
+                vertexColors: true,
                 transparent: true,
-                opacity: 0.90,
-                blending: THREE.NormalBlending,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending,
                 depthWrite: false
             });
-            const pillarSpr = new THREE.Sprite(pillarMat);
-            pillarSpr.position.set(neb.x, neb.y, neb.z);
-            pillarSpr.scale.set(R * 1.6, R * 1.6, 1);
-            window.nebulaeGroup.add(pillarSpr);
+            const pillarObj = new THREE.Points(pGeo, pMat);
+            pillarObj.position.set(neb.x, neb.y, neb.z);
+            window.nebulaeGroup.add(pillarObj);
         }
     });
     console.log(`[NEBULOSAS] Cargadas ${nebulaeData.length} Nubes Moleculares (Bolsas de Gas).`);
@@ -1779,16 +1814,33 @@ function createMoonMesh(m) {
 
     const moonMat = new THREE.MeshStandardMaterial({ 
         color: m.color || 0xdddddd, 
-        roughness: 0.85, 
-        emissive: 0x333333 
+        roughness: 0.85,
+        bumpScale: 0.015
     });
 
-    if (m.name === "Luna") {
-        moonMat.map = textureLoader.load("/textures/moon.jpg", function() {
+    const moonTexName = m.name.toLowerCase().replace(/ /g, '_');
+    textureLoader.load(
+        `/textures/${moonTexName}.jpg`, 
+        function(tex) {
+            moonMat.map = tex;
             moonMat.color.setHex(0xffffff);
             moonMat.needsUpdate = true;
-        });
-    }
+            // Usar la textura de color como Bump map rudimentario si no hay normal explícito
+            moonMat.bumpMap = tex; 
+        },
+        undefined,
+        function(err) {
+            // Fallback (ej: luna.jpg -> moon.jpg si está en español)
+            if (m.name === "Luna") {
+                textureLoader.load("/textures/moon.jpg", function(tex) {
+                    moonMat.map = tex;
+                    moonMat.bumpMap = tex;
+                    moonMat.color.setHex(0xffffff);
+                    moonMat.needsUpdate = true;
+                });
+            }
+        }
+    );
 
     const moonMesh = new THREE.Mesh(
         new THREE.SphereGeometry(visualRadius, 32, 32),
@@ -1848,32 +1900,7 @@ fetch('/data/moons.json').then(r => r.json()).then(moons => {
     logTitan(`[SISTEMA SOLAR] Generado enjambre orbital: Lunas reales sincronizadas.`);
 }).catch(e => logTitan("Lunas principales activas en modo síncrono."));
 
-// === CINTURÓN DE ASTEROIDES (Rocas 3D Instanciadas) ===
-const asteroidCount = 8000;
-const astGeo = new THREE.DodecahedronGeometry(0.3, 0); // Roca de pocos polígonos
-const astMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
-const asteroidBelt = new THREE.InstancedMesh(astGeo, astMat, asteroidCount);
-const astDummy = new THREE.Object3D();
-
-for (let i = 0; i < asteroidCount; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    // Distancia astronómica real entre Marte (152.4) y Júpiter (520.4), rodeando Ceres (276.7)
-    const distance = 220 + Math.random() * 140; 
-    const y = (Math.random() - 0.5) * 12;
-    
-    astDummy.position.set(Math.cos(angle) * distance, y, Math.sin(angle) * distance);
-    astDummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-    
-    // Escala variada para las rocas
-    const scale = 0.2 + Math.random() * 1.5;
-    astDummy.scale.set(scale, scale, scale);
-    
-    astDummy.updateMatrix();
-    asteroidBelt.setMatrixAt(i, astDummy.matrix);
-}
-asteroidBelt.position.set(75, 75, 75); // Centrar en el Sol localmente
-window.ourUniverse.add(asteroidBelt);
-
+// Cinturón de asteroides procedimental eliminado (se usarán datos de DVTRGAS)
 
 
     // Necesitamos que earthMesh esté disponible para la cámara
@@ -1909,18 +1936,47 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
     shadowMesh.renderOrder = 1000;
     bhGroup.add(shadowMesh);
 
-    // 1b. Anillo de Fotones / Lente Gravitacional de Einstein (EHT Photorealistic Halo)
-    const haloGeo = new THREE.RingGeometry(rShadow * 1.02, rShadow * 1.45, 64);
-    const haloMat = new THREE.MeshBasicMaterial({
-        color: labelColor === '#00ffff' ? 0x00f0ff : 0xffaa00,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.85,
+    // 1b. Lente Gravitacional de Einstein (Gargantua / Interstellar Style)
+    // Usamos un shader esférico para simular la luz del disco de acreción doblándose
+    // por encima y por debajo del horizonte de sucesos.
+    const lensGeo = new THREE.SphereGeometry(rShadow * 1.5, 64, 64);
+    const lensShader = {
+        uniforms: {
+            color: { value: new THREE.Color(labelColor === '#00ffff' ? 0x88ccff : 0xffaa55) }
+        },
+        vertexShader: `
+            varying vec3 vNormal;
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 color;
+            varying vec3 vNormal;
+            void main() {
+                // Calcular el ángulo respecto al ecuador y los polos
+                float intensity = pow(1.0 - abs(dot(vNormal, vec3(0,0,1))), 4.0); // Borde brillante (fresnel)
+                float equatorDist = abs(vNormal.y); // Distancia al ecuador local
+                
+                // Bandas brillantes arriba y abajo simulando el disco de acreción doblado
+                float lensedDisk = smoothstep(0.7, 0.85, equatorDist) * smoothstep(0.95, 0.85, equatorDist);
+                float finalIntensity = (intensity * 0.5) + (lensedDisk * 2.0);
+                
+                gl_FragColor = vec4(color, finalIntensity);
+            }
+        `
+    };
+    const lensMat = new THREE.ShaderMaterial({
+        uniforms: lensShader.uniforms,
+        vertexShader: lensShader.vertexShader,
+        fragmentShader: lensShader.fragmentShader,
         blending: THREE.AdditiveBlending,
-        depthWrite: false
+        transparent: true,
+        depthWrite: false,
+        side: THREE.BackSide // Renderizar cara interior para envolver la sombra
     });
-    const photonRing = new THREE.Mesh(haloGeo, haloMat);
-    photonRing.rotation.x = Math.PI / 2;
+    const photonRing = new THREE.Mesh(lensGeo, lensMat);
     bhGroup.add(photonRing);
 
     // 2. Disco de Acreción Volumétrico Continuo de Gas y Plasma en Eje Equatorial (40.000 Partículas)
@@ -1943,16 +1999,21 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
         positions[i*3 + 1] = height;
         positions[i*3 + 2] = r * Math.sin(theta);
 
-        // Perfil Térmico Relativista (Núcleo incandescente -> Fuego -> Carmesí exterior)
+        // Perfil Térmico Relativista basado en el color base
         let cr, cg, cb;
+        const isBlue = labelColor === '#00ffff' || labelColor === 0x00ffff;
         if (norm < 0.12) {
-            cr = 1.0; cg = 0.95; cb = 0.85;
+            cr = 1.0; cg = isBlue ? 1.0 : 0.95; cb = isBlue ? 1.0 : 0.85;
         } else if (norm < 0.55) {
             const t = (norm - 0.12) / 0.43;
-            cr = 1.0; cg = 0.7 - t * 0.45; cb = 0.08;
+            cr = isBlue ? 0.4 + t*0.2 : 1.0; 
+            cg = isBlue ? 0.7 + t*0.3 : 0.7 - t * 0.45; 
+            cb = isBlue ? 1.0 : 0.08;
         } else {
             const t = (norm - 0.55) / 0.45;
-            cr = 0.75 - t * 0.5; cg = 0.12 - t * 0.08; cb = 0.02;
+            cr = isBlue ? 0.1 + t*0.1 : 0.75 - t * 0.5; 
+            cg = isBlue ? 0.3 + t*0.2 : 0.12 - t * 0.08; 
+            cb = isBlue ? 0.9 - t*0.4 : 0.02;
         }
 
         colors[i*3]     = cr;
@@ -1983,6 +2044,7 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
         const jPos = new Float32Array(jetCount * 3);
         const jCol = new Float32Array(jetCount * 3);
 
+        const isBlue = labelColor === '#00ffff' || labelColor === 0x00ffff;
         for (let i = 0; i < jetCount; i++) {
             const side = Math.random() > 0.5 ? 1 : -1;
             const len = Math.random() * jetLength;
@@ -1994,9 +2056,9 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
             jPos[i*3 + 2] = Math.sin(a) * spread * Math.random();
 
             const nLen = len / jetLength;
-            jCol[i*3]     = 0.1 + (1.0 - nLen) * 0.3;
-            jCol[i*3 + 1] = 0.6 + (1.0 - nLen) * 0.35;
-            jCol[i*3 + 2] = 0.95;
+            jCol[i*3]     = isBlue ? 0.3 : (0.1 + (1.0 - nLen) * 0.3);
+            jCol[i*3 + 1] = isBlue ? 0.6 : (0.6 + (1.0 - nLen) * 0.35);
+            jCol[i*3 + 2] = isBlue ? 1.0 : 0.95;
         }
 
         jetGeo.setAttribute('position', new THREE.BufferAttribute(jPos, 3));
@@ -2013,6 +2075,19 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
             depthWrite: false
         }));
         bhGroup.add(jetPoints);
+        
+        // Rayo Láser Relativista Central (Cilindro volumétrico sólido)
+        const beamGeo = new THREE.CylinderGeometry(rShadow*0.1, rShadow*0.8, jetLength*2, 32, 1, true);
+        const beamMat = new THREE.MeshBasicMaterial({
+            color: isBlue ? 0x88ccff : 0xffcc88,
+            transparent: true,
+            opacity: 0.15,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+        const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+        bhGroup.add(beamMesh);
     }
 
     return { bhGroup, eqDisk, upperArch: null, lowerArch: null, jetPoints };
@@ -2024,8 +2099,16 @@ exoplanetData.forEach(sys => {
     
     if (sys.isHyperQuasar || sys.isBlackHole) {
         const isQuasar = sys.isHyperQuasar;
-        const rShadow = isQuasar ? 180 : (sys.name === 'M87*' ? 40 : 15);
-        const bhData = createKipThorneBlackHole({ rShadow: rShadow, jetLength: 0, isAccretionActive: false });
+        let rShadow = 15; // Defecto para agujeros negros estelares (Cygnus X-1)
+        if (sys.name === 'M87*') rShadow = 300; // Supermasivo
+        else if (isQuasar) rShadow = 1500;      // Ultramasivo (TON 618)
+        
+        const bhData = createKipThorneBlackHole({ 
+            rShadow: rShadow, 
+            jetLength: rShadow * 6, // Jets relativistas monstruosos
+            isAccretionActive: true, 
+            labelColor: isQuasar ? '#00ffff' : '#ffaa00'
+        });
         
         bhData.bhGroup.userData = { 
             name: sys.name, 
@@ -2133,7 +2216,8 @@ const sgrAGroup = new THREE.Group();
 sgrAGroup.position.set(52075, 75, -99925);
 extraSystems.add(sgrAGroup);
 
-const sgrABh = createKipThorneBlackHole({ rShadow: 45, jetLength: 0, isAccretionActive: false });
+// Sagitario A* es supermasivo pero "pequeño" comparado con M87* y TON 618
+const sgrABh = createKipThorneBlackHole({ rShadow: 20, jetLength: 120, isAccretionActive: true, labelColor: '#ff7700' });
 sgrABh.bhGroup.userData = { name: "Sagitario A* (Agujero Negro Supermasivo)", mass: "4.1 Millones de Masas Solares", radius: "Horizonte de 22 millones km" };
 sgrAGroup.add(sgrABh.bhGroup);
 
@@ -2548,7 +2632,8 @@ let currentDVTRGASData = null; // Guardar datos para el raycaster
 let step = 0;
 async function fetchDVTRGAS() {
     try {
-        const res = await fetch('/api/simulacion');
+        const base_url = window.location.protocol === 'file:' ? 'http://127.0.0.1:8080' : '';
+        const res = await fetch(base_url + '/api/simulacion');
         if (!res.ok) return;
         const data = await res.json();
         
@@ -2602,7 +2687,8 @@ async function fetchDVTRGAS() {
         eventsContainer.innerHTML = html;
 
     } catch (e) {
-        eventsContainer.innerHTML = "<div style='color:red;'>Esperando conexión con servidor DVTRGAS (API)...</div>";
+        eventsContainer.innerHTML = `<div style='color:red;'>Esperando conexión con servidor DVTRGAS (API)...<br>DEBUG ERROR: ${e.message}</div>`;
+        console.error("Fetch/Update Error:", e);
     }
 }
 
@@ -5439,4 +5525,81 @@ if (btnSave && btnLoad && btnReset) {
         textNotes.value = "";
     });
 }
+
+// ============================================================================
+// SISTEMA DE DEPURACIÓN (SERVER PING)
+// ============================================================================
+setInterval(async () => {
+    const dot = document.getElementById('server-ping-dot');
+    const text = document.getElementById('server-ping-text');
+    if(!dot || !text) return;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const base_url = window.location.protocol === 'file:' ? 'http://127.0.0.1:8080' : '';
+        const res = await fetch(base_url + '/', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if(res.ok) {
+            dot.style.background = '#00ff00';
+            text.style.color = '#00ff00';
+            text.textContent = 'SERVER [OK]';
+        } else {
+            throw new Error('Status ' + res.status);
+        }
+    } catch(e) {
+        dot.style.background = '#ff0000';
+        text.style.color = '#ff0000';
+        text.textContent = 'SERVER [OFFLINE]';
+    }
+}, 3000);
+
+// ============================================================================
+// CONMUTADOR DE MODOS: OBSERVATORIO (Cinemático) vs LABORATORIO (Científico)
+// ============================================================================
+window.simulationMode = 'OBS';
+
+function toggleSimulationMode() {
+    window.simulationMode = window.simulationMode === 'OBS' ? 'LAB' : 'OBS';
+    const isObs = window.simulationMode === 'OBS';
+    const btn = document.getElementById('btn-mode-toggle');
+    if (btn) {
+        btn.textContent = isObs ? 'MODO: [ OBS ] OBSERVATORIO' : 'MODO: [ LAB ] LABORATORIO';
+        btn.style.color = isObs ? '#7a9e6a' : '#4cc9f0';
+        btn.style.borderColor = isObs ? 'rgba(122,158,106,0.5)' : 'rgba(76,201,240,0.5)';
+        btn.style.background = isObs ? 'rgba(122,158,106,0.15)' : 'rgba(76,201,240,0.15)';
+    }
+
+    if (typeof cosmicFill !== 'undefined') cosmicFill.intensity = isObs ? 0.06 : 0.6;
+    if (typeof axesHelper !== 'undefined') axesHelper.visible = !isObs;
+    if (typeof gridHelper !== 'undefined') gridHelper.visible = !isObs;
+    if (typeof window.topologyGrid !== 'undefined') window.topologyGrid.visible = !isObs;
+
+    if (typeof orbits !== 'undefined') {
+        orbits.forEach(o => {
+            if (o.material) {
+                o.material.opacity = isObs ? 0.05 : 0.35;
+                o.material.needsUpdate = true;
+            }
+        });
+    }
+
+    const consoleDiv = document.getElementById('titan-console');
+    if (consoleDiv) {
+        consoleDiv.style.opacity = isObs ? '0.1' : '1.0';
+        consoleDiv.style.pointerEvents = isObs ? 'none' : 'auto';
+        consoleDiv.style.transform = isObs ? 'scale(0.95)' : 'scale(1.0)';
+        consoleDiv.style.transition = 'all 0.5s ease-in-out';
+    }
+
+    if (typeof controls !== 'undefined') controls.dampingFactor = isObs ? 0.015 : 0.15;
+    if (typeof logTitan !== 'undefined') logTitan(`Cambio a Modo ${window.simulationMode === 'OBS' ? 'Observatorio Cinemático' : 'Laboratorio Científico'} ejecutado.`);
+}
+
+const modeBtn = document.getElementById('btn-mode-toggle');
+if (modeBtn) modeBtn.addEventListener('click', toggleSimulationMode);
+
+setTimeout(() => {
+    window.simulationMode = 'LAB';
+    toggleSimulationMode(); 
+}, 1500);
 
