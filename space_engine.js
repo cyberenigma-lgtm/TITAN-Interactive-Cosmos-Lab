@@ -1819,11 +1819,11 @@ function createMoonMesh(m) {
 
     // Ajustar distancias visuales para estar claramente fuera de la atmósfera y satélites
     let visualDist = m.dist || 12.0;
-    if (m.name === "Luna") visualDist = 14.0; // Claramente fuera del cinturón GEO (r=6)
+    if (m.name === "Luna") visualDist = 22.0; // Más lejos para mejor proporción visual (alejado del cinturón GEO)
     
     let visualRadius = m.radius || (m.radiusKm ? m.radiusKm / 1000 : 0.5);
     if (visualRadius < 0.35) visualRadius = 0.35;
-    if (m.name === "Luna") visualRadius = 1.2;
+    if (m.name === "Luna") visualRadius = 0.8; // Más pequeña respecto a la Tierra (r=4.5 aprox)
 
     const moonMat = new THREE.MeshStandardMaterial({ 
         color: m.color || 0xdddddd, 
@@ -1861,6 +1861,8 @@ function createMoonMesh(m) {
     );
 
     moonMesh.position.x = visualDist;
+    // Rotar 180 grados para que la cara visible de la textura mire hacia el planeta (Acoplamiento de marea)
+    if (m.name === "Luna") moonMesh.rotation.y = Math.PI; 
     moonMesh.userData = { name: `${m.name} (${m.planet})`, mass: "Satélite Natural", radius: `${visualRadius.toFixed(1)} u`, isMoon: true };
     moonOrbitGroup.add(moonMesh);
 
@@ -5650,55 +5652,78 @@ setInterval(async () => {
         text.style.color = '#ff0000';
         text.textContent = 'SERVER [OFFLINE]';
     }
-}, 3000);
+}, 5000);
 
 // ============================================================================
-// CONMUTADOR DE MODOS: OBSERVATORIO (Cinemático) vs LABORATORIO (Científico)
+// MODO UI: OBSERVATORIO vs LABORATORIO
 // ============================================================================
-window.simulationMode = 'OBS';
+let currentMode = 'obs'; // 'obs' | 'lab'
+const modeBtn = document.getElementById('btn-mode-toggle');
 
-function toggleSimulationMode() {
-    window.simulationMode = window.simulationMode === 'OBS' ? 'LAB' : 'OBS';
-    const isObs = window.simulationMode === 'OBS';
-    const btn = document.getElementById('btn-mode-toggle');
-    if (btn) {
-        btn.textContent = isObs ? 'MODO: [ OBS ] OBSERVATORIO' : 'MODO: [ LAB ] LABORATORIO';
-        btn.style.color = isObs ? '#7a9e6a' : '#4cc9f0';
-        btn.style.borderColor = isObs ? 'rgba(122,158,106,0.5)' : 'rgba(76,201,240,0.5)';
-        btn.style.background = isObs ? 'rgba(122,158,106,0.15)' : 'rgba(76,201,240,0.15)';
+// Inicializar Ace Editor (IDE Físico Interno)
+let titanEditor = null;
+if (typeof ace !== 'undefined') {
+    titanEditor = ace.edit("ace-editor");
+    if (titanEditor) {
+        titanEditor.setTheme("ace/theme/monokai");
+        titanEditor.session.setMode("ace/mode/javascript");
+        titanEditor.setValue(`// TITAN FÍSICA Y MÉTRICAS (JS)\\n// Usa 'scene', 'camera', 'renderer', 'milkyWaySphere', etc.\\n\\n// Ej: Log en Consola TITAN:\\nlogTitan("Código de emergencia ejecutado.");\\n`, -1);
     }
-
-    if (typeof cosmicFill !== 'undefined') cosmicFill.intensity = isObs ? 0.06 : 0.6;
-    if (typeof axesHelper !== 'undefined') axesHelper.visible = !isObs;
-    if (typeof gridHelper !== 'undefined') gridHelper.visible = !isObs;
-    if (typeof window.topologyGrid !== 'undefined') window.topologyGrid.visible = !isObs;
-
-    if (typeof orbits !== 'undefined') {
-        orbits.forEach(o => {
-            if (o.material) {
-                o.material.opacity = isObs ? 0.05 : 0.35;
-                o.material.needsUpdate = true;
-            }
-        });
-    }
-
-    const consoleDiv = document.getElementById('titan-console');
-    if (consoleDiv) {
-        consoleDiv.style.opacity = isObs ? '0.1' : '1.0';
-        consoleDiv.style.pointerEvents = isObs ? 'none' : 'auto';
-        consoleDiv.style.transform = isObs ? 'scale(0.95)' : 'scale(1.0)';
-        consoleDiv.style.transition = 'all 0.5s ease-in-out';
-    }
-
-    if (typeof controls !== 'undefined') controls.dampingFactor = isObs ? 0.015 : 0.15;
-    if (typeof logTitan !== 'undefined') logTitan(`Cambio a Modo ${window.simulationMode === 'OBS' ? 'Observatorio Cinemático' : 'Laboratorio Científico'} ejecutado.`);
 }
 
-const modeBtn = document.getElementById('btn-mode-toggle');
-if (modeBtn) modeBtn.addEventListener('click', toggleSimulationMode);
+document.getElementById('btn-run-code')?.addEventListener('click', () => {
+    if (!titanEditor) return;
+    const code = titanEditor.getValue();
+    try {
+        logTitan(`[IDE] Ejecutando parche físico...`);
+        // Ejecución aislada en el contexto global
+        const fn = new Function('scene', 'camera', 'renderer', 'FX', 'ourUniverse', code);
+        fn(scene, camera, renderer, FX, window.ourUniverse);
+        logTitan(`[IDE] Ejecución exitosa.`);
+    } catch(err) {
+        logTitan(`[IDE ERROR] ${err.message}`);
+    }
+});
 
-setTimeout(() => {
-    window.simulationMode = 'LAB';
-    toggleSimulationMode(); 
-}, 1500);
+function applyMode() {
+    const labPanels = document.querySelectorAll('.lab-panel');
+    const obsPanels = document.querySelectorAll('.obs-panel');
+
+    if (currentMode === 'obs') {
+        if (modeBtn) {
+            modeBtn.innerHTML = 'MODO: [ OBS ] OBSERVATORIO';
+            modeBtn.style.color = '#7a9e6a';
+            modeBtn.style.borderColor = 'rgba(122,158,106,0.5)';
+            modeBtn.style.background = 'rgba(122,158,106,0.15)';
+        }
+        
+        labPanels.forEach(el => el.style.display = 'none');
+        obsPanels.forEach(el => { if (el.id !== 'tour-hud-player') el.style.display = '' });
+        
+        if (typeof cosmicFill !== 'undefined') cosmicFill.intensity = 0.06;
+        if (typeof controls !== 'undefined') controls.dampingFactor = 0.015;
+    } else {
+        if (modeBtn) {
+            modeBtn.innerHTML = 'MODO: [ LAB ] TITAN LABORATORIO';
+            modeBtn.style.color = '#ffaa00';
+            modeBtn.style.borderColor = 'rgba(255,170,0,0.5)';
+            modeBtn.style.background = 'rgba(255,170,0,0.15)';
+        }
+        
+        obsPanels.forEach(el => el.style.display = 'none');
+        labPanels.forEach(el => el.style.display = '');
+        
+        if (typeof cosmicFill !== 'undefined') cosmicFill.intensity = 0.6;
+        if (typeof controls !== 'undefined') controls.dampingFactor = 0.15;
+    }
+}
+
+if (modeBtn) {
+    modeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentMode = (currentMode === 'obs') ? 'lab' : 'obs';
+        applyMode();
+    });
+}
+applyMode();
 
