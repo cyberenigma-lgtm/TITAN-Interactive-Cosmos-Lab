@@ -399,9 +399,18 @@ scene.add(window.otherUniverses);
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000000);
 camera.position.set(75, 200, 400);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({ 
+    antialias: true, 
+    alpha: true,
+    powerPreference: "high-performance",
+    precision: "highp",
+    stencil: false,
+    depth: true,
+    logarithmicDepthBuffer: true // Vital para escala cósmica cinematográfica sin Z-fighting
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
+// Maximizar resolución (Supersampling dinámico)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio * 1.5, 3));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputEncoding = THREE.sRGBEncoding;
 container.appendChild(renderer.domElement);

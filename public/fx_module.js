@@ -49,12 +49,13 @@ window.FX = {
         this.renderer.toneMappingExposure = 1.2;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
 
-        // Pipeline de Post-Procesado
+        // Pipeline de Post-Procesado a máxima resolución (Supersampling)
         const renderScene = new THREE.RenderPass(scene, camera);
         
-        // Efecto Bloom Físico (HDR)
+        const pixelRatio = renderer.getPixelRatio();
+        // Efecto Bloom Físico (HDR) a resolución escalada
         this.bloomPass = new THREE.UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight), 
+            new THREE.Vector2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio), 
             1.2, // Fuerza (reducida para que el sol no parezca una supernova gigante)
             0.4, // Radio
             0.85 // Umbral (Solo brillan las estrellas puras y fuentes de luz directa)
