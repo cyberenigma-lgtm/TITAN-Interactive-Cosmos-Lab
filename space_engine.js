@@ -998,6 +998,10 @@ planetsData.forEach(data => {
             uvs.setXY(j, (vertex.length() - innerR) / (outerR - innerR), 1);
         }
         
+        ringGeo.userData.originalPos = ringGeo.attributes.position.clone();
+        window.allRingsToMutate = window.allRingsToMutate || [];
+        window.allRingsToMutate.push(ringGeo);
+        
         const rColor = data.name === "Saturno" ? 0xddccaa : 0x88ccff;
         const ringMat = new THREE.MeshStandardMaterial({ 
             color: rColor, 
@@ -2007,6 +2011,10 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
     // 2. Disco de Acreción Cinemático (RingGeometry con Shader Procedural)
     // Esto es mucho más espectacular y suave que las partículas sueltas.
     const diskGeo = new THREE.RingGeometry(rShadow * 1.1, rShadow * 4.5, 256, 64);
+    
+    diskGeo.userData.originalPos = diskGeo.attributes.position.clone();
+    window.allRingsToMutate = window.allRingsToMutate || [];
+    window.allRingsToMutate.push(diskGeo);
     const diskShader = {
         uniforms: { 
             color: { value: baseColor },
@@ -3268,7 +3276,7 @@ document.getElementById('select-topology').addEventListener('change', (e) => {
     } else if (currentTopology === 'custom') {
         formulaDisplay.textContent = "Ecuación: Fórmula Custom Definida";
     }
-    updateOrbitsGeometry();
+    updateAllTopologies();
 });
 
 document.getElementById('btn-apply-metric').addEventListener('click', () => {
@@ -3290,7 +3298,7 @@ document.getElementById('btn-apply-metric').addEventListener('click', () => {
         document.getElementById('select-topology').value = 'custom';
         document.getElementById('metric-formula-display').textContent = `Ecuación Custom: ${input}`;
         logTitan(`Topología mutada a MÉTRICA CUSTOM: ${input}`);
-        updateOrbitsGeometry();
+        updateAllTopologies();
     } catch(e) {
         logTitan(`[ERROR] Sintaxis de topología inválida: ${e.message}`);
     }
@@ -3335,6 +3343,29 @@ function updateOrbitsGeometry() {
         }
         orbitLine.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
     });
+}
+
+function updateAllTopologies() {
+    updateOrbitsGeometry();
+    if (window.allRingsToMutate) {
+        window.allRingsToMutate.forEach(geo => {
+            if (!geo.userData.originalPos) return;
+            const pos = geo.attributes.position;
+            const orig = geo.userData.originalPos;
+            for (let i = 0; i < orig.count; i++) {
+                let x = orig.getX(i);
+                let y = orig.getY(i);
+                let dist = Math.sqrt(x*x + y*y);
+                if (dist > 0) {
+                    let nx = x / dist;
+                    let ny = y / dist;
+                    let scale = applyTopologyScale(nx, ny);
+                    pos.setXY(i, x * scale, y * scale);
+                }
+            }
+            pos.needsUpdate = true;
+        });
+    }
 }
 
 document.getElementById('slider-g').addEventListener('input', (e) => {
@@ -4642,24 +4673,34 @@ function animate() {
     }
 
     // === ANIMACIÓN KEPLERIANA DE EXOPLANETAS ===
-    // Orbita cada exoplaneta según su velocidad angular (T² ∝ a³)
+    // Orbita cada exoplaneta según su velocidad angular y Métrica Topológica
     if (window.currentExoPlanets && window.currentExoPlanets.length > 0) {
         window.currentExoPlanets.forEach(p => {
-            if (!p.parent) return; // Ya limpiado de la escena
+            if (!p.parent) return; 
             p.userData.orbitAngle += p.userData.orbitSpeed * timeSpeed;
             const a = p.userData.orbitAngle;
-            const d = p.userData.orbitDist;
-            p.position.set(Math.cos(a) * d, p.position.y, Math.sin(a) * d);
+            const d = p.userData.orbitDist || p.userData.dist;
+            
+            let px = Math.cos(a);
+            let pz = Math.sin(a);
+            let scale = applyTopologyScale(px, pz);
+            
+            p.position.set(px * d * scale, p.position.y, pz * d * scale);
         });
     }
-    // Animar lunas alrededor de sus planetas
+    // Animar lunas alrededor de sus planetas con Métrica Topológica
     if (window.currentExoMoons && window.currentExoMoons.length > 0) {
         window.currentExoMoons.forEach(m => {
             if (!m.parent) return;
             m.userData.orbitAngle += m.userData.orbitSpeed * timeSpeed;
             const a = m.userData.orbitAngle;
             const d = m.userData.orbitDist;
-            m.position.set(Math.cos(a) * d, m.position.y, Math.sin(a) * d);
+            
+            let px = Math.cos(a);
+            let pz = Math.sin(a);
+            let scale = applyTopologyScale(px, pz);
+            
+            m.position.set(px * d * scale, m.position.y, pz * d * scale);
         });
     }
 
