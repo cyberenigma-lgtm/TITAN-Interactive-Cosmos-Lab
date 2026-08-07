@@ -3426,7 +3426,9 @@ window.addEventListener('click', (e) => {
     const targets = [solarSystem, panalGroup, extraSystems];
     if (typeof window.currentExoSystem !== 'undefined' && window.currentExoSystem) targets.push(window.currentExoSystem);
     if (window.simbadGroup) targets.push(window.simbadGroup);
-    // nebulaeGroup tiene sprites de radio miles de unidades → hit invisible cubre toda la pantalla
+    if (typeof cellMesh !== 'undefined') targets.push(cellMesh); // Permitir apuntar a las estrellas procedimentales DVTRGAS
+    
+    // nebulaeGroup tiene sprites de radio miles de unidades -> hit invisible cubre toda la pantalla
     // if (window.nebulaeGroup) targets.push(window.nebulaeGroup);
     // Los siguientes grupos tienen cientos de miles de puntos y congelan el raycast:
     // hipparcosGroup (~120k puntos), zoaGroup (~35k puntos), milkyWaySphere (1M), cosmicWeb (500k)
@@ -3437,7 +3439,40 @@ window.addEventListener('click', (e) => {
     for(let i=0; i<intersects.length; i++) {
         const obj = intersects[i].object;
         
-        // DVTRGAS Math Raycasting eliminado. Ahora solo enfocamos datos empíricos reales (SIMBAD / NASA)
+        // === INTERSECCIÓN CON DVTRGAS (ESTRELLAS PROCEDIMENTALES) ===
+        if (typeof cellMesh !== 'undefined' && obj === cellMesh && intersects[i].instanceId !== undefined) {
+            const idx = intersects[i].instanceId;
+            if (typeof currentDVTRGASData !== 'undefined' && currentDVTRGASData && currentDVTRGASData[idx]) {
+                const starData = currentDVTRGASData[idx];
+                if (starData.estado !== 'inactiva' || starData.masa > 0) {
+                    const uName = `Estrella DVTRGAS [${starData.x}, ${starData.y}, ${starData.z}]`;
+                    infoPanel.classList.remove('hidden');
+                    tName.textContent = uName;
+                    
+                    document.getElementById('target-mass').textContent = `Masa Estelar DVTRGAS (Estado: ${starData.estado})`;
+                    document.getElementById('target-radius').textContent = "Tamaño Estelar Procedural";
+                    document.getElementById('target-dist').textContent = "Red Simulada";
+                    document.getElementById('target-mag').textContent = "-";
+                    document.getElementById('target-temp').textContent = "-";
+                    
+                    const typeEl = document.getElementById('target-type');
+                    typeEl.style.display = "block";
+                    typeEl.textContent = "NÚCLEO DVTRGAS - CÉLULA ACTIVA";
+                    
+                    const imgEl = document.getElementById('target-image');
+                    imgEl.style.display = "none";
+                    
+                    document.getElementById('landing-btn-container').innerHTML = '';
+                    
+                    // Calcular posición real de la instancia
+                    const targetPos = new THREE.Vector3(starData.x * 20, starData.y * 20, starData.z * 20);
+                    focusObject(obj, 30, uName, `Célula de simulación matemática DVTRGAS activada. Coordenadas cuánticas procesadas.`, "Masa Matemática", "Variable", targetPos);
+                    
+                    found = true;
+                    break;
+                }
+            }
+        }
         
         // Planetas Normales y SIMBAD Stars
         if (obj.userData && (obj.userData.name || obj.userData.simbad)) {
@@ -4553,7 +4588,7 @@ function setDeepSpaceMode(active) {
     }
 }
 
-function focusObject(object, dist, name, desc, mass, rad) {
+function focusObject(object, dist, name, desc, mass, rad, customPos = null) {
     currentTarget = object;
     
     // === FIX MATERIALIZACIÓN Y GESTIÓN DE CAPAS VISIBLES ===
@@ -4581,8 +4616,8 @@ function focusObject(object, dist, name, desc, mass, rad) {
         }
     });
 
-    const pos = new THREE.Vector3();
-    object.getWorldPosition(pos);
+    const pos = customPos ? customPos.clone() : new THREE.Vector3();
+    if (!customPos) object.getWorldPosition(pos);
     lastTargetPos.copy(pos);
     
     // Motor de Curvatura (Warp Drive)
