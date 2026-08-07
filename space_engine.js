@@ -4085,14 +4085,14 @@ function animate() {
     
     // Rotar Discos de Acreción de Agujeros Negros en su plano ecuatorial
     if (sgrADisk) {
-        sgrADisk.rotation.y += 0.003 * timeSpeed * physicsAcc;
+        sgrADisk.rotation.z -= 0.003 * timeSpeed * physicsAcc; // Z es el eje normal del RingGeometry
         if (sgrADisk.material.uniforms && sgrADisk.material.uniforms.time) {
             sgrADisk.material.uniforms.time.value = engineTime * 0.001;
         }
     }
     extraSystems.children.forEach(sys => {
         if (sys.userData.isAccretion && sys.userData.disk) {
-            sys.userData.disk.rotation.y += 0.003 * timeSpeed * physicsAcc;
+            sys.userData.disk.rotation.z -= 0.003 * timeSpeed * physicsAcc;
             if (sys.userData.disk.material.uniforms && sys.userData.disk.material.uniforms.time) {
                 sys.userData.disk.material.uniforms.time.value = engineTime * 0.001;
             }
