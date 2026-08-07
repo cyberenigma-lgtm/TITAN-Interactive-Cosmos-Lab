@@ -3098,6 +3098,13 @@ const TitanShader = {
                     // Ya NO pintamos de negro absoluto aquí, porque oculta la parte delantera de los discos 3D.
                     // La sombra negra se maneja nativamente con shadowMesh en el motor 3D.
                     
+                    // IMPORTANTE: Dentro del horizonte de sucesos, NO hay deflexión de luz hacia afuera,
+                    // de lo contrario el shader jalaría píxeles del exterior hacia el centro, creando un vórtice 
+                    // que borra la sombra negra 3D.
+                    if (distToBh < bhActive * 0.95) {
+                        deflexion = 0.0;
+                    }
+                    
                     // Curvar la luz hacia afuera (efecto lente gravitacional)
                     // Ajustamos la deflexión en X dividiéndola por el aspecto para que el estiramiento UV sea proporcional
                     vec2 targetUv = uv + normalize(dirToBh) * vec2(deflexion / aspect, deflexion);
