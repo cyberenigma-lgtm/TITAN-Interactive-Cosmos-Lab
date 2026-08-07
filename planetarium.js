@@ -40,9 +40,9 @@ window.Planetarium = {
         container.style.display = 'none';
 
         let html = `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4cc9f0; padding-bottom:8px; margin-bottom:10px;">
-                <h3 class="drag-handle" style="color:#4cc9f0; font-family:'Outfit', sans-serif; margin:0; font-size:14px;">🌍 STREET VIEW DEL CIELO</h3>
-                <button id="btn-close-planetarium" style="background:none; border:none; color:#888; font-size:16px; cursor:pointer;">✕</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0, 255, 204, 0.4); padding-bottom:10px; margin-bottom:12px;">
+                <h3 class="drag-handle" style="color:#00ffcc; font-family:'Outfit', sans-serif; margin:0; font-size:14px; text-transform:uppercase; letter-spacing:1px;">🌍 STREET VIEW DEL CIELO</h3>
+                <button id="btn-close-planetarium" style="background:none; border:none; color:#00ffcc; font-size:18px; cursor:pointer; transition:transform 0.2s;">✕</button>
             </div>
             <div style="font-size:11px; color:#aaa; margin-bottom:10px;">Selecciona una ubicación para aterrizar y ver el cielo real.</div>
             <select id="planetarium-select" style="width:100%; background:rgba(0,0,0,0.5); border:1px solid #4cc9f0; color:#fff; padding:6px; margin-bottom:10px; font-family:'Outfit', sans-serif;">
@@ -55,13 +55,13 @@ window.Planetarium = {
 
         html += `
             </select>
-            <button id="btn-land-surface" style="width:100%; background:rgba(76,201,240,0.2); border:1px solid #4cc9f0; color:#4cc9f0; padding:8px; font-weight:bold; cursor:pointer; font-family:'Outfit', sans-serif;">
+            <button id="btn-land-surface" style="width:100%; background:rgba(0,255,204,0.15); border:1px solid #00ffcc; color:#00ffcc; padding:10px; font-weight:bold; cursor:pointer; font-family:'Outfit', sans-serif; border-radius:6px; margin-bottom:10px; transition:all 0.3s ease; box-shadow: 0 0 10px rgba(0,255,204,0.2);">
                 🚀 ATERRIZAR EN LA SUPERFICIE
             </button>
-            <button id="btn-leave-surface" style="width:100%; background:rgba(255,0,0,0.2); border:1px solid red; color:red; padding:8px; font-weight:bold; cursor:pointer; font-family:'Outfit', sans-serif; margin-top:5px; display:none;">
+            <button id="btn-leave-surface" style="display:none; width:100%; background:rgba(255,51,102,0.15); border:1px solid #ff3366; color:#ff3366; padding:10px; font-weight:bold; cursor:pointer; font-family:'Outfit', sans-serif; border-radius:6px; margin-top:10px; transition:all 0.3s ease; box-shadow: 0 0 10px rgba(255,51,102,0.2);">
                 🛰️ VOLVER A ÓRBITA (SALIR)
             </button>
-            <div id="planetarium-info" style="font-size:10px; color:#00ffcc; margin-top:10px; font-family:monospace;"></div>
+            <div id="planetarium-info" style="margin-top:12px; font-size:11px; color:#00ffcc; font-family:monospace; white-space:pre-wrap; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;"></div>
         `;
 
         container.innerHTML = html;
