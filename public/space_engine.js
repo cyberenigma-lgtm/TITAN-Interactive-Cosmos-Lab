@@ -2040,56 +2040,54 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
     // El material Shader requiere renderizado manual si queremos animarlo, pero estático ya se ve increíble.
     bhGroup.add(accretionDisk);
 
-    // 3. Lente Gravitacional de Gargantua (Halos superior e inferior)
-    // Hacemos los anillos mucho más gruesos y espectaculares en el Canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024; canvas.height = 1024;
-    const ctx = canvas.getContext('2d');
-    
-    const cx = 512, cy = 512;
-    const rH = 512 * (rShadow / (rShadow*4.0)); // Radio del horizonte en el sprite
-    
-    // Anillo de Fotones Ultra-Brillante
-    ctx.beginPath();
-    ctx.arc(cx, cy, rH * 1.05, 0, Math.PI*2);
-    ctx.lineWidth = 12;
-    ctx.strokeStyle = isBlue ? 'rgba(180, 230, 255, 1.0)' : 'rgba(255, 230, 180, 1.0)';
-    ctx.stroke();
-    
-    // Halo Superior (Muy grueso e intenso)
-    const gradientTop = ctx.createRadialGradient(cx, cy - rH*1.5, 0, cx, cy, rH*2.5);
-    gradientTop.addColorStop(0, isBlue ? 'rgba(100, 180, 255, 1.0)' : 'rgba(255, 160, 60, 1.0)');
-    gradientTop.addColorStop(0.5, isBlue ? 'rgba(50, 120, 255, 0.5)' : 'rgba(200, 80, 20, 0.5)');
-    gradientTop.addColorStop(1, 'rgba(0,0,0,0)');
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, rH * 2.5, Math.PI + 0.1, Math.PI*2 - 0.1);
-    ctx.lineWidth = rH * 1.5;
-    ctx.strokeStyle = gradientTop;
-    ctx.stroke();
-    
-    // Halo Inferior
-    const gradientBot = ctx.createRadialGradient(cx, cy + rH*1.5, 0, cx, cy, rH*2.5);
-    gradientBot.addColorStop(0, isBlue ? 'rgba(100, 180, 255, 0.6)' : 'rgba(255, 120, 40, 0.6)');
-    gradientBot.addColorStop(0.5, isBlue ? 'rgba(50, 120, 255, 0.2)' : 'rgba(200, 60, 10, 0.2)');
-    gradientBot.addColorStop(1, 'rgba(0,0,0,0)');
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, rH * 2.5, 0.1, Math.PI - 0.1);
-    ctx.lineWidth = rH * 1.5;
-    ctx.strokeStyle = gradientBot;
-    ctx.stroke();
-
-    const haloTex = new THREE.CanvasTexture(canvas);
-    const haloMat = new THREE.SpriteMaterial({
-        map: haloTex,
-        color: 0xffffff,
+    // 3. Lente Gravitacional de Gargantua (Halos superior e inferior - Einstein Ring)
+    // Usamos un ShaderMaterial procedural para evitar el "banding" o "pulsaciones" del Canvas 2D
+    const haloMat = new THREE.ShaderMaterial({
+        uniforms: {
+            color: { value: baseColor }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 color;
+            varying vec2 vUv;
+            void main() {
+                vec2 uv = vUv - 0.5;
+                float dist = length(uv);
+                
+                // El sprite se escala a 8 * rShadow. Por tanto, el horizonte de sucesos (rShadow) está en dist = 1/8 = 0.125
+                // El disco exterior llega hasta 4.5 * rShadow, que en UV es 4.5/8 = 0.56.
+                
+                // Creamos un anillo suave que envuelve la sombra
+                float ring = smoothstep(0.08, 0.14, dist) * smoothstep(0.45, 0.14, dist);
+                
+                // Hacer que el anillo sea extremadamente brillante arriba y abajo (doblamiento de la luz del disco)
+                float angleIntensity = abs(uv.y) / (dist + 0.001); // 1 en los polos (arriba/abajo), 0 en el ecuador
+                angleIntensity = pow(angleIntensity, 2.5); // Estrechar los halos
+                
+                // Efecto Doppler asimétrico (izquierda vs derecha)
+                float doppler = smoothstep(-0.5, 0.5, uv.x);
+                vec3 finalColor = color * (0.3 + doppler * 1.7);
+                
+                float alpha = ring * angleIntensity * 3.0; // Multiplicador de intensidad
+                
+                // Difuminado extra para eliminar bordes duros ("pulsaciones")
+                alpha *= smoothstep(0.5, 0.3, dist);
+                
+                gl_FragColor = vec4(finalColor, alpha);
+            }
+        `,
         transparent: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
     const haloSprite = new THREE.Sprite(haloMat);
-    haloSprite.scale.set(rShadow * 8.0, rShadow * 8.0, 1); // Más grande para abarcar todo
+    haloSprite.scale.set(rShadow * 8.0, rShadow * 8.0, 1);
     haloSprite.renderOrder = 5; 
     bhGroup.add(haloSprite);
 
