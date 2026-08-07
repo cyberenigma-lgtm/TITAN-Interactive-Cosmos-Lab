@@ -10,6 +10,7 @@ window.Planetarium = {
         { name: "Pamplona, España", lat: 42.81687, lon: -1.64323 },
         { name: "Galicia (Santiago), España", lat: 42.8782, lon: -8.5448 },
         { name: "Madrid, España", lat: 40.4168, lon: -3.7038 },
+        { name: "Amigo (Calle la Rioja, Valdemoro)", lat: 40.188521, lon: -3.685902 },
         { name: "Buenos Aires, Argentina", lat: -34.6037, lon: -58.3816 },
         { name: "CDMX, México", lat: 19.4326, lon: -99.1332 },
         { name: "Tokio, Japón", lat: 35.6762, lon: 139.6503 }
@@ -64,7 +65,7 @@ window.Planetarium = {
         `;
 
         container.innerHTML = html;
-        document.getElementById('ui-overlay').appendChild(container);
+        document.body.appendChild(container);
 
         document.getElementById('btn-close-planetarium').addEventListener('click', () => {
             container.style.display = 'none';
@@ -135,19 +136,24 @@ window.Planetarium = {
 
         // Crear una máscara de horizonte (suelo oscuro) anclada a la cámara
         if (!this.horizonMask) {
-            const hGeo = new THREE.CylinderGeometry(10, 10, 20, 32, 1, true, 0, Math.PI * 2);
-            // Rotar y posicionar para que tape la mitad inferior
+            // Plano gigante que actúa como suelo opaco (horizonte)
+            const hGeo = new THREE.CircleGeometry(5000, 64);
             const hMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide });
             this.horizonMask = new THREE.Mesh(hGeo, hMat);
             
+            // Rotarlo para que esté horizontal
+            this.horizonMask.rotation.x = -Math.PI / 2;
+            
             // Creamos un grupo para la cámara que mantenga el horizonte
             this.cameraRig = new THREE.Group();
-            this.cameraRig.add(camera);
             this.cameraRig.add(this.horizonMask);
             
             // El horizonte debe estar justo debajo de la vista de la cámara
-            this.horizonMask.position.set(0, -10.1, 0); 
+            this.horizonMask.position.set(0, -0.5, 0); 
         }
+
+        // IMPORTANTE: Siempre añadir la cámara al rig en cada aterrizaje
+        this.cameraRig.add(camera);
 
         // 1. Añadir el rig completo como hijo de la Tierra
         earthObj.mesh.add(this.cameraRig);

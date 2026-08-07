@@ -87,6 +87,11 @@
                         MODO: [ OBS ] OBSERVATORIO
                     </button>
                 </li>
+                <li style="margin-right: 15px;">
+                    <button id="btn-street-view" onclick="Planetarium.togglePanel()" style="background:rgba(76,201,240,0.15); border:1px solid rgba(76,201,240,0.5); color:#4cc9f0; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:'Outfit',sans-serif;">
+                        🌍 STREET VIEW DEL CIELO
+                    </button>
+                </li>
                 <li style="position:relative;" class="obs-panel">
                     <a href="#" id="btn-tours-menu" style="color:#ffd700; font-weight:bold; border:1px solid #ffd700; padding:4px 10px; border-radius:4px; background:rgba(255,215,0,0.15);">🚀 TOURS GUIADOS ▾</a>
                     <div id="tours-dropdown" style="display:none; position:absolute; top:100%; right:0; background:rgba(10,15,30,0.95); border:1px solid #ffd700; border-radius:6px; min-width:240px; padding:6px; z-index:1000; box-shadow:0 10px 25px rgba(0,0,0,0.8);">
@@ -357,23 +362,23 @@
     </aside>
 
     <!-- REAL-TIME SPATIAL DISTANCE TELEMETRY HUD -->
-    <div id="distance-vector-hud" class="glass-card obs-panel" style="position: absolute; top: 75px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(126,184,212, 0.4); background: rgba(5, 12, 24, 0.85); display: flex; align-items: center; gap: 20px; font-family: monospace; backdrop-filter: blur(10px); pointer-events: auto;">
+    <div id="distance-vector-hud" class="glass-card obs-panel" style="position: absolute; top: 75px; left: 20px; z-index: 1000; padding: 15px; border-radius: 8px; border: 1px solid rgba(126,184,212, 0.4); background: rgba(5, 12, 24, 0.85); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font-family: monospace; backdrop-filter: blur(10px); pointer-events: auto;">
         <div>
             <div style="font-size: 10px; color: #4cc9f0; font-weight: bold; letter-spacing: 1px;">🎯 OBJETIVO EN OBSERVACIÓN</div>
             <div id="hud-target-name" style="font-size: 13px; color: #ffffff; font-weight: bold;">Tierra / Sistema Solar</div>
         </div>
-        <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.2);"></div>
+        <div style="height: 1px; width: 100%; background: rgba(255,255,255,0.2);"></div>
         <div>
             <div style="font-size: 10px; color: #00ffcc; font-weight: bold; letter-spacing: 1px;">📏 DISTANCIA REAL DESDE LA TIERRA</div>
             <div id="hud-dist-value" style="font-size: 14px; color: #7eb8d4; font-weight: bold;">0.00 ly (0.00 UA)</div>
         </div>
-        <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.2);"></div>
+        <div style="height: 1px; width: 100%; background: rgba(255,255,255,0.2);"></div>
         <div>
             <div style="font-size: 10px; color: #ffaa00; font-weight: bold; letter-spacing: 1px;">📐 DISTANCIA A LA CÁMARA</div>
             <div id="hud-cam-dist-value" style="font-size: 14px; color: #ffaa00; font-weight: bold;">450.0 u</div>
         </div>
-        <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.2);"></div>
-        <button id="btn-toggle-neo-panel" style="background: rgba(255,170,0,0.2); border: 1px solid #ffaa00; color: #ffaa00; font-weight: bold; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: monospace;">
+        <div style="height: 1px; width: 100%; background: rgba(255,255,255,0.2);"></div>
+        <button id="btn-toggle-neo-panel" style="background: rgba(255,170,0,0.2); border: 1px solid #ffaa00; color: #ffaa00; font-weight: bold; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: monospace; width: 100%;">
             ☄️ RADAR DE BÓLIDOS
         </button>
     </div>
