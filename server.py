@@ -13,6 +13,8 @@ import math
 import importlib
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import random
+import threading
+import time
 
 # Añadimos el núcleo DVTRGAS al path de forma dinámica
 _CORE_PATH = os.path.join(os.path.dirname(__file__), 'core')
@@ -188,7 +190,7 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             # Avanzamos y calculamos solo cuando los ojos lo piden (render loop tick)
-            # universo.iterar() # DESACTIVADO: Bloquea el servidor y causa 'Failed to fetch'
+            # El motor matemático ahora corre en su propio hilo (simulation_loop)
             try:
                 self.wfile.write(universo.obtener_estado_json().encode('utf-8'))
             except Exception:
@@ -228,7 +230,21 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
         # Silenciar los logs del HTTP server para no spamear la consola
         pass
 
+def simulation_loop():
+    print("[DVTRGAS] Motor matemático en segundo plano iniciado...")
+    while True:
+        try:
+            universo.iterar()
+            time.sleep(1.0) # 1 iteración (paso) por segundo
+        except Exception as e:
+            print(f"[DVTRGAS] Error en el bucle de simulación: {e}")
+            time.sleep(5.0)
+
 def iniciar_servidor(puerto=8080):
+    # Iniciar el motor matemático en un hilo separado
+    sim_thread = threading.Thread(target=simulation_loop, daemon=True)
+    sim_thread.start()
+
     server = ThreadingHTTPServer(('0.0.0.0', puerto), CosmosAPIHandler)
     print(f"[Cerebro DVTRGAS y Puente API] conectados en http://127.0.0.1:{puerto}")
     print("El visor WebGL ahora renderizará visualmente tus ecuaciones puras.")
