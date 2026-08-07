@@ -107,6 +107,16 @@ window.FX = {
         this.composer = new THREE.EffectComposer(renderer);
         this.composer.addPass(renderScene);
         this.composer.addPass(this.bloomPass);
+        
+        // Efecto Cinemático (Grano de película y sutiles scanlines para dar aspecto de cámara espacial)
+        const filmPass = new THREE.FilmPass(
+            0.15,   // noiseIntensity (grano de película)
+            0.05,  // scanlinesIntensity (apenas visible)
+            648,    // scanlinesCount
+            false   // grayscale
+        );
+        filmPass.renderToScreen = true;
+        this.composer.addPass(filmPass);
     },
 
     ApplyPostProcessing: function() {
