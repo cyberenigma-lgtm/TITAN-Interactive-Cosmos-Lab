@@ -3000,7 +3000,8 @@ const TitanShader = {
         "time": { value: 0 },
         "swarmIntensity": { value: 0.005 },
         "bhPosScreen": { value: new THREE.Vector2(0.5, 0.5) },
-        "bhActive": { value: 0.0 }
+        "bhActive": { value: 0.0 },
+        "aspect": { value: 1.0 }
     },
     vertexShader: `
         varying vec2 vUv;
@@ -3015,19 +3016,27 @@ const TitanShader = {
         uniform float swarmIntensity;
         uniform vec2 bhPosScreen;
         uniform float bhActive;
+        uniform float aspect;
         varying vec2 vUv;
         
         void main() {
             vec2 uv = vUv;
-            float dist = distance(uv, vec2(0.5));
+            
+            // Corregir aspecto para cálculos circulares (para evitar que el agujero negro sea un óvalo)
+            vec2 aspectUv = vec2(uv.x * aspect, uv.y);
+            vec2 aspectCenter = vec2(0.5 * aspect, 0.5);
+            
+            float dist = distance(aspectUv, aspectCenter);
             
             // Máscara radial: 0 en el centro, 1 en los bordes
-            float edgeMask = smoothstep(0.1, 0.8, dist); 
+            float edgeMask = smoothstep(0.1, 0.8 * aspect, dist); 
             
             // Lente Gravitacional Realista (Black Hole Lensing / Einstein Ring)
             if (bhActive > 0.0) {
-                vec2 dirToBh = uv - bhPosScreen;
+                vec2 aspectBhPos = vec2(bhPosScreen.x * aspect, bhPosScreen.y);
+                vec2 dirToBh = aspectUv - aspectBhPos;
                 float distToBh = length(dirToBh);
+                
                 // bhActive es el radio aparente de Schwarzschild proyectado en pantalla
                 if (distToBh > 0.0) {
                     // Métrica de Schwarzschild aproximada en Screen Space
@@ -3046,7 +3055,8 @@ const TitanShader = {
                         return;
                     } else {
                         // Curvar la luz hacia afuera (efecto lente gravitacional)
-                        vec2 targetUv = uv + normalize(dirToBh) * deflexion;
+                        // Ajustamos la deflexión en X dividiéndola por el aspecto para que el estiramiento UV sea proporcional
+                        vec2 targetUv = uv + normalize(dirToBh) * vec2(deflexion / aspect, deflexion);
                         // Clampear para que no lea fuera de la pantalla y cree el "cuadrado feo"
                         uv = clamp(targetUv, vec2(0.001), vec2(0.999));
                     }
@@ -4702,7 +4712,9 @@ function animate() {
         titanPass.uniforms["bhActive"].value = 0.0;
     }
     
-    // Shader Uniforms de Tiempo y Física
+    // Shader Uniforms de Aspect Ratio, Tiempo y Física
+    titanPass.uniforms["aspect"].value = window.innerWidth / window.innerHeight;
+    
     if (!isNaN(time)) titanPass.uniforms["time"].value = time * 5.0;
     else titanPass.uniforms["time"].value = 0.0;
     
