@@ -1974,25 +1974,44 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
             color: { value: new THREE.Color(labelColor === '#00ffff' ? 0x88ccff : 0xffaa55) }
         },
         vertexShader: `
-            varying vec3 vNormal;
+            varying vec3 vObjPos;
+            varying vec3 vNormalView;
             void main() {
-                vNormal = normalize(normalMatrix * normal);
+                vObjPos = position;
+                vNormalView = normalize(normalMatrix * normal);
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
         fragmentShader: `
             uniform vec3 color;
-            varying vec3 vNormal;
+            varying vec3 vObjPos;
+            varying vec3 vNormalView;
             void main() {
-                // Calcular el ángulo respecto al ecuador y los polos
-                float intensity = pow(1.0 - abs(dot(vNormal, vec3(0,0,1))), 4.0); // Borde brillante (fresnel)
-                float equatorDist = abs(vNormal.y); // Distancia al ecuador local
+                vec3 objNorm = normalize(vObjPos);
                 
-                // Bandas brillantes arriba y abajo simulando el disco de acreción doblado
-                float lensedDisk = smoothstep(0.7, 0.85, equatorDist) * smoothstep(0.95, 0.85, equatorDist);
-                float finalIntensity = (intensity * 0.5) + (lensedDisk * 2.0);
+                // Borde de lente gravitacional (Fresnel extremo relativo a la cámara)
+                float fresnel = pow(1.0 - abs(dot(vNormalView, vec3(0,0,1))), 5.0);
                 
-                gl_FragColor = vec4(color, finalIntensity);
+                // Distancia al ecuador en espacio OBJETO (alineado con el disco de acreción físico)
+                // Usamos smoothstep para concentrar el brillo en los "polos" visuales, 
+                // lo que simula la luz del disco trasero doblándose por encima y por debajo del horizonte.
+                float equatorDist = abs(objNorm.y); 
+                
+                // Doble anillo (arriba y abajo) simulando el disco distorsionado (Efecto Gargantua)
+                float lensedDisk = smoothstep(0.65, 0.9, equatorDist) * smoothstep(1.0, 0.85, equatorDist);
+                
+                // Detalles procedurales dentro del anillo de luz para simular corrientes de plasma Doppler
+                float dopplerShift = smoothstep(-1.0, 1.0, objNorm.x); // Un lado se acerca (más brillante/azul), otro se aleja
+                
+                // Anillo de fotones ultra-delgado justo en el horizonte
+                float photonRing = smoothstep(0.85, 1.0, fresnel);
+                
+                float finalIntensity = (lensedDisk * 2.5) + (photonRing * 3.0);
+                
+                // Añadir un suave gradiente de temperatura (doppler blueshift/redshift simulado)
+                vec3 finalColor = color * (0.8 + dopplerShift * 0.4);
+                
+                gl_FragColor = vec4(finalColor, finalIntensity);
             }
         `
     };
