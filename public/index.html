@@ -126,9 +126,9 @@
         </div>
     </div>
 
-    <aside id="dvtrgas-console" class="glass-card panel-draggable lab-panel materializing" style="position:absolute; top: 6rem; left: 2rem; width: 350px; height: 350px; font-family:'Courier New', monospace; font-size:12px; pointer-events:auto; z-index:100; display:flex; flex-direction:column;">
+    <aside id="dvtrgas-console" class="glass-card panel-draggable lab-panel materializing" style="position:absolute; top: 6rem; left: 2rem; width: 350px; height: 350px; font-family:'Courier New', monospace; font-size:12px; pointer-events:auto; z-index:100; display:flex; flex-direction:column; overflow: hidden;">
         <h3 class="drag-handle" style="color:#d4a843; border-bottom: 1px solid #d4a843; margin-bottom:10px; font-family:'Outfit', sans-serif; padding-bottom:5px;">TITAN // LIVE CONSOLE</h3>
-        <div id="console-output" style="color:#00ff00; line-height:1.4; flex-grow:1; overflow-y:auto; overflow-x:hidden; min-height:0; word-wrap:break-word; margin-bottom:10px; padding-right:5px;"></div>
+        <div id="console-output" style="color:#00ff00; line-height:1.4; flex: 1 1 0; overflow-y:auto; overflow-x:hidden; word-wrap:break-word; margin-bottom:10px; padding-right:5px;"></div>
         <div style="display:flex; border-top: 1px solid #444; padding-top:10px;">
             <span style="color:#d4a843;">TITAN$&nbsp;</span>
             <input type="text" id="console-input" style="background:transparent; border:none; color:white; font-family:'Courier New', monospace; outline:none; width:100%;" autocomplete="off" spellcheck="false" placeholder="_">
