@@ -3071,8 +3071,11 @@ const TitanShader = {
             
             vec4 texColor = texture2D(tDiffuse, uv);
             
+            // Usar la distancia de pantalla pura (sin corregir aspecto) para efectos perimetrales como Vignette o SNR
+            float screenDist = distance(vUv, vec2(0.5));
+            
             // 🧠 SNR Visual (Aberración Energética perimetral)
-            float snrWeight = smoothstep(0.4, 0.8, dist); // SNR activo en los bordes
+            float snrWeight = smoothstep(0.4, 0.8, screenDist); // SNR activo solo en los bordes de la pantalla
             
             // Modulador de color (Rojo colapso, Azul expansión)
             texColor.r += snrWeight * 0.15 * (sin(time * 2.0) * 0.5 + 0.5);
