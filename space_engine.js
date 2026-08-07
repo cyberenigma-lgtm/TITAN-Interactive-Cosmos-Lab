@@ -1942,7 +1942,7 @@ window.ourUniverse.add(extraSystems);
 
 const exoplanetData = [
     { name: "Próxima Centauri", x: 4.2, z: 2.1, y: 0, color: 0xff3333, desc: "Enana Roja (Sistema estelar más cercano con exoplanetas)" },
-    { name: "TRAPPIST-1", x: 40, z: -15, y: 5, color: 0xff4444, desc: "Sistema con 7 planetas rocosos (Zona Habitable)" },
+{ name: "TRAPPIST-1", x: 40, z: -15, y: 5, color: 0xff4444, desc: "Sistema con 7 planetas rocosos (Zona Habitable)" },
     { name: "Kepler-186", x: -100, z: 250, y: -20, color: 0xffaa88, desc: "Enana M con el primer planeta terrestre confirmado" },
     { name: "Castor (Gemini A)", x: 35, z: 15, y: 40, color: 0x88bbff, desc: "Sistema Estelar Múltiple en la constelación de Géminis" },
     { name: "Stephenson 2-18", x: 190, z: -320, y: 40, isHypergiant: true, color: 0xff4411, desc: "La estrella más grande conocida en el Universo (Hipergigante Roja con 2,150 Radios Solares). Distancia: 18,900 ly." },
@@ -1957,155 +1957,130 @@ const exoplanetData = [
 function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionActive = true, labelColor = '#ffaa00' }) {
     const bhGroup = new THREE.Group();
 
-    // 1. Sombra Absoluta del Horizonte de Sucesos (Schwarzschild Black Shadow)
+    // 1. Sombra Negra Central (El agujero en 3D puro)
     const shadowMesh = new THREE.Mesh(
         new THREE.SphereGeometry(rShadow, 64, 64),
         new THREE.MeshBasicMaterial({ color: 0x000000, depthWrite: true, depthTest: true })
     );
-    shadowMesh.renderOrder = 1000;
+    shadowMesh.renderOrder = 10;
     bhGroup.add(shadowMesh);
 
-    // 1b. Lente Gravitacional de Einstein (Gargantua / Interstellar Style)
-    // Usamos un shader esférico para simular la luz del disco de acreción doblándose
-    // por encima y por debajo del horizonte de sucesos.
-    const lensGeo = new THREE.SphereGeometry(rShadow * 1.5, 64, 64);
-    const lensShader = {
-        uniforms: {
-            color: { value: new THREE.Color(labelColor === '#00ffff' ? 0x88ccff : 0xffaa55) }
-        },
-        vertexShader: `
-            varying vec3 vObjPos;
-            varying vec3 vNormalView;
-            void main() {
-                vObjPos = position;
-                vNormalView = normalize(normalMatrix * normal);
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `,
-        fragmentShader: `
-            uniform vec3 color;
-            varying vec3 vObjPos;
-            varying vec3 vNormalView;
-            void main() {
-                vec3 objNorm = normalize(vObjPos);
-                
-                // Borde de lente gravitacional (Fresnel extremo relativo a la cámara)
-                float fresnel = pow(1.0 - abs(dot(vNormalView, vec3(0,0,1))), 5.0);
-                
-                // Distancia al ecuador en espacio OBJETO (alineado con el disco de acreción físico)
-                // Usamos smoothstep para concentrar el brillo en los "polos" visuales, 
-                // lo que simula la luz del disco trasero doblándose por encima y por debajo del horizonte.
-                float equatorDist = abs(objNorm.y); 
-                
-                // Doble anillo (arriba y abajo) simulando el disco distorsionado (Efecto Gargantua)
-                float lensedDisk = smoothstep(0.65, 0.9, equatorDist) * smoothstep(1.0, 0.85, equatorDist);
-                
-                // Detalles procedurales dentro del anillo de luz para simular corrientes de plasma Doppler
-                float dopplerShift = smoothstep(-1.0, 1.0, objNorm.x); // Un lado se acerca (más brillante/azul), otro se aleja
-                
-                // Anillo de fotones ultra-delgado justo en el horizonte
-                float photonRing = smoothstep(0.85, 1.0, fresnel);
-                
-                float finalIntensity = (lensedDisk * 2.5) + (photonRing * 3.0);
-                
-                // Añadir un suave gradiente de temperatura (doppler blueshift/redshift simulado)
-                vec3 finalColor = color * (0.8 + dopplerShift * 0.4);
-                
-                gl_FragColor = vec4(finalColor, finalIntensity);
-            }
-        `
-    };
-    const lensMat = new THREE.ShaderMaterial({
-        uniforms: lensShader.uniforms,
-        vertexShader: lensShader.vertexShader,
-        fragmentShader: lensShader.fragmentShader,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-        side: THREE.BackSide // Renderizar cara interior para envolver la sombra
-    });
-    const photonRing = new THREE.Mesh(lensGeo, lensMat);
-    bhGroup.add(photonRing);
+    const isBlue = labelColor === '#00ffff' || labelColor === 0x00ffff;
 
-    // 2. Disco de Acreción Volumétrico Continuo de Gas y Plasma en Eje Equatorial (40.000 Partículas)
+    // 2. Disco de Acreción (El plasma orbitando) - VERSIÓN ULTRA REALISTA
     const partGeo = new THREE.BufferGeometry();
-    const partCount = 40000;
+    const partCount = 45000;
     const positions = new Float32Array(partCount * 3);
     const colors = new Float32Array(partCount * 3);
 
-    const rMin = rShadow * 1.05;
-    const rMax = rShadow * 5.2;
+    const rMin = rShadow * 1.1;
+    const rMax = rShadow * 4.5;
 
     for (let i = 0; i < partCount; i++) {
-        // Distribución radial continua e isotrópica (concentrada hacia el centro)
-        const norm = Math.pow(Math.random(), 1.7);
+        // Distribución exponencial (concentrada en el interior brillante)
+        const norm = Math.pow(Math.random(), 2.0);
         const r = rMin + norm * (rMax - rMin);
         const theta = Math.random() * Math.PI * 2;
-        const height = (Math.random() - 0.5) * (rShadow * 0.05 + norm * rShadow * 0.12);
+        // El disco es casi plano (Gargantua style)
+        const height = (Math.random() - 0.5) * (rShadow * 0.02 + norm * rShadow * 0.08);
 
         positions[i*3]     = r * Math.cos(theta);
         positions[i*3 + 1] = height;
         positions[i*3 + 2] = r * Math.sin(theta);
 
-        // Perfil Térmico Relativista basado en el color base
+        // Efecto Doppler Asimétrico (lado acercándose es más azul y brillante)
+        const doppler = Math.cos(theta); // 1.0 = acercándose, -1.0 = alejándose
         let cr, cg, cb;
-        const isBlue = labelColor === '#00ffff' || labelColor === 0x00ffff;
-        if (norm < 0.12) {
-            cr = 1.0; cg = isBlue ? 1.0 : 0.95; cb = isBlue ? 1.0 : 0.85;
-        } else if (norm < 0.55) {
-            const t = (norm - 0.12) / 0.43;
-            cr = isBlue ? 0.4 + t*0.2 : 1.0; 
-            cg = isBlue ? 0.7 + t*0.3 : 0.7 - t * 0.45; 
-            cb = isBlue ? 1.0 : 0.08;
+        if (isBlue) {
+            cr = 0.3 + doppler*0.2; cg = 0.7 + doppler*0.3; cb = 1.0;
         } else {
-            const t = (norm - 0.55) / 0.45;
-            cr = isBlue ? 0.1 + t*0.1 : 0.75 - t * 0.5; 
-            cg = isBlue ? 0.3 + t*0.2 : 0.12 - t * 0.08; 
-            cb = isBlue ? 0.9 - t*0.4 : 0.02;
+            cr = 1.0; cg = 0.5 + doppler*0.5; cb = 0.1 + doppler*0.3;
         }
-
-        colors[i*3]     = cr;
-        colors[i*3 + 1] = cg;
-        colors[i*3 + 2] = cb;
+        
+        // Oscurecer partículas más lejanas
+        const alphaFade = (1.0 - norm);
+        colors[i*3]     = cr * alphaFade;
+        colors[i*3 + 1] = cg * alphaFade;
+        colors[i*3 + 2] = cb * alphaFade;
     }
 
     partGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     partGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const eqDisk = new THREE.Points(partGeo, new THREE.PointsMaterial({
-        size: Math.max(2.5, rShadow * 0.08), // Tamaño ajustado para visibilidad perfecta a cualquier distancia
+        size: rShadow * 0.12,
         vertexColors: true,
         transparent: true,
-        opacity: 0.85,
-        sizeAttenuation: true,
+        opacity: 0.06, // Transparencia masiva para crear nubes volumétricas de plasma suaves
         blending: THREE.AdditiveBlending,
         depthTest: true,
-        depthWrite: false
+        depthWrite: false,
+        map: window.FX ? window.FX.createStarTexture() : null
     }));
     bhGroup.add(eqDisk);
 
-    // 3. Jets Polares de Plasma (Eyección de materia si activo)
+    // 3. Lente Gravitacional (Halos de Gargantua)
+    // Usamos un SPRITE gigante detrás del agujero. El sprite siempre mira a la cámara, 
+    // lo que simula la curvatura geométrica de la luz desde cualquier ángulo.
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    const cx = 256, cy = 256;
+    const rH = 256 * (rShadow / (rShadow*3.0)); // Proporción de la sombra en el sprite
+    
+    // Anillo de Fotones Ultra-Brillante (El límite del horizonte)
+    ctx.beginPath();
+    ctx.arc(cx, cy, rH * 1.02, 0, Math.PI*2);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = isBlue ? 'rgba(180, 230, 255, 0.8)' : 'rgba(255, 220, 150, 0.8)';
+    ctx.stroke();
+    
+    // Halos Superior e Inferior (Luz del disco trasero curvada por gravedad extrema)
+    const gradientTop = ctx.createRadialGradient(cx, cy - rH*1.2, 0, cx, cy, rH*2.0);
+    gradientTop.addColorStop(0, isBlue ? 'rgba(100, 180, 255, 0.7)' : 'rgba(255, 160, 60, 0.7)');
+    gradientTop.addColorStop(1, 'rgba(0,0,0,0)');
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, rH * 2.0, Math.PI + 0.1, Math.PI*2 - 0.1);
+    ctx.lineWidth = rH * 0.9;
+    ctx.strokeStyle = gradientTop;
+    ctx.stroke();
+    
+    const gradientBot = ctx.createRadialGradient(cx, cy + rH*1.2, 0, cx, cy, rH*2.0);
+    gradientBot.addColorStop(0, isBlue ? 'rgba(100, 180, 255, 0.35)' : 'rgba(255, 100, 20, 0.35)');
+    gradientBot.addColorStop(1, 'rgba(0,0,0,0)');
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, rH * 2.0, 0.1, Math.PI - 0.1);
+    ctx.lineWidth = rH * 0.9;
+    ctx.strokeStyle = gradientBot;
+    ctx.stroke();
+
+    const haloTex = new THREE.CanvasTexture(canvas);
+    const haloMat = new THREE.SpriteMaterial({
+        map: haloTex,
+        color: 0xffffff,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+    const haloSprite = new THREE.Sprite(haloMat);
+    haloSprite.scale.set(rShadow * 6.1, rShadow * 6.1, 1);
+    haloSprite.renderOrder = 5; // Detrás del agujero negro
+    bhGroup.add(haloSprite);
+
+    // 4. Jets Relativistas Volumétricos
     let jetPoints = null;
-    if (isAccretionActive) {
-        const jetGeo = new THREE.BufferGeometry();
-        const jetCount = 7000;
-        const jPos = new Float32Array(jetCount * 3);
-        const jCol = new Float32Array(jetCount * 3);
-
-        const isBlue = labelColor === '#00ffff' || labelColor === 0x00ffff;
-        for (let i = 0; i < jetCount; i++) {
+    if (isAccretionActive && jetLength > 0) {
+        // En vez de cilindros geométricos sólidos, usamos rayos de partículas
+        const jGeo = new THREE.BufferGeometry();
+        const jPos = new Float32Array(9000 * 3);
+        for(let i=0; i<9000; i++) {
             const side = Math.random() > 0.5 ? 1 : -1;
-            const len = Math.random() * jetLength;
-            const spread = (len / jetLength) * (rShadow * 0.25) + 0.5;
+            const h = Math.pow(Math.random(), 1.5) * jetLength;
+            const radius = (h / jetLength) * (rShadow * 0.3) + (rShadow * 0.05);
             const a = Math.random() * Math.PI * 2;
-
-            jPos[i*3]     = Math.cos(a) * spread * Math.random();
-            jPos[i*3 + 1] = side * (rShadow * 1.05 + len);
-            jPos[i*3 + 2] = Math.sin(a) * spread * Math.random();
-
-            const nLen = len / jetLength;
-            jCol[i*3]     = isBlue ? 0.3 : (0.1 + (1.0 - nLen) * 0.3);
-            jCol[i*3 + 1] = isBlue ? 0.6 : (0.6 + (1.0 - nLen) * 0.35);
             jCol[i*3 + 2] = isBlue ? 1.0 : 0.95;
         }
 
