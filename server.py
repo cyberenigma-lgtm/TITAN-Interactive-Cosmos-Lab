@@ -11,7 +11,7 @@ import os
 import json
 import math
 import importlib
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import random
 
 # Añadimos el núcleo DVTRGAS al path de forma dinámica
@@ -229,7 +229,7 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
         pass
 
 def iniciar_servidor(puerto=8080):
-    server = HTTPServer(('0.0.0.0', puerto), CosmosAPIHandler)
+    server = ThreadingHTTPServer(('0.0.0.0', puerto), CosmosAPIHandler)
     print(f"[Cerebro DVTRGAS y Puente API] conectados en http://127.0.0.1:{puerto}")
     print("El visor WebGL ahora renderizará visualmente tus ecuaciones puras.")
     server.serve_forever()
