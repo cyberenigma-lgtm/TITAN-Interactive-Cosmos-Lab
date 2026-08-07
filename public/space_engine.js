@@ -2165,6 +2165,7 @@ exoplanetData.forEach(sys => {
         group.userData.isAccretion = true;
         group.userData.disk = bhData.eqDisk;
         group.userData.isBlackHole = true;
+        group.userData.rShadow = rShadow;
         
         // --- AÑADIR ESTRELLA COMPAÑERA Y CORRIENTE DE ACRECIÓN PARA CYGNUS X-1 ---
         if (sys.name === 'Cygnus X-1') {
@@ -3024,13 +3025,28 @@ const TitanShader = {
             // Máscara radial: 0 en el centro, 1 en los bordes
             float edgeMask = smoothstep(0.1, 0.8, dist); 
             
-            // Lente Gravitacional (Black Hole Lensing)
+            // Lente Gravitacional Realista (Black Hole Lensing / Einstein Ring)
             if (bhActive > 0.0) {
                 vec2 dirToBh = uv - bhPosScreen;
                 float distToBh = length(dirToBh);
-                if (distToBh < 0.3) {
-                    float lensing = (0.3 - distToBh) * (0.3 - distToBh) * bhActive;
-                    uv -= normalize(dirToBh) * lensing * 0.5;
+                // bhActive es el radio aparente de Schwarzschild proyectado en pantalla
+                if (distToBh > 0.0) {
+                    // Métrica de Schwarzschild aproximada en Screen Space
+                    // La deflexión de la luz es inversamente proporcional a la distancia al centro
+                    // Alpha = 4GM / (c^2 b)
+                    float massTerm = bhActive * bhActive * 0.5; 
+                    float deflexion = massTerm / (distToBh + 0.001);
+                    
+                    // Asegurarnos de no sobre-distorsionar la pantalla entera (corte suave a lo lejos)
+                    deflexion *= smoothstep(1.5, 0.0, distToBh);
+                    
+                    // El horizonte de sucesos (Sombra Negra Absoluta)
+                    if (distToBh < bhActive * 0.95) { // 0.95 para dejar el anillo de fotones brillar
+                        // Dentro del agujero no hay luz del fondo (lo pinta negro si queremos, pero la malla 3D ya es negra)
+                    } else {
+                        // Curvar la luz hacia afuera (efecto lente gravitacional)
+                        uv += normalize(dirToBh) * deflexion;
+                    }
                 }
             }
             
@@ -4642,29 +4658,44 @@ function animate() {
     
     // Calcular Lente Gravitacional si hay agujeros negros cerca
     let bhDetected = false;
+    let maxApparentRadius = 0;
+    let nearestBhScreenPos = new THREE.Vector2(0.5, 0.5);
+    
     extraSystems.children.forEach(sys => {
-        if (sys.userData.isBlackHole && !bhDetected) {
+        if (sys.userData.isBlackHole) {
             const bhPos = new THREE.Vector3();
             sys.getWorldPosition(bhPos);
             const dist = camera.position.distanceTo(bhPos);
-            if (dist < 300) {
-                bhPos.project(camera);
-                // Si está frente a la cámara
-                if (bhPos.z < 1.0) {
+            
+            bhPos.project(camera);
+            // Si está frente a la cámara
+            if (bhPos.z < 1.0) {
+                // Calcular tamaño aparente (FOV heurístico)
+                const rShadow = sys.userData.rShadow || 30;
+                // En three.js perspective camera, apparent height = (object_height / distance) / (2 * tan(fov/2))
+                // Simplificamos asumiendo fov fijo
+                const apparentRadius = (rShadow / dist) * 1.5; 
+                
+                if (apparentRadius > 0.01 && apparentRadius > maxApparentRadius) { // Solo si es visiblemente grande
                     bhDetected = true;
-                    titanPass.uniforms["bhPosScreen"].value.set((bhPos.x + 1)/2, (bhPos.y + 1)/2);
-                    // Intensidad aumenta al acercarse
-                    const intensity = Math.max(0, 1.0 - (dist / 300));
-                    titanPass.uniforms["bhActive"].value = intensity;
-                    // Dilatación temporal de DVTRGAS (Ralentizar tiempo matemático)
-                    if (dist < 100 && !warpActive) {
-                        timeSpeed = originalTimeSpeed * (dist / 100);
-                    }
+                    maxApparentRadius = apparentRadius;
+                    nearestBhScreenPos.set((bhPos.x + 1)/2, (bhPos.y + 1)/2);
+                }
+                
+                // Dilatación temporal de DVTRGAS (Ralentizar tiempo matemático) - Basado en distancia real al horizonte
+                if (dist < rShadow * 3.0 && !warpActive) {
+                    timeSpeed = originalTimeSpeed * (dist / (rShadow * 3.0));
                 }
             }
         }
     });
-    if (!bhDetected) titanPass.uniforms["bhActive"].value = 0.0;
+    
+    if (bhDetected) {
+        titanPass.uniforms["bhPosScreen"].value.copy(nearestBhScreenPos);
+        titanPass.uniforms["bhActive"].value = maxApparentRadius;
+    } else {
+        titanPass.uniforms["bhActive"].value = 0.0;
+    }
     
     // Shader Uniforms de Tiempo y Física
     if (!isNaN(time)) titanPass.uniforms["time"].value = time * 5.0;
