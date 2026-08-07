@@ -2187,42 +2187,89 @@ exoplanetData.forEach(sys => {
             pLight.position.copy(starMesh.position);
             group.add(pLight);
             
-            // Corriente de materia (Tear-drop funnel de plasma hacia el agujero negro)
+            // Corriente de materia animada (Tear-drop funnel de plasma hacia el agujero negro)
             const streamGeo = new THREE.BufferGeometry();
-            const streamCount = 12000;
-            const streamPos = new Float32Array(streamCount * 3);
-            const streamCol = new Float32Array(streamCount * 3);
+            const streamCount = 20000;
+            const streamSeeds = new Float32Array(streamCount * 3);
             
             for(let i=0; i<streamCount; i++) {
-                const t = Math.pow(Math.random(), 1.5); // Más densidad cerca de la estrella
-                // Curvar ligeramente la trayectoria por la rotación
-                const x = compDist * (1.0 - t); 
-                const curveOffset = Math.sin(t * Math.PI) * (compDist * 0.15);
-                const zCurve = curveOffset;
-                
-                const spread = (Math.pow(1.0 - t, 2.0) * compRadius * 0.4) + (Math.random() * rShadow * 0.5);
-                const angle = Math.random() * Math.PI * 2;
-                
-                streamPos[i*3] = x;
-                streamPos[i*3+1] = Math.sin(angle) * spread;
-                streamPos[i*3+2] = Math.cos(angle) * spread + zCurve;
-                
-                // Color transiciona de azul (estrella) a naranja (disco)
-                streamCol[i*3] = 0.5 + t * 0.5; // R
-                streamCol[i*3+1] = 0.8 - t * 0.4; // G
-                streamCol[i*3+2] = 1.0 - t * 0.9; // B
+                streamSeeds[i*3] = Math.random(); // Tiempo base (t)
+                streamSeeds[i*3+1] = Math.random() * Math.PI * 2; // Ángulo
+                streamSeeds[i*3+2] = 0.1 + Math.random() * 0.5; // Velocidad de flujo y offset
             }
-            streamGeo.setAttribute('position', new THREE.BufferAttribute(streamPos, 3));
-            streamGeo.setAttribute('color', new THREE.BufferAttribute(streamCol, 3));
+            streamGeo.setAttribute('aSeed', new THREE.BufferAttribute(streamSeeds, 3));
             
-            const streamMat = new THREE.PointsMaterial({
-                size: rShadow * 0.15,
-                vertexColors: true,
+            const streamMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    compDist: { value: compDist },
+                    compRadius: { value: compRadius },
+                    rShadow: { value: rShadow },
+                    color1: { value: new THREE.Color(0x88ccff) }, // Estrella azul
+                    color2: { value: new THREE.Color(0xff8822) }, // Disco naranja
+                    ptSize: { value: rShadow * 0.3 }
+                },
+                vertexShader: `
+                    uniform float time;
+                    uniform float compDist;
+                    uniform float compRadius;
+                    uniform float rShadow;
+                    uniform float ptSize;
+                    attribute vec3 aSeed;
+                    varying float vT;
+                    
+                    void main() {
+                        float baseT = aSeed.x;
+                        float angle = aSeed.y;
+                        float speed = aSeed.z;
+                        
+                        // Progreso: las partículas nacen en la estrella (t=0) y fluyen al agujero (t=1)
+                        float rawT = fract(baseT + time * speed * 2.0);
+                        // Comprimir la trayectoria cerca del agujero
+                        float t = pow(rawT, 1.5);
+                        vT = t;
+                        
+                        // Fluir desde compDist hasta 0 (centro del agujero negro)
+                        float x = compDist * (1.0 - t);
+                        // Doblar el flujo por efecto de gravedad / rotación binaria
+                        float curveOffset = sin(t * 3.14159) * (compDist * 0.15);
+                        
+                        // El embudo se estrecha a medida que cae
+                        float spread = (pow(1.0 - t, 2.0) * compRadius * 0.6) + (aSeed.z * rShadow);
+                        
+                        vec3 pos = vec3(
+                            x,
+                            sin(angle) * spread,
+                            cos(angle) * spread + curveOffset
+                        );
+                        
+                        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                        gl_PointSize = ptSize * (300.0 / -mvPosition.z); // Size attenuation
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    uniform vec3 color1;
+                    uniform vec3 color2;
+                    varying float vT;
+                    
+                    void main() {
+                        // Partícula suave circular
+                        vec2 coord = gl_PointCoord - vec2(0.5);
+                        if(length(coord) > 0.5) discard;
+                        
+                        // El plasma cambia de color al calentarse cayendo al agujero
+                        vec3 finalColor = mix(color1, color2, pow(vT, 2.0));
+                        
+                        // Difuminar al nacer (estrella) y al morir (horizonte)
+                        float alpha = sin(vT * 3.14159) * 0.6;
+                        
+                        gl_FragColor = vec4(finalColor, alpha);
+                    }
+                `,
                 transparent: true,
-                opacity: 0.35,
                 blending: THREE.AdditiveBlending,
-                depthWrite: false,
-                map: window.FX ? window.FX.createStarTexture() : null
+                depthWrite: false
             });
             const streamPoints = new THREE.Points(streamGeo, streamMat);
             // Hacer que la corriente rote lentamente
@@ -4096,8 +4143,10 @@ function animate() {
             }
         }
         if (sys.userData.stream) {
-            // Rotar el embudo de materia para que parezca que fluye (al rotar sobre X, las partículas se mueven a lo largo del cono)
-            sys.userData.stream.rotation.x -= 0.02 * timeSpeed * physicsAcc;
+            // Animar el shader de la corriente de plasma
+            if (sys.userData.stream.material.uniforms && sys.userData.stream.material.uniforms.time) {
+                sys.userData.stream.material.uniforms.time.value = engineTime * 0.001;
+            }
         }
         if (sys.userData.bhLabel) {
             if (sys.visible && document.getElementById('toggle-blackholes').checked) {
