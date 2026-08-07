@@ -2166,6 +2166,72 @@ exoplanetData.forEach(sys => {
         group.userData.disk = bhData.eqDisk;
         group.userData.isBlackHole = true;
         
+        // --- AÑADIR ESTRELLA COMPAÑERA Y CORRIENTE DE ACRECIÓN PARA CYGNUS X-1 ---
+        if (sys.name === 'Cygnus X-1') {
+            const compDist = rShadow * 25; // Distancia de la estrella compañera
+            const compRadius = rShadow * 10; // Estrella gigante azul
+            
+            // Malla de la estrella HDE 226868
+            const starGeo = new THREE.SphereGeometry(compRadius, 64, 64);
+            const starMat = new THREE.MeshBasicMaterial({ color: 0x99ccff });
+            const starMesh = new THREE.Mesh(starGeo, starMat);
+            starMesh.position.set(compDist, 0, 0);
+            group.add(starMesh);
+            
+            // Resplandor de la estrella
+            const starHaloGeo = new THREE.SphereGeometry(compRadius * 1.3, 32, 32);
+            const starHaloMat = new THREE.MeshBasicMaterial({ color: 0x55aaff, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending });
+            const starHaloMesh = new THREE.Mesh(starHaloGeo, starHaloMat);
+            starMesh.add(starHaloMesh);
+            
+            const pLight = new THREE.PointLight(0x99ccff, 3, compDist * 4);
+            pLight.position.copy(starMesh.position);
+            group.add(pLight);
+            
+            // Corriente de materia (Tear-drop funnel de plasma hacia el agujero negro)
+            const streamGeo = new THREE.BufferGeometry();
+            const streamCount = 12000;
+            const streamPos = new Float32Array(streamCount * 3);
+            const streamCol = new Float32Array(streamCount * 3);
+            
+            for(let i=0; i<streamCount; i++) {
+                const t = Math.pow(Math.random(), 1.5); // Más densidad cerca de la estrella
+                // Curvar ligeramente la trayectoria por la rotación
+                const x = compDist * (1.0 - t); 
+                const curveOffset = Math.sin(t * Math.PI) * (compDist * 0.15);
+                const zCurve = curveOffset;
+                
+                const spread = (Math.pow(1.0 - t, 2.0) * compRadius * 0.4) + (Math.random() * rShadow * 0.5);
+                const angle = Math.random() * Math.PI * 2;
+                
+                streamPos[i*3] = x;
+                streamPos[i*3+1] = Math.sin(angle) * spread;
+                streamPos[i*3+2] = Math.cos(angle) * spread + zCurve;
+                
+                // Color transiciona de azul (estrella) a naranja (disco)
+                streamCol[i*3] = 0.5 + t * 0.5; // R
+                streamCol[i*3+1] = 0.8 - t * 0.4; // G
+                streamCol[i*3+2] = 1.0 - t * 0.9; // B
+            }
+            streamGeo.setAttribute('position', new THREE.BufferAttribute(streamPos, 3));
+            streamGeo.setAttribute('color', new THREE.BufferAttribute(streamCol, 3));
+            
+            const streamMat = new THREE.PointsMaterial({
+                size: rShadow * 0.15,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.35,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                map: window.FX ? window.FX.createStarTexture() : null
+            });
+            const streamPoints = new THREE.Points(streamGeo, streamMat);
+            // Hacer que la corriente rote lentamente
+            group.userData.stream = streamPoints;
+            group.add(streamPoints);
+        }
+        // --------------------------------------------------------------------------
+        
         const bhLabelDiv = document.createElement('div');
         bhLabelDiv.className = 'planet-label';
         bhLabelDiv.style.color = isQuasar ? '#00ffff' : '#ff0055';
@@ -4014,6 +4080,10 @@ function animate() {
             if (sys.userData.disk.material.uniforms && sys.userData.disk.material.uniforms.time) {
                 sys.userData.disk.material.uniforms.time.value = engineTime * 0.001;
             }
+        }
+        if (sys.userData.stream) {
+            // Rotar el embudo de materia para que parezca que fluye (al rotar sobre X, las partículas se mueven a lo largo del cono)
+            sys.userData.stream.rotation.x -= 0.02 * timeSpeed * physicsAcc;
         }
         if (sys.userData.bhLabel) {
             if (sys.visible && document.getElementById('toggle-blackholes').checked) {
