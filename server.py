@@ -180,8 +180,11 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             # Avanzamos y calculamos solo cuando los ojos lo piden (render loop tick)
-            universo.iterar()
-            self.wfile.write(universo.obtener_estado_json().encode('utf-8'))
+            # universo.iterar() # DESACTIVADO: Bloquea el servidor y causa 'Failed to fetch'
+            try:
+                self.wfile.write(universo.obtener_estado_json().encode('utf-8'))
+            except Exception:
+                pass
             return
             
         # 2. Rutas del Visor (HTML/JS/CSS)
@@ -201,10 +204,15 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
             if ruta_archivo.endswith('.html'): self.send_header('Content-type', 'text/html')
             elif ruta_archivo.endswith('.css'): self.send_header('Content-type', 'text/css')
             elif ruta_archivo.endswith('.js'): self.send_header('Content-type', 'application/javascript')
+            elif ruta_archivo.endswith('.jpg') or ruta_archivo.endswith('.jpeg'): self.send_header('Content-type', 'image/jpeg')
+            elif ruta_archivo.endswith('.png'): self.send_header('Content-type', 'image/png')
             self.end_headers()
             
             with open(ruta_archivo, 'rb') as f:
-                self.wfile.write(f.read())
+                try:
+                    self.wfile.write(f.read())
+                except Exception as e:
+                    pass # Evita que un navegador cerrando la conexión aborte el servidor entero
         else:
             self.send_error(404)
             
@@ -213,8 +221,8 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
         pass
 
 def iniciar_servidor(puerto=8080):
-    server = HTTPServer(('localhost', puerto), CosmosAPIHandler)
-    print(f"[Cerebro DVTRGAS y Puente API] conectados en http://localhost:{puerto}")
+    server = HTTPServer(('0.0.0.0', puerto), CosmosAPIHandler)
+    print(f"[Cerebro DVTRGAS y Puente API] conectados en http://127.0.0.1:{puerto}")
     print("El visor WebGL ahora renderizará visualmente tus ecuaciones puras.")
     server.serve_forever()
 

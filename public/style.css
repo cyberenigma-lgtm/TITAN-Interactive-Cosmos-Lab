@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================================
  * APOCALYPSE ENGINE — TITAN VISUAL SYSTEM v3.0 "DEEP SPACE"
  * Autor y Creador Original: José Manuel
@@ -52,22 +52,23 @@ body {
     width:100%; height:100%; z-index:1;
 }
 
-/* GLASS PANELS */
+/* GLASS PANELS & HOLOGRAPHIC HUD */
 .glass-header, .glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(18px) saturate(120%);
-    -webkit-backdrop-filter: blur(18px) saturate(120%);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    background: linear-gradient(135deg, rgba(4,8,14,0.7), rgba(2,6,10,0.9));
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid rgba(126,184,212,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8), inset 0 0 10px rgba(126,184,212,0.05);
+    border-radius: 4px;
 }
 
 .glass-header {
     position:absolute; top:0; left:0; width:100%;
-    padding:0.6rem 2%;
+    padding:0.8rem 2%;
     display:flex; justify-content:space-between; align-items:center;
     z-index:100;
-    border-bottom:1px solid var(--glass-border);
-    box-shadow:0 1px 0 rgba(180,200,220,0.05),0 4px 20px rgba(0,0,0,0.6);
+    border-bottom: 1px solid rgba(126,184,212,0.3);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.9), inset 0 -2px 15px rgba(126,184,212,0.1);
 }
 
 header h1 {
@@ -265,3 +266,200 @@ button:hover { transform:none; }
     nav { display:none; }
     #info-panel { width:calc(100vw - 2rem) !important; }
 }
+
+
+/* ============================
+   DEEP SPACE v3.1 — PANELS ULTRA-TRANSPARENT
+   Los paneles son ventanas de nave, no pantallas de videojuego
+   ============================ */
+
+/* Panel TITAN console: minimalista */
+#titan-console {
+    background: rgba(0,2,1,0.80) !important;
+    border: 1px solid rgba(120,160,80,0.08) !important;
+    border-radius: 4px !important;
+    font-size: 0.66rem !important;
+}
+
+/* Todos los paneles flotantes: más transparentes */
+.glass-card {
+    background: rgba(3,6,12,0.78) !important;
+    border: 1px solid rgba(180,200,220,0.07) !important;
+    backdrop-filter: blur(20px) saturate(110%) !important;
+}
+
+/* Header: casi invisible */
+.glass-header {
+    background: rgba(2,4,8,0.82) !important;
+    border-bottom: 1px solid rgba(180,200,220,0.05) !important;
+    backdrop-filter: blur(24px) !important;
+}
+
+/* Etiquetas de planetas del Sistema Solar: dim */
+.planet-label {
+    font-size: 9px !important;
+    opacity: 0.72;
+    transition: opacity 0.2s, color 0.2s !important;
+    letter-spacing: 0.06em !important;
+    text-transform: none !important;
+}
+.planet-label:hover { opacity: 1.0 !important; }
+
+/* Star labels extra dim en distancia */
+.star-label {
+    font-size: 9px !important;
+    opacity: 0.6;
+    font-weight: 400 !important;
+}
+.star-label:hover { opacity: 0.95 !important; }
+
+/* Consola TITAN: fondo muy oscuro, texto dim verde-oliva */
+#console-output, .console-text {
+    background: rgba(0,3,1,0.90) !important;
+    color: rgba(122,158,106,0.75) !important;
+    font-size: 0.65rem !important;
+    line-height: 1.45 !important;
+    border: 1px solid rgba(100,140,80,0.08) !important;
+}
+
+/* Encabezados de paneles: muy dim */
+.drag-handle, .panel-title {
+    color: rgba(200,216,232,0.55) !important;
+    border-bottom: 1px solid rgba(180,200,220,0.05) !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.14em !important;
+    font-weight: 500 !important;
+}
+
+/* Botones secundarios: casi invisibles */
+.btn-secondary, .time-btn {
+    background: rgba(255,255,255,0.025) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    color: rgba(200,216,232,0.5) !important;
+}
+
+/* Inputs: fondo vacío */
+input[type="text"], input[type="number"], select, textarea {
+    background: rgba(0,0,0,0.55) !important;
+    border: 1px solid rgba(180,200,220,0.1) !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.75rem !important;
+    border-radius: 2px !important;
+}
+input[type="text"]:focus, select:focus { 
+    border-color: rgba(126,184,212,0.35) !important; 
+    outline: none !important;
+}
+
+/* HUD bottom telemetry bar */
+#hud-telemetry, .hud-row {
+    background: rgba(2,4,8,0.85) !important;
+    border-top: 1px solid rgba(180,200,220,0.05) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.68rem !important;
+}
+
+/* Timeline: casi invisible */
+#timeline-container {
+    background: rgba(2,4,8,0.88) !important;
+    border-top: 1px solid rgba(180,200,220,0.04) !important;
+}
+
+/* Era buttons aún más dim */
+.era-btn {
+    opacity: 0.6;
+    transition: opacity 0.2s !important;
+}
+.era-btn:hover, .era-btn.active { opacity: 1.0 !important; }
+
+/* Botón de descubrimiento: contenido, no decorativo */
+#btn-register-star, .btn-discover {
+    background: rgba(122,158,106,0.08) !important;
+    border: 1px solid rgba(122,158,106,0.2) !important;
+    color: rgba(122,158,106,0.85) !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.08em !important;
+}
+
+/* Indicadores de distancia en HUD */
+#hud-dist-value, #hud-cam-dist-value {
+    color: var(--amber) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+}
+
+/* Fecha cosmica: dim amber */
+#date-display {
+    color: rgba(212,168,67,0.85) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+    text-shadow: none !important;
+}
+
+/* Eliminar todos los box-shadow de neón residuales */
+* {
+    text-shadow: none !important;
+}
+/* Excepción: sombra de texto solo donde necesitamos legibilidad sobre 3D */
+.planet-label, #target-name, header h1 {
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9) !important;
+}
+
+/* ==========================================================================
+   OBSERVATORY CINEMATIC HUD EFFECTS
+   ========================================================================== */
+
+/* Vi�eta Oscura (Efecto de cristal grueso / casco espacial) */
+.cinematic-vignette {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+    box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+}
+
+/* Ret�cula de Apuntado Central */
+.targeting-reticle {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px; height: 60px;
+    pointer-events: none;
+    z-index: 51;
+    border: 1px solid rgba(126, 184, 212, 0.3);
+    border-radius: 50%;
+}
+.targeting-reticle::before, .targeting-reticle::after {
+    content: "";
+    position: absolute;
+    background: rgba(126, 184, 212, 0.5);
+}
+.targeting-reticle::before { top: 50%; left: -10px; width: 80px; height: 1px; }
+.targeting-reticle::after { left: 50%; top: -10px; width: 1px; height: 80px; }
+
+/* Subtle Holographic Scanlines */
+.scanlines {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 52;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.05));
+    background-size: 100% 4px;
+    opacity: 0.3;
+}
+
+/* Animaci�n sutil de brillo en la UI */
+@keyframes hudPulse {
+    0% { box-shadow: inset 0 0 10px rgba(126,184,212,0.05); }
+    50% { box-shadow: inset 0 0 20px rgba(126,184,212,0.15); }
+    100% { box-shadow: inset 0 0 10px rgba(126,184,212,0.05); }
+}
+.glass-card {
+    animation: hudPulse 4s infinite;
+}
+
