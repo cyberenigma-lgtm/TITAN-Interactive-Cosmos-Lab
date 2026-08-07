@@ -1957,11 +1957,16 @@ const exoplanetData = [
 function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionActive = true, labelColor = '#ffaa00' }) {
     const bhGroup = new THREE.Group();
 
-    // 1. Sombra Negra Central
-    // ELIMINADA: La sombra 3D bloqueaba la lente gravitacional de la parte trasera del disco de acreción.
-    // Ahora, la sombra negra absoluta ("Event Horizon") se dibuja matemáticamente en el TitanShader, 
-    // lo que permite que el post-procesado doble la luz del disco de acreción por encima y por debajo.
-    
+    // 1. Sombra Negra Central (Horizonte de Sucesos 3D)
+    // Es vital que sea una malla 3D para que oculte la parte TRASERA del disco,
+    // pero permita que la parte DELANTERA del disco se renderice correctamente por delante.
+    const shadowMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(rShadow, 64, 64),
+        new THREE.MeshBasicMaterial({ color: 0x000000, depthWrite: true, depthTest: true })
+    );
+    shadowMesh.renderOrder = 10;
+    bhGroup.add(shadowMesh);
+
 
     const isBlue = labelColor === '#00ffff' || labelColor === 0x00ffff;
     const baseColor = new THREE.Color(isBlue ? 0x88ccff : 0xffaa55);
@@ -2039,10 +2044,52 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
     bhGroup.add(accretionDisk);
 
     // 3. Lente Gravitacional de Gargantua (Halos superior e inferior - Einstein Ring)
-    // ELIMINADA: El ShaderMaterial procedural que siempre miraba a la cámara quedaba "aplastado"
-    // al rotar la cámara y se sentía falso.
-    // Ahora, el TitanShader en espacio de pantalla se encarga de TODO el Einstein Ring, 
-    // doblando físicamente la luz del disco de acreción 3D de atrás hacia adelante.
+    // Usamos un ShaderMaterial procedural montado sobre un Sprite para simular la luz
+    // de la parte trasera del disco doblándose alrededor del agujero negro.
+    // Al ser un Sprite, siempre mirará a la cámara, que es físicamente el comportamiento correcto de un Einstein Ring.
+    const haloMat = new THREE.ShaderMaterial({
+        uniforms: {
+            color: { value: baseColor }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 color;
+            varying vec2 vUv;
+            void main() {
+                vec2 uv = vUv - 0.5;
+                float dist = length(uv);
+                
+                // El sprite se escala a 8 * rShadow. Por tanto, el horizonte de sucesos (rShadow) está en dist = 1/8 = 0.125
+                float ring = smoothstep(0.08, 0.14, dist) * smoothstep(0.45, 0.14, dist);
+                
+                // Hacer que el anillo sea extremadamente brillante arriba y abajo
+                float angleIntensity = abs(uv.y) / (dist + 0.001);
+                angleIntensity = pow(angleIntensity, 2.5);
+                
+                // Efecto Doppler asimétrico (izquierda vs derecha)
+                float doppler = smoothstep(-0.5, 0.5, uv.x);
+                vec3 finalColor = color * (0.3 + doppler * 1.7);
+                
+                float alpha = ring * angleIntensity * 3.0; // Multiplicador de intensidad
+                alpha *= smoothstep(0.5, 0.3, dist); // Difuminado en los bordes
+                
+                gl_FragColor = vec4(finalColor, alpha);
+            }
+        `,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+    const haloSprite = new THREE.Sprite(haloMat);
+    haloSprite.scale.set(rShadow * 8.0, rShadow * 8.0, 1);
+    haloSprite.renderOrder = 5; 
+    bhGroup.add(haloSprite);
 
 
     // 4. Jets Relativistas Volumétricos (Sin los horribles cilindros geométricos)
@@ -3047,19 +3094,15 @@ const TitanShader = {
                     // Si distToBh es mayor que bhActive * 6, el efecto desaparece rápidamente
                     deflexion *= smoothstep(bhActive * 8.0, bhActive * 1.5, distToBh);
                     
-                    // El horizonte de sucesos (Sombra Negra Absoluta)
-                    if (distToBh < bhActive * 0.95) { 
-                        // Pintar de negro absoluto para actuar como Horizonte de Sucesos
-                        // Esto detiene el resto del shader, creando un vacío perfecto
-                        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-                        return;
-                    } else {
-                        // Curvar la luz hacia afuera (efecto lente gravitacional)
-                        // Ajustamos la deflexión en X dividiéndola por el aspecto para que el estiramiento UV sea proporcional
-                        vec2 targetUv = uv + normalize(dirToBh) * vec2(deflexion / aspect, deflexion);
-                        // Clampear para que no lea fuera de la pantalla y cree el "cuadrado feo"
-                        uv = clamp(targetUv, vec2(0.001), vec2(0.999));
-                    }
+                    // El TitanShader solo aplica la lente gravitacional para las estrellas y discos.
+                    // Ya NO pintamos de negro absoluto aquí, porque oculta la parte delantera de los discos 3D.
+                    // La sombra negra se maneja nativamente con shadowMesh en el motor 3D.
+                    
+                    // Curvar la luz hacia afuera (efecto lente gravitacional)
+                    // Ajustamos la deflexión en X dividiéndola por el aspecto para que el estiramiento UV sea proporcional
+                    vec2 targetUv = uv + normalize(dirToBh) * vec2(deflexion / aspect, deflexion);
+                    // Clampear para que no lea fuera de la pantalla y cree el "cuadrado feo"
+                    uv = clamp(targetUv, vec2(0.001), vec2(0.999));
                 }
             }
             
