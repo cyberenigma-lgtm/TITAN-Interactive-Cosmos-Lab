@@ -389,6 +389,12 @@ function showLabPanel(name, extraData = {}) {
 const container = document.getElementById('webgl-container');
 const scene = new THREE.Scene();
 
+// === Cargar Fondo de la Vía Láctea (Skybox) ===
+const milkyWayTex = new THREE.TextureLoader().load('./textures/milky_way.jpg');
+milkyWayTex.mapping = THREE.EquirectangularReflectionMapping;
+scene.background = milkyWayTex;
+window.milkyWayTex = milkyWayTex; // Guardar globalmente para restaurar tras visitar planetas
+
 // === FASE 8: TOPOLOGÍA MULTIVERSAL ===
 window.ourUniverse = new THREE.Group();
 scene.add(window.ourUniverse);
@@ -845,10 +851,11 @@ planetsData.forEach(data => {
     orbitGroup.rotation.x = data.inc; // Inclinación orbital realista
     solarSystem.add(orbitGroup);
 
+    const isGasGiant = ["Júpiter", "Saturno", "Urano", "Neptuno"].includes(data.name);
     const planetGeo = new THREE.SphereGeometry(data.radius, 64, 64);
     const planetMat = new THREE.MeshPhongMaterial({ 
         color: data.color, 
-        shininess: 15,
+        shininess: isGasGiant ? 0 : (data.name === "Tierra" ? 15 : 5),
         wireframe: false
     });
     
@@ -862,6 +869,11 @@ planetsData.forEach(data => {
         customTexUrl, 
         function(tex) {
             planetMat.map = tex;
+            if (!isGasGiant && data.name !== "Tierra" && !data.normalMap) {
+                // Procedural Bump Map from Albedo texture for rocky planets (Craters, Mountains)
+                planetMat.bumpMap = tex;
+                planetMat.bumpScale = data.radius * 0.02; // Escala proporcional al planeta
+            }
             planetMat.color.setHex(0xffffff); // Resetear color base
             planetMat.needsUpdate = true;
         }, 
@@ -4493,7 +4505,7 @@ function animate() {
                     }
                 } else {
                     scene.fog = null;
-                    scene.background = new THREE.Color(0x000000);
+                    scene.background = window.milkyWayTex;
                     if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000);
                 }
             }
