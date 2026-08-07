@@ -2254,7 +2254,7 @@ sgrAGroup.userData.bhLabel = sgrALabelDiv;
 const panalGroup = new THREE.Group();
 scene.add(panalGroup);
 // Convertir celdas matemáticas en Estrellas Cercanas (OBAFGKM)
-const cellGeo = new THREE.SphereGeometry(0.5, 8, 8);
+const cellGeo = new THREE.SphereGeometry(0.05, 8, 8); // Radio muy pequeño para que parezcan estrellas lejanas, no esferas gigantes
 const cellMat = new THREE.MeshBasicMaterial({ 
     color: 0xffffff, // El color base debe ser blanco para que el setColorAt multiplique correctamente
     transparent: true, 
@@ -2263,7 +2263,7 @@ const cellMat = new THREE.MeshBasicMaterial({
 const cellMesh = new THREE.InstancedMesh(cellGeo, cellMat, 15*15*15);
 FX.ApplyStarHDR(cellMesh, 0xffffff, 2.5); // Boost HDR para la malla instanciada
 cellMesh.userData = { isDVTRGASStars: true };
-cellMesh.visible = false;
+cellMesh.visible = true; // La visibilidad general la controla panalGroup
 panalGroup.add(cellMesh);
 
 function setNEOColorAndEmissive(m, colorHex, emissiveHex, emissiveIntensity = null) {
