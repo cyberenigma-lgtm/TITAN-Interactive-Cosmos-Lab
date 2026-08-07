@@ -1127,6 +1127,39 @@ fetch('./data/milky_way.bin').then(res => {
     
     window.ourUniverse.add(milkyWaySphere);
     console.log(`Reconstrucción Galáctica cargada: ${numStars} estrellas simuladas (Trazado Espiral).`);
+    
+    // OPCIONAL: Cargar textura fotográfica de la Vía Láctea aportada por el usuario
+    // Si el usuario sube una imagen y la llama 'milkyway_bg.jpg' en public/assets/, 
+    // se pondrá debajo de las estrellas en 3D para darle la forma fotorrealista exacta de la imagen.
+    new THREE.TextureLoader().load('./assets/milkyway_bg.jpg', 
+        function(texture) {
+            // El diámetro de la galaxia es ~100k años luz, que a nuestra escala es ~450,000 unidades
+            const mwPlane = new THREE.Mesh(
+                new THREE.PlaneGeometry(450000, 450000), 
+                new THREE.MeshBasicMaterial({
+                    map: texture,
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.7, // Semitransparente para combinar con las estrellas 3D reales
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    side: THREE.DoubleSide
+                })
+            );
+            // La acostamos y le aplicamos exactamente la misma rotación y posición que la malla de estrellas 3D
+            mwPlane.rotation.x = milkyWaySphere.rotation.x;
+            mwPlane.rotation.z = milkyWaySphere.rotation.z;
+            mwPlane.position.copy(milkyWaySphere.position);
+            
+            window.ourUniverse.add(mwPlane);
+            if (window.logTitan) window.logTitan(`[SISTEMA] Mapa Galáctico Fotográfico 'milkyway_bg.jpg' integrado con éxito.`);
+        },
+        undefined,
+        function(err) {
+            // Silencioso: si no está la imagen, se queda solo la nube de puntos 3D.
+        }
+    );
+    
 }).catch(e => console.log(e));
 
 // === BOLSAS DE GAS (Nebulosas Volumétricas) ===
