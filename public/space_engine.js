@@ -6006,3 +6006,149 @@ if (modeBtn) {
 }
 applyMode();
 
+// === RED CÓSMICA DESI (Dark Energy Spectroscopic Instrument) ===
+window.desiCosmicWeb = null;
+let isDesiModeActive = false;
+
+function generateDESICosmicWeb() {
+    if (window.desiCosmicWeb) return window.desiCosmicWeb;
+
+    // Generar una telaraña cósmica procedural inmensa (Emulación del mapa DESI)
+    const numGalaxies = 250000;
+    const webGeo = new THREE.BufferGeometry();
+    const pos = new Float32Array(numGalaxies * 3);
+    const colors = new Float32Array(numGalaxies * 3);
+    
+    // Escala inmensa: 5 Millones de unidades de radio (Universo Observable profundo)
+    const scale = 5000000; 
+    
+    for (let i = 0; i < numGalaxies; i++) {
+        // Coordenadas esféricas base (más denso en el centro por la perspectiva del observador)
+        const r = Math.pow(Math.random(), 1.5) * scale; 
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+        
+        let x = r * Math.sin(phi) * Math.cos(theta);
+        let y = r * Math.sin(phi) * Math.sin(theta);
+        let z = r * Math.cos(phi);
+        
+        // Simular Filamentos (Cosmic Web) usando suma de ondas sinusoidales 3D
+        // Esto agrupa las galaxias en hilos y cúmulos, dejando vacíos oscuros.
+        const f = 0.000005; 
+        const dx = Math.sin(y * f) * Math.cos(z * f) * 400000;
+        const dy = Math.sin(x * f) * Math.cos(z * f) * 400000;
+        const dz = Math.sin(x * f) * Math.cos(y * f) * 400000;
+        
+        x += dx; y += dy; z += dz;
+        
+        pos[i*3] = x;
+        pos[i*3+1] = y;
+        pos[i*3+2] = z;
+        
+        // Corrimiento al Rojo Cosmológico (Redshift Doppler)
+        // A mayor distancia, la expansión del universo desplaza la luz hacia el rojo.
+        const distance = Math.sqrt(x*x + y*y + z*z);
+        const redshift = distance / scale; // Normalizado de 0.0 a 1.0
+        
+        // Color base: Blanco/Azul (Cercano) -> Amarillo -> Rojo Oscuro (Lejano)
+        const baseR = 0.5 + redshift * 0.5; // El rojo domina en la lejanía
+        const baseG = 0.8 - redshift * 0.7; // El verde se apaga
+        const baseB = 1.0 - redshift * 0.9; // El azul desaparece rápido
+        
+        // Pequeña variación aleatoria para realismo
+        colors[i*3] = Math.min(1.0, baseR + (Math.random()-0.5)*0.2);
+        colors[i*3+1] = Math.max(0.0, baseG + (Math.random()-0.5)*0.2);
+        colors[i*3+2] = Math.max(0.0, baseB + (Math.random()-0.5)*0.2);
+    }
+    
+    webGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    webGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const webMat = new THREE.PointsMaterial({
+        size: 3500, // En esta escala, cada punto es una galaxia entera
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true,
+        map: window.FX ? window.FX.createStarTexture() : null
+    });
+    
+    const webSystem = new THREE.Points(webGeo, webMat);
+    return webSystem;
+}
+
+const btnDesi = document.getElementById('btn-toggle-desi');
+if (btnDesi) {
+    btnDesi.addEventListener('click', () => {
+        isDesiModeActive = !isDesiModeActive;
+        
+        if (isDesiModeActive) {
+            btnDesi.textContent = '🌌 DESACTIVAR MAPA DESI';
+            btnDesi.style.background = 'rgba(255, 0, 100, 0.3)';
+            btnDesi.style.borderColor = '#ff0066';
+            
+            // 1. Ocultar Universo Local para no tapar la Red
+            window.ourUniverse.visible = false;
+            if (window.nebulaeGroup) window.nebulaeGroup.visible = false;
+            
+            // 2. Generar y Mostrar Red Cósmica
+            if (!window.desiCosmicWeb) {
+                if (window.logTitan) window.logTitan(`[DESI] Procesando matriz cosmológica de gran escala...`);
+                window.desiCosmicWeb = generateDESICosmicWeb();
+                scene.add(window.desiCosmicWeb);
+            }
+            window.desiCosmicWeb.visible = true;
+            
+            // 3. Ajustar Cámara a Escala Cosmológica Extrema
+            camera.far = 50000000; // 50 millones
+            camera.updateProjectionMatrix();
+            
+            // 4. Zoom out épico hacia el vacío intergaláctico
+            warpActive = true; warpT = 0;
+            warpStartCameraPos.copy(camera.position); warpStartLookAt.copy(controls.target);
+            warpTargetLookAt.copy(new THREE.Vector3(0,0,0));
+            // Alejarnos 2 millones de unidades
+            warpTargetCameraPos.copy(new THREE.Vector3(0, 1000000, 2500000)); 
+            
+            // 5. Aumentar controles inmensamente para poder navegar la Red
+            controls.panSpeed = 100000;
+            controls.zoomSpeed = 100.0;
+            controls.rotateSpeed = 0.5;
+            
+            if (window.logTitan) window.logTitan(`[DESI] Red Cósmica ACTIVADA. Mostrando 250,000 galaxias con Redshift cosmológico.`);
+            
+        } else {
+            btnDesi.textContent = '👁️ ACTIVAR MAPA DESI';
+            btnDesi.style.background = 'rgba(0,255,204,0.1)';
+            btnDesi.style.borderColor = '#00ffcc';
+            
+            // 1. Mostrar Universo Local
+            window.ourUniverse.visible = true;
+            if (window.nebulaeGroup) window.nebulaeGroup.visible = true;
+            
+            // 2. Ocultar Red Cósmica
+            if (window.desiCosmicWeb) window.desiCosmicWeb.visible = false;
+            
+            // 3. Restaurar Cámara
+            camera.far = 10000000;
+            camera.updateProjectionMatrix();
+            
+            // 4. Zoom in de vuelta a la Vía Láctea (Sagitario A*)
+            warpActive = true; warpT = 0;
+            warpStartCameraPos.copy(camera.position); warpStartLookAt.copy(controls.target);
+            warpTargetLookAt.copy(new THREE.Vector3(52075, 75, -99925)); 
+            warpTargetCameraPos.copy(new THREE.Vector3(52075, 5000, -90000));
+            
+            // 5. Restaurar controles
+            controls.panSpeed = 2.0;
+            controls.zoomSpeed = 1.0;
+            controls.rotateSpeed = 1.0;
+            
+            if (window.logTitan) window.logTitan(`[DESI] Mapa DESI DESACTIVADO. Retornando al Grupo Local.`);
+        }
+    });
+}
+
+
