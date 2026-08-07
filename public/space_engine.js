@@ -6019,46 +6019,57 @@ function generateDESICosmicWeb() {
     const pos = new Float32Array(numGalaxies * 3);
     const colors = new Float32Array(numGalaxies * 3);
     
-    // Escala inmensa: 5 Millones de unidades de radio (Universo Observable profundo)
+    // Escala inmensa: 5 Millones de unidades de radio
     const scale = 5000000; 
     
     for (let i = 0; i < numGalaxies; i++) {
-        // Coordenadas esféricas base (más denso en el centro por la perspectiva del observador)
-        const r = Math.pow(Math.random(), 1.5) * scale; 
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos((Math.random() * 2) - 1);
+        // Coordenadas base (distribución uniforme en una esfera)
+        const u = Math.random();
+        const v = Math.random();
+        const rBase = scale * Math.cbrt(Math.random()); // Distribución volumétrica uniforme
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
         
-        let x = r * Math.sin(phi) * Math.cos(theta);
-        let y = r * Math.sin(phi) * Math.sin(theta);
-        let z = r * Math.cos(phi);
+        let x = rBase * Math.sin(phi) * Math.cos(theta);
+        let y = rBase * Math.sin(phi) * Math.sin(theta);
+        let z = rBase * Math.cos(phi);
         
-        // Simular Filamentos (Cosmic Web) usando suma de ondas sinusoidales 3D
-        // Esto agrupa las galaxias en hilos y cúmulos, dejando vacíos oscuros.
-        const f = 0.000005; 
-        const dx = Math.sin(y * f) * Math.cos(z * f) * 400000;
-        const dy = Math.sin(x * f) * Math.cos(z * f) * 400000;
-        const dz = Math.sin(x * f) * Math.cos(y * f) * 400000;
+        // Simular Filamentos de la Red Cósmica (Cosmic Web)
+        // Usamos una función seno tridimensional de baja frecuencia para agrupar masivamente la materia
+        const f = 0.000002; 
         
-        x += dx; y += dy; z += dz;
+        // "Atractores" de gravedad (materia oscura)
+        const gravX = Math.sin(x * f) + Math.cos(y * f * 1.5);
+        const gravY = Math.sin(y * f) + Math.cos(z * f * 1.5);
+        const gravZ = Math.sin(z * f) + Math.cos(x * f * 1.5);
+        
+        // Colapsar agresivamente las posiciones hacia los nodos de la red
+        x -= gravX * 350000;
+        y -= gravY * 350000;
+        z -= gravZ * 350000;
+        
+        // Colapso secundario de alta frecuencia para los "hilos" delgados
+        const f2 = 0.000008;
+        x -= Math.sin(y*f2)*150000;
+        y -= Math.sin(z*f2)*150000;
+        z -= Math.sin(x*f2)*150000;
         
         pos[i*3] = x;
         pos[i*3+1] = y;
         pos[i*3+2] = z;
         
         // Corrimiento al Rojo Cosmológico (Redshift Doppler)
-        // A mayor distancia, la expansión del universo desplaza la luz hacia el rojo.
         const distance = Math.sqrt(x*x + y*y + z*z);
-        const redshift = distance / scale; // Normalizado de 0.0 a 1.0
+        const redshift = distance / scale; // 0.0 a 1.0
         
-        // Color base: Blanco/Azul (Cercano) -> Amarillo -> Rojo Oscuro (Lejano)
-        const baseR = 0.5 + redshift * 0.5; // El rojo domina en la lejanía
-        const baseG = 0.8 - redshift * 0.7; // El verde se apaga
-        const baseB = 1.0 - redshift * 0.9; // El azul desaparece rápido
+        // Color base: Centro Blanco/Azul brillante -> Bordes Rojo Profundo
+        const baseR = 0.3 + redshift * 0.7; // El rojo domina rápido
+        const baseG = 0.8 - redshift * 0.8; // Verde desaparece
+        const baseB = 1.0 - redshift * 0.95; // Azul desaparece casi de inmediato
         
-        // Pequeña variación aleatoria para realismo
-        colors[i*3] = Math.min(1.0, baseR + (Math.random()-0.5)*0.2);
-        colors[i*3+1] = Math.max(0.0, baseG + (Math.random()-0.5)*0.2);
-        colors[i*3+2] = Math.max(0.0, baseB + (Math.random()-0.5)*0.2);
+        colors[i*3] = Math.min(1.0, Math.max(0.0, baseR + (Math.random()-0.5)*0.2));
+        colors[i*3+1] = Math.min(1.0, Math.max(0.0, baseG + (Math.random()-0.5)*0.2));
+        colors[i*3+2] = Math.min(1.0, Math.max(0.0, baseB + (Math.random()-0.5)*0.2));
     }
     
     webGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -6077,10 +6088,10 @@ function generateDESICosmicWeb() {
     const desiTex = new THREE.CanvasTexture(desiCanvas);
     
     const webMat = new THREE.PointsMaterial({
-        size: 3500, // En esta escala, cada punto es una galaxia entera
+        size: 25000, // Aumentado significativamente para que los filamentos sean visibles de lejos
         vertexColors: true,
         transparent: true,
-        opacity: 0.6, // Reducida para que la superposición sea suave
+        opacity: 0.9,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         sizeAttenuation: true,
