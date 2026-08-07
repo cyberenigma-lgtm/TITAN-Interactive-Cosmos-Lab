@@ -89,7 +89,7 @@ window.FX = {
 
         // Configuración Física del Renderizador
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.2;
+        this.renderer.toneMappingExposure = 0.9;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
 
         // Pipeline de Post-Procesado a máxima resolución (Supersampling)

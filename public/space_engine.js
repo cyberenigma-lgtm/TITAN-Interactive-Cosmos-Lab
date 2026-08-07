@@ -547,7 +547,7 @@ fetch('/data/hipparcos.json')
         zoaGeo.setAttribute('position', new THREE.BufferAttribute(zoaPositions, 3));
         zoaGeo.setAttribute('color', new THREE.BufferAttribute(zoaColors, 3));
         window.zoaGroup = new THREE.Points(zoaGeo, new THREE.PointsMaterial({
-            size: 0.5, vertexColors: true, transparent: true, opacity: 0.35, sizeAttenuation: true, blending: THREE.AdditiveBlending
+            size: 0.1, vertexColors: true, transparent: true, opacity: 0.65, sizeAttenuation: true, blending: THREE.AdditiveBlending, map: window.FX ? window.FX.createStarTexture() : null, depthWrite: false
         }));
         FX.ApplyVolumetric(window.zoaGroup, 0.5); // Inyectar textura esférica procedimental y HDR Bloom
         
@@ -846,9 +846,9 @@ planetsData.forEach(data => {
     solarSystem.add(orbitGroup);
 
     const planetGeo = new THREE.SphereGeometry(data.radius, 64, 64);
-    const planetMat = new THREE.MeshStandardMaterial({ 
+    const planetMat = new THREE.MeshPhongMaterial({ 
         color: data.color, 
-        roughness: 0.8,
+        shininess: 15,
         wireframe: false
     });
     
@@ -887,9 +887,9 @@ planetsData.forEach(data => {
         planetMat.normalScale = new THREE.Vector2(2, 2);
     }
     if (data.specularMap) {
-        planetMat.roughnessMap = textureLoader.load(data.specularMap);
-        planetMat.roughness = 0.8;
-        planetMat.metalness = 0.2;
+        planetMat.specularMap = textureLoader.load(data.specularMap);
+        planetMat.specular = new THREE.Color(0x333333); // Intensidad del brillo del agua
+        planetMat.shininess = 35; // Hacemos que el reflejo sea más concentrado
     }
     
     const planetMesh = new THREE.Mesh(planetGeo, planetMat);
