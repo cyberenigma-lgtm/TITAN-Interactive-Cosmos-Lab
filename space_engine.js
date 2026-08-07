@@ -492,6 +492,7 @@ fetch('/data/hipparcos.json')
         });
         
         const points = new THREE.Points(geo, mat);
+        FX.ApplyVolumetric(points, 0.8); // Inyectar textura esférica procedimental y HDR Bloom
         hipparcosGroup.add(points);
         logTitan(`Cargadas ${numStars} estrellas del Catálogo Hipparcos.`);
         
@@ -538,6 +539,7 @@ fetch('/data/hipparcos.json')
         window.zoaGroup = new THREE.Points(zoaGeo, new THREE.PointsMaterial({
             size: 0.5, vertexColors: true, transparent: true, opacity: 0.35, sizeAttenuation: true, blending: THREE.AdditiveBlending
         }));
+        FX.ApplyVolumetric(window.zoaGroup, 0.5); // Inyectar textura esférica procedimental y HDR Bloom
         
         // Alinear al plano galáctico (Aprox 62.8 grados respecto al ecuador celeste)
         window.zoaGroup.rotation.x = 1.09; 
