@@ -747,6 +747,7 @@ sun.userData = { name: "Sol (Estrella G2V)", mass: "1.989 × 10^30 kg", radius: 
 solarSystem.add(sun);
 
 const sunLight = new THREE.PointLight(0xffffff, 2.5, 10000);
+FX.ApplySunFlare(sunLight, 0xffffff); // Inyectar cinemática física (Lens Flare procedimental)
 sun.add(sunLight);
 // Espacio profundo real: sin luz ambiental global.
 // Hemisferio muy tenue como fill mínimo (luz difusa del fondo cósmico de microondas)
@@ -4963,6 +4964,7 @@ function generateStarSystem(starID, spectralColor) {
 
     // Luz puntual de la estrella
     const starLight = new THREE.PointLight(starColorHex, 2.5, 2000);
+    FX.ApplySunFlare(starLight, starColorHex);
     currentExoSystem.add(starLight);
     
     // Cuántos planetas tendrá esta estrella? (2 a 6)
