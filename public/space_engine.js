@@ -740,7 +740,7 @@ function createSunPhotosphereTexture() {
 
 // === EL SOL (FOTOSFERA REAL EN ALTA RESOLUCIÓN) ===
 const sunMat = new THREE.MeshBasicMaterial({ 
-    map: textureLoader.load("/textures/sun.jpg"), 
+    map: textureLoader.load("./textures/sun.jpg"), 
     color: 0xffffff 
 });
 const sun = new THREE.Mesh(new THREE.SphereGeometry(18, 64, 64), sunMat);
@@ -803,20 +803,20 @@ for (let c = 0; c < 3; c++) {
 
 // === PLANETAS CON PROPORCIONES ASTRONÓMICAS REALES (UA) Y ACHATAMIENTO POLAR (OBLATOS) ===
 const planetsData = [
-    { name: "Mercurio", color: 0xaaaaaa, radius: 1.5, distance: 38.7, scaleY: 0.999, periodDays: 88, mass: "3.285 × 10^23 kg", inc: 0.12, phase: 0, texture: "/textures/mercury.jpg" },
-    { name: "Venus", color: 0xeebb88, radius: 3, distance: 72.3, scaleY: 0.999, periodDays: 225, mass: "4.867 × 10^24 kg", inc: 0.06, phase: 1.2, texture: "/textures/venus.jpg" },
+    { name: "Mercurio", color: 0xaaaaaa, radius: 1.5, distance: 38.7, scaleY: 0.999, periodDays: 88, mass: "3.285 × 10^23 kg", inc: 0.12, phase: 0, texture: "./textures/mercury.jpg" },
+    { name: "Venus", color: 0xeebb88, radius: 3, distance: 72.3, scaleY: 0.999, periodDays: 225, mass: "4.867 × 10^24 kg", inc: 0.06, phase: 1.2, texture: "./textures/venus.jpg" },
     { 
         name: "Tierra", color: 0xffffff, radius: 4, distance: 100.0, scaleY: 0.9967, periodDays: 365.25, mass: "5.972 × 10^24 kg", inc: 0.0, phase: 3.14, 
-        texture: "/textures/earth.jpg",
-        normalMap: "/textures/earth_normal.jpg",
-        specularMap: "/textures/earth_specular.jpg"
+        texture: "./textures/earth.jpg",
+        normalMap: "./textures/earth_normal.jpg",
+        specularMap: "./textures/earth_specular.jpg"
     },
-    { name: "Marte", color: 0xcc4422, radius: 2.5, distance: 152.4, scaleY: 0.9942, periodDays: 687, mass: "6.39 × 10^23 kg", inc: 0.03, phase: 4.0, texture: "/textures/mars.jpg" },
+    { name: "Marte", color: 0xcc4422, radius: 2.5, distance: 152.4, scaleY: 0.9942, periodDays: 687, mass: "6.39 × 10^23 kg", inc: 0.03, phase: 4.0, texture: "./textures/mars.jpg" },
     { name: "Ceres", color: 0x888888, radius: 0.8, distance: 276.7, scaleY: 0.925, periodDays: 1680, mass: "9.393 × 10^20 kg", inc: 0.18, phase: 2.3 },
-    { name: "Júpiter", color: 0xddaa77, radius: 10, distance: 520.4, scaleY: 0.9352, periodDays: 4333, mass: "1.898 × 10^27 kg", inc: 0.02, phase: 2.1, texture: "/textures/jupiter.jpg" },
-    { name: "Saturno", color: 0xeeddcc, radius: 8, distance: 958.2, scaleY: 0.9020, periodDays: 10759, mass: "5.683 × 10^26 kg", inc: 0.04, phase: 5.5, texture: "/textures/saturn.jpg", hasRings: true },
-    { name: "Urano", color: 0x88ccff, radius: 6, distance: 1920.1, scaleY: 0.9771, periodDays: 30687, mass: "8.681 × 10^25 kg", inc: 0.01, phase: 0.5, texture: "/textures/uranus.jpg" },
-    { name: "Neptuno", color: 0x4444ff, radius: 5.5, distance: 3004.7, scaleY: 0.9829, periodDays: 60190, mass: "1.024 × 10^26 kg", inc: 0.03, phase: 1.0, texture: "/textures/neptune.jpg" },
+    { name: "Júpiter", color: 0xddaa77, radius: 10, distance: 520.4, scaleY: 0.9352, periodDays: 4333, mass: "1.898 × 10^27 kg", inc: 0.02, phase: 2.1, texture: "./textures/jupiter.jpg" },
+    { name: "Saturno", color: 0xeeddcc, radius: 8, distance: 958.2, scaleY: 0.9020, periodDays: 10759, mass: "5.683 × 10^26 kg", inc: 0.04, phase: 5.5, texture: "./textures/saturn.jpg", hasRings: true },
+    { name: "Urano", color: 0x88ccff, radius: 6, distance: 1920.1, scaleY: 0.9771, periodDays: 30687, mass: "8.681 × 10^25 kg", inc: 0.01, phase: 0.5, texture: "./textures/uranus.jpg" },
+    { name: "Neptuno", color: 0x4444ff, radius: 5.5, distance: 3004.7, scaleY: 0.9829, periodDays: 60190, mass: "1.024 × 10^26 kg", inc: 0.03, phase: 1.0, texture: "./textures/neptune.jpg" },
     // Planetas Enanos (Extended Solar System)
     { name: "Plutón", color: 0xddbb99, radius: 1.1, distance: 3948.2, scaleY: 0.99, periodDays: 90560, mass: "1.303 × 10^22 kg", inc: 0.3, phase: 5.1 },
     { name: "Haumea", color: 0xcccccc, radius: 0.8, distance: 4321.8, scaleX: 1.5, scaleY: 0.65, scaleZ: 0.85, periodDays: 103774, mass: "4.006 × 10^21 kg", inc: 0.49, phase: 0.8 },
@@ -854,8 +854,8 @@ planetsData.forEach(data => {
     
     // Carga de texturas dinámicas (El usuario puede añadir más texturas)
     const textureName = data.name.toLowerCase().replace(/ /g, '_');
-    const customTexUrl = data.texture || `/textures/${textureName}.jpg`;
-    const nightTexUrl = `/textures/${textureName}_night.jpg`;
+    const customTexUrl = data.texture || `./textures/${textureName}.jpg`;
+    const nightTexUrl = `./textures/${textureName}_night.jpg`;
     
     // Intentamos cargar la textura, si falla, se queda con el color base (fotorrealismo a demanda)
     textureLoader.load(
@@ -961,7 +961,7 @@ planetsData.forEach(data => {
         if (data.name === "Tierra") {
             const cloudsGeo = new THREE.SphereGeometry(data.radius * 1.01, 64, 64);
             const cloudsMat = new THREE.MeshStandardMaterial({
-                map: textureLoader.load("/textures/earth_clouds.png"),
+                map: textureLoader.load("./textures/earth_clouds.png"),
                 transparent: true,
                 opacity: 0.95,
                 blending: THREE.AdditiveBlending, // Mezcla aditiva para que resplandezcan bajo el sol
@@ -1835,7 +1835,7 @@ function createMoonMesh(m) {
 
     const moonTexName = m.name.toLowerCase().replace(/ /g, '_');
     textureLoader.load(
-        `/textures/${moonTexName}.jpg`, 
+        `./textures/${moonTexName}.jpg`, 
         function(tex) {
             moonMat.map = tex;
             moonMat.color.setHex(0xffffff);
@@ -1847,7 +1847,7 @@ function createMoonMesh(m) {
         function(err) {
             // Fallback (ej: luna.jpg -> moon.jpg si está en español)
             if (m.name === "Luna") {
-                textureLoader.load("/textures/moon.jpg", function(tex) {
+                textureLoader.load("./textures/moon.jpg", function(tex) {
                     moonMat.map = tex;
                     moonMat.bumpMap = tex;
                     moonMat.color.setHex(0xffffff);
@@ -2308,7 +2308,7 @@ for (let i = 0; i < astPosAttr.count; i++) {
 }
 baseAstGeo.computeVertexNormals();
 
-const rockTexture = textureLoader.load('/textures/mercury.jpg');
+const rockTexture = textureLoader.load('./textures/mercury.jpg');
 rockTexture.wrapS = THREE.RepeatWrapping;
 rockTexture.wrapT = THREE.RepeatWrapping;
 rockTexture.repeat.set(2, 2);
@@ -2378,7 +2378,7 @@ const realNEOList = [
 
 function createSpecializedNEOMesh(neo) {
     let geo, mat;
-    const rockTex = textureLoader.load('/textures/mercury.jpg');
+    const rockTex = textureLoader.load('./textures/mercury.jpg');
     rockTex.wrapS = THREE.RepeatWrapping;
     rockTex.wrapT = THREE.RepeatWrapping;
     rockTex.repeat.set(2, 2);
