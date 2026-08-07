@@ -2134,6 +2134,37 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
         bhGroup.add(jetPoints);
     }
 
+    // OPCIONAL: Soporte para texturas personalizadas subidas por el usuario
+    // Si el usuario guarda una imagen llamada 'gargantua.jpg' en public/assets/, 
+    // el simulador reemplazará los gráficos procedurales por esta imagen automáticamente.
+    new THREE.TextureLoader().load('./assets/gargantua.jpg', 
+        function(texture) {
+            // Éxito: Eliminar componentes procedurales
+            bhGroup.remove(accretionDisk);
+            bhGroup.remove(haloSprite);
+            // El shadowMesh se mantiene para ocultar las estrellas detrás del agujero de la imagen.
+            
+            const imageMat = new THREE.SpriteMaterial({
+                map: texture,
+                color: 0xffffff,
+                blending: THREE.AdditiveBlending, // Hace que el fondo negro de la imagen desaparezca
+                transparent: true,
+                depthWrite: false
+            });
+            const imageSprite = new THREE.Sprite(imageMat);
+            // Escalar para que el tamaño de la imagen coincida con el disco (aprox 12-14 veces el radio)
+            imageSprite.scale.set(rShadow * 14.0, rShadow * 14.0, 1);
+            imageSprite.renderOrder = 5;
+            bhGroup.add(imageSprite);
+            
+            if (window.logTitan) window.logTitan(`[SISTEMA] Textura fotográfica 'gargantua.jpg' montada en el simulador.`);
+        },
+        undefined, // onProgress
+        function(err) {
+            // Silencioso: Si la imagen no existe, mantenemos el renderizado procedural inmaculado.
+        }
+    );
+
     return { bhGroup, eqDisk: accretionDisk, upperArch: null, lowerArch: null, jetPoints };
 }
 
