@@ -3116,18 +3116,19 @@ function logTitan(msg) {
         out.scrollTop = out.scrollHeight;
     }
 }
-document.getElementById('toggle-hipparcos').addEventListener('change', (e) => {
-    hipparcosGroup.visible = e.target.checked;
-});
+const tHipp = document.getElementById('toggle-hipparcos');
+if (tHipp) {
+    tHipp.addEventListener('change', (e) => {
+        if (typeof hipparcosGroup !== 'undefined') hipparcosGroup.visible = e.target.checked;
+    });
+}
 
 const toggleMilkyway = document.getElementById('toggle-milkyway');
 if (toggleMilkyway) {
     toggleMilkyway.addEventListener('change', (e) => {
         if (window.milkyWaySphere) {
             window.milkyWaySphere.visible = e.target.checked;
-            if (e.target.checked) {
-                logTitan(`[SISTEMA SOLAR] Renderizando 1M estrellas (Galaxia Volumétrica)...`);
-            }
+            if (e.target.checked) logTitan(`[SISTEMA SOLAR] Renderizando 1M estrellas (Galaxia Volumétrica)...`);
         }
     });
 }
@@ -3137,11 +3138,8 @@ if (toggleCosmicWeb) {
     toggleCosmicWeb.addEventListener('change', (e) => {
         if (window.cosmicWebLines) {
             window.cosmicWebLines.visible = e.target.checked;
-            if (e.target.checked) {
-                logTitan(`[MACRO] Filamentos de Materia Oscura (Red Neuronal Cósmica) Activados.`);
-            } else {
-                logTitan(`[MACRO] Filamentos de Materia Oscura ocultos.`);
-            }
+            if (e.target.checked) logTitan(`[MACRO] Filamentos de Materia Oscura Activados.`);
+            else logTitan(`[MACRO] Filamentos de Materia Oscura ocultos.`);
         }
     });
 }
@@ -3151,47 +3149,78 @@ if (toggleZoa) {
     toggleZoa.addEventListener('change', (e) => {
         if (window.zoaGroup) {
             window.zoaGroup.visible = e.target.checked;
-            if (e.target.checked) {
-                logTitan(`[ZOA] Interpolación MASA FALTANTE activada. Rellenando disco galáctico...`);
-            } else {
-                logTitan(`[ZOA] Interpolación desactivada.`);
-            }
+            if (e.target.checked) logTitan(`[ZOA] Interpolación MASA FALTANTE activada.`);
+            else logTitan(`[ZOA] Interpolación desactivada.`);
         }
     });
 }
 
-document.getElementById('toggle-blackholes').addEventListener('change', (e) => {
-    extraSystems.visible = e.target.checked;
-});
-
-document.getElementById('toggle-planets').addEventListener('change', (e) => {
-    solarSystem.children.forEach(child => {
-        if (child.type === 'Group') child.visible = e.target.checked;
+const toggleMultiverse = document.getElementById('toggle-multiverse');
+if (toggleMultiverse) {
+    toggleMultiverse.addEventListener('change', (e) => {
+        if (window.otherUniverses) window.otherUniverses.visible = e.target.checked;
+        if (e.target.checked) logTitan(`[MULTIVERSO] Visualizando topología de branas...`);
     });
-});
+}
 
-document.getElementById('toggle-orbits').addEventListener('change', (e) => {
-    orbits.forEach(o => o.visible = e.target.checked);
-});
+const tBh = document.getElementById('toggle-blackholes');
+if (tBh) {
+    tBh.addEventListener('change', (e) => {
+        if (typeof extraSystems !== 'undefined') extraSystems.visible = e.target.checked;
+    });
+}
 
-document.getElementById('toggle-labels').addEventListener('change', (e) => {
-    document.getElementById('labels-container').style.display = e.target.checked ? 'block' : 'none';
-});
+const tPlanets = document.getElementById('toggle-planets');
+if (tPlanets) {
+    tPlanets.addEventListener('change', (e) => {
+        if (typeof solarSystem !== 'undefined') {
+            solarSystem.children.forEach(child => {
+                if (child.type === 'Group') child.visible = e.target.checked;
+            });
+        }
+    });
+}
 
-document.getElementById('toggle-grid').addEventListener('change', (e) => {
-    panalGroup.visible = e.target.checked;
-});
+const tOrbits = document.getElementById('toggle-orbits');
+if (tOrbits) {
+    tOrbits.addEventListener('change', (e) => {
+        if (typeof orbits !== 'undefined') orbits.forEach(o => o.visible = e.target.checked);
+    });
+}
 
-document.getElementById('toggle-meteors').addEventListener('change', (e) => {
-    metGroup.visible = e.target.checked;
-});
+const tLabels = document.getElementById('toggle-labels');
+if (tLabels) {
+    tLabels.addEventListener('change', (e) => {
+        const lblContainer = document.getElementById('labels-container');
+        if (lblContainer) lblContainer.style.display = e.target.checked ? 'block' : 'none';
+    });
+}
 
-document.getElementById('toggle-warp-effect').addEventListener('change', (e) => {
-    // Si se desactiva, reseteamos el shader a intensidad 0
-    if (!e.target.checked && titanPass) {
-        titanPass.uniforms["swarmIntensity"].value = 0.0;
-    }
-});
+const tGrid = document.getElementById('toggle-grid');
+if (tGrid) {
+    tGrid.addEventListener('change', (e) => {
+        if (typeof panalGroup !== 'undefined') panalGroup.visible = e.target.checked;
+    });
+}
+
+const tMeteors = document.getElementById('toggle-meteors');
+if (tMeteors) {
+    tMeteors.addEventListener('change', (e) => {
+        if (typeof metGroup !== 'undefined') metGroup.visible = e.target.checked;
+    });
+}
+
+const tWarp = document.getElementById('toggle-warp-effect');
+if (tWarp) {
+    tWarp.addEventListener('change', (e) => {
+        // Si se desactiva, reseteamos el shader a intensidad 0
+        if (!e.target.checked && typeof titanPass !== 'undefined' && titanPass) {
+            if (titanPass.uniforms && titanPass.uniforms["swarmIntensity"]) {
+                titanPass.uniforms["swarmIntensity"].value = 0.0;
+            }
+        }
+    });
+}
 
 // === TIMELINE LOGIC (Motor Temporal Cósmico) ===
 let engineTime = Date.now();        // Timestamp actual del motor (ms)
