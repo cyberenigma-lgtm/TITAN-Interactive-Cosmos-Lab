@@ -659,8 +659,8 @@ window.TITAN.GameLayer.Spacecraft = {
     rotationSpeed: 0.002, // Se actualizará al cambiar de nave
     
     // Vectores direccionales
-            const pitch = 0;
-    const yaw = 0;
+    pitch: 0,
+    yaw: 0,
     
     // Sistema Dual de Cámara y Malla
     cameraMode: '1st', // '1st' o '3rd'
