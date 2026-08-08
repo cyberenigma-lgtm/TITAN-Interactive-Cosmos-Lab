@@ -2039,17 +2039,16 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
     const baseColor = new THREE.Color(isBlue ? 0x88ccff : 0xffaa55);
 
     // 2. Disco de Acreción Cinemático (RingGeometry con Shader Procedural)
-    // Esto es mucho más espectacular y suave que las partículas sueltas.
-    const diskGeo = new THREE.RingGeometry(rShadow * 1.1, rShadow * 4.5, 256, 64);
+    // El radio exterior se amplía a 6.0 para dar margen a los vértices de geometrías cúbicas
+    const diskGeo = new THREE.RingGeometry(rShadow * 1.1, rShadow * 6.0, 256, 64);
     
-    diskGeo.userData.originalPos = diskGeo.attributes.position.clone();
-    window.allRingsToMutate = window.allRingsToMutate || [];
-    window.allRingsToMutate.push(diskGeo);
+    // Ya no mutamos los vértices con allRingsToMutate para evitar fracturas poligonales (tearing)
     const diskShader = {
         uniforms: { 
             color: { value: baseColor },
             rShadow: { value: rShadow },
-            time: { value: 0 } 
+            time: { value: 0 },
+            topologyType: { value: 0 } // 0: Spherical, 1: Cubic, 2: Manhattan
         },
         vertexShader: `
             varying vec3 vPos;
@@ -2064,6 +2063,7 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
             uniform vec3 color;
             uniform float rShadow;
             uniform float time;
+            uniform int topologyType;
             varying vec3 vPos;
             varying vec2 vUv;
             
@@ -2071,7 +2071,14 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
             float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
 
             void main() {
-                float r = length(vPos.xy); // Distancia desde el centro (plano XZ local)
+                float r;
+                if (topologyType == 1) {
+                    r = max(abs(vPos.x), abs(vPos.y)); // L∞ Cúbica
+                } else if (topologyType == 2) {
+                    r = abs(vPos.x) + abs(vPos.y);     // Manhattan
+                } else {
+                    r = length(vPos.xy);               // Euclidiana
+                }
                 
                 // Bandas de acreción (Simulando densidad de plasma)
                 float band1 = smoothstep(rShadow*1.1, rShadow*1.8, r) * smoothstep(rShadow*2.5, rShadow*1.8, r);
@@ -2111,7 +2118,9 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
     });
     const accretionDisk = new THREE.Mesh(diskGeo, diskMat);
     accretionDisk.rotation.x = -Math.PI / 2; // Tumbarlo en el ecuador
-    // El material Shader requiere renderizado manual si queremos animarlo, pero estático ya se ve increíble.
+    // Guardar material para modificar topologyType
+    window.allAccretionMats = window.allAccretionMats || [];
+    window.allAccretionMats.push(diskMat);
     bhGroup.add(accretionDisk);
 
     // 3. Lente Gravitacional de Gargantua (Halos superior e inferior - Einstein Ring)
@@ -3394,6 +3403,18 @@ function updateAllTopologies() {
                 }
             }
             pos.needsUpdate = true;
+        });
+    }
+    
+    // Sincronizar topología en los shaders de los Discos de Acreción
+    if (window.allAccretionMats) {
+        let topVal = 0;
+        if (currentTopology === 'cubic' || currentTopology === 'lame') topVal = 1;
+        if (currentTopology === 'manhattan') topVal = 2;
+        window.allAccretionMats.forEach(mat => {
+            if (mat.uniforms && mat.uniforms.topologyType) {
+                mat.uniforms.topologyType.value = topVal;
+            }
         });
     }
 }
