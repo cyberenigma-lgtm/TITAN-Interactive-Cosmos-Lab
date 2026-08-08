@@ -1713,7 +1713,7 @@ fetch('./data/cosmic_web.bin').then(res => {
         opacity: 0.1,
         side: THREE.DoubleSide,
         blending: THREE.AdditiveBlending,
-        wireframe: true // Da un aspecto de estructura topológica
+        wireframe: false // Membrana suave en lugar de rejilla poligonal
     });
     const cmbMembrane = new THREE.Mesh(cmbGeo, cmbMat);
     window.ourUniverse.add(cmbMembrane);
@@ -1734,7 +1734,7 @@ fetch('./data/cosmic_web.bin').then(res => {
         
         const r = 300000 + Math.random() * 100000;
         const uMat = new THREE.MeshBasicMaterial({
-            color: colors[i], transparent: true, opacity: 0.05, side: THREE.DoubleSide, wireframe: true
+            color: colors[i], transparent: true, opacity: 0.05, side: THREE.DoubleSide, wireframe: false
         });
         const uMembrane = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 32), uMat);
         uGroup.add(uMembrane);
