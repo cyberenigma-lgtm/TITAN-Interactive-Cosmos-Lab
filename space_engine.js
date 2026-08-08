@@ -582,7 +582,7 @@ fetch('./data/hipparcos.json')
                 const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
                 hipparcosGroup.add(lineMesh);
                 logTitan(`Cargadas líneas de constelaciones 3D.`);
-            });
+            }).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando constellations_3d: ${e.message}`); });
         
         // === SIMBAD (Professional Astronomical Data & Constellations) ===
         window.simbadGroup = new THREE.Group();
@@ -666,7 +666,7 @@ fetch('./data/hipparcos.json')
             .then(simbadData => {
                 simbadData.forEach(s => renderSimbadStar(s));
                 logTitan(`Cargadas ${simbadData.length} estrellas conocidas y de constelaciones con etiquetas 3D.`);
-            });
+            }).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando simbad_stars: ${e.message}`); });
 
         // Registrar función global para añadir descubrimientos en caliente
         window.addNewStarDiscovery = function(newStar) {
@@ -1164,7 +1164,7 @@ fetch('./data/milky_way.bin').then(res => {
         }
     );
     
-}).catch(e => console.log(e));
+}).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando Vía Láctea: ${e.message}`); });
 
 // === BOLSAS DE GAS (Nebulosas Volumétricas) ===
 window.nebulaeGroup = new THREE.Group();
@@ -1597,7 +1597,7 @@ fetch('./data/nebulae.json').then(res => res.json()).then(nebulaeData => {
             catalog.appendChild(btn);
         });
     }
-}).catch(err => console.log("Error cargando nebulosas:", err));
+}).catch(err => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando nebulosas: ${err.message}`); });
 
 // === INTEGRACIÓN DE CONSULTA EN VIVO A NASA IMAGES & SCIENCE API ===
 window.fetchNasaImageData = function(queryName) {
@@ -1754,7 +1754,7 @@ fetch('./data/cosmic_web.bin').then(res => {
     }
     
     console.log(`TITAN: Red Cósmica Inyectada por Reflexión. ${floatArray.length/3} macro-estructuras cargadas.`);
-}).catch(err => console.warn(err));
+}).catch(err => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando red cósmica: ${err.message}`); });
 
 // === POST-PROCESADO: TIERRA, LUNA Y SATÉLITES ===
 const earthObj = planets.find(p => p.mesh.userData.name === "Tierra");
@@ -1964,7 +1964,7 @@ fetch('./data/moons.json').then(r => r.json()).then(moons => {
         }
     });
     logTitan(`[SISTEMA SOLAR] Generado enjambre orbital: Lunas reales sincronizadas.`);
-}).catch(e => logTitan("Lunas principales activas en modo síncrono."));
+}).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando lunas (moons.json): ${e.message}`); });
 
 // Cinturón de asteroides procedimental eliminado (se usarán datos de DVTRGAS)
 
@@ -2694,7 +2694,7 @@ realNEOList.forEach((neo, i) => {
         const m = meteorites[i];
         
         // Reemplazar malla genérica por malla científica 3D especializada
-        metGroup.remove(m.mesh);
+        window.disposeHierarchy(m.mesh);
         const customMesh = createSpecializedNEOMesh(neo);
         m.mesh = customMesh;
         metGroup.add(m.mesh);
@@ -2990,7 +2990,7 @@ window.launchDARTMission = function(targetIdx) {
         if (t >= 1.0) {
             clearInterval(interval);
             const impactPos = currentNeoWorldPos.clone();
-            scene.remove(dartGroup);
+            window.disposeHierarchy(dartGroup);
             
             // === 💥 1. DESTELLO DE EXPLOSIÓN CINÉTICA Y ENJAMBRE DE ESCOMBROS (3D EJECTA PLUME) ===
             const flashGeo = new THREE.SphereGeometry(1.2, 32, 32);
@@ -3054,8 +3054,8 @@ window.launchDARTMission = function(targetIdx) {
                 
                 if (animT >= 2.0) {
                     clearInterval(animTimer);
-                    scene.remove(flashMesh);
-                    scene.remove(ejectaParticles);
+                    window.disposeHierarchy(flashMesh);
+                    window.disposeHierarchy(ejectaParticles);
                 }
             }, 30);
             
@@ -3383,6 +3383,36 @@ document.getElementById('slider-warp').addEventListener('input', (e) => {
     document.getElementById('val-warp').innerText = physicsWarp.toFixed(2);
     logTitan(`Métrica Alcubierre (Warp) recalibrada a ${physicsWarp.toFixed(2)}`);
 });
+
+window.disposeHierarchy = function(node) {
+    if (!node) return;
+    
+    // Dispose de todos los hijos recursivamente
+    node.traverse((child) => {
+        if (child.geometry) {
+            child.geometry.dispose();
+        }
+        if (child.material) {
+            // Un material puede ser un array
+            let materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach((mat) => {
+                // Dispose texturas
+                if (mat.map) mat.map.dispose();
+                if (mat.lightMap) mat.lightMap.dispose();
+                if (mat.bumpMap) mat.bumpMap.dispose();
+                if (mat.normalMap) mat.normalMap.dispose();
+                if (mat.specularMap) mat.specularMap.dispose();
+                if (mat.envMap) mat.envMap.dispose();
+                mat.dispose();
+            });
+        }
+    });
+    
+    // Desvincular de su padre
+    if (node.parent) {
+        node.parent.remove(node);
+    }
+};
 
 function logTitan(msg) {
     const out = document.getElementById('console-output');
@@ -3864,7 +3894,7 @@ window.addEventListener('click', (e) => {
             } else if (["Sol", "Tierra", "Marte", "Mercurio", "Venus", "Júpiter", "Saturno", "Urano", "Neptuno", "La Luna", "Fobos", "Deimos"].includes(uName)) {
                 solarSystem.visible = true;
                 if (currentExoSystem) {
-                    scene.remove(currentExoSystem);
+                    window.disposeHierarchy(currentExoSystem);
                     currentExoSystem = null;
                 }
             }
@@ -4095,7 +4125,7 @@ let realStarsData = [];
 // Fetch Knowledge Base
 fetch('/api/knowledge').then(r => r.json()).then(data => {
     astroKnowledge = data;
-}).catch(e => console.log("Knowledge fetch error", e));
+}).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Knowledge fetch error: ${e.message}`); });
 
 const starsInstancedMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 const starsInstancedGeo = new THREE.SphereGeometry(0.15, 4, 4);
@@ -4132,7 +4162,7 @@ fetch('/api/galaxias').then(r => r.json()).then(data => {
     
     starsInstancedMesh.userData = { isSIMBAD: true };
     scene.add(starsInstancedMesh);
-}).catch(e => console.log("Galaxias fetch error", e));
+}).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Galaxias fetch error: ${e.message}`); });
 
 // === ANIMACIÓN FLUIDA WEBGL ===
 const tempV = new THREE.Vector3();
@@ -4676,7 +4706,7 @@ function animate() {
     // Orbita cada exoplaneta según su velocidad angular y Métrica Topológica
     if (window.currentExoPlanets && window.currentExoPlanets.length > 0) {
         window.currentExoPlanets.forEach(p => {
-            if (!p.parent) return; 
+            if (!p || !p.parent) return; 
             p.userData.orbitAngle += p.userData.orbitSpeed * timeSpeed;
             const a = p.userData.orbitAngle;
             const d = p.userData.orbitDist || p.userData.dist;
@@ -4691,7 +4721,7 @@ function animate() {
     // Animar lunas alrededor de sus planetas con Métrica Topológica
     if (window.currentExoMoons && window.currentExoMoons.length > 0) {
         window.currentExoMoons.forEach(m => {
-            if (!m.parent) return;
+            if (!m || !m.parent) return;
             m.userData.orbitAngle += m.userData.orbitSpeed * timeSpeed;
             const a = m.userData.orbitAngle;
             const d = m.userData.orbitDist;
@@ -4982,7 +5012,7 @@ function focusObject(object, dist, name, desc, mass, rad, customPos = null) {
     if (systemNames.some(s => name.includes(s))) {
         if (typeof solarSystem !== 'undefined') solarSystem.visible = true;
         if (typeof currentExoSystem !== 'undefined' && currentExoSystem) {
-            scene.remove(currentExoSystem);
+            window.disposeHierarchy(currentExoSystem);
             currentExoSystem = null;
         }
     } else if (object.userData && object.userData.isExtraSystem) {
@@ -5251,7 +5281,7 @@ let currentExoSystem = null;
 function generateStarSystem(starID, spectralColor) {
     // Si ya existe un exosistema, lo limpiamos
     if (currentExoSystem) {
-        scene.remove(currentExoSystem);
+        window.disposeHierarchy(currentExoSystem);
         currentExoSystem = null;
     }
     
@@ -5404,7 +5434,7 @@ function landOn(object, name) {
     controls.update();
     
     // Crear suelo planetario a escala (Horizonte curvo)
-    if (window.surfaceGround) { scene.remove(window.surfaceGround); }
+    if (window.surfaceGround) { window.disposeHierarchy(window.surfaceGround); }
     
     // Esfera colosal para simular curvatura
     const gRadius = 4000;
@@ -5435,7 +5465,7 @@ function landOn(object, name) {
     scene.add(window.surfaceGround);
     
     // Cúpula atmosférica (SkyDome) dinámica
-    if (window.skyDome) { scene.remove(window.skyDome); }
+    if (window.skyDome) { window.disposeHierarchy(window.skyDome); }
     
     let atmosColor = new THREE.Color(0x000000);
     let atmosAlpha = 0.0; // Vacío (Luna, asteroides) por defecto
@@ -5495,7 +5525,7 @@ function landOn(object, name) {
         landedTarget = null;
         
         if (window.surfaceGround) {
-            scene.remove(window.surfaceGround);
+            window.disposeHierarchy(window.surfaceGround);
             window.surfaceGround = null;
         }
         if (window.skyDome) {
@@ -5641,7 +5671,7 @@ function updateFleetUI() {
 window.deleteProbe = function(index) {
     const probe = window.deployedProbes[index];
     if (probe) {
-        scene.remove(probe.mesh);
+        window.disposeHierarchy(probe.mesh);
         window.deployedProbes.splice(index, 1);
         updateFleetUI();
         
@@ -5782,7 +5812,7 @@ function animateDART(delta) {
     activeDART.progress += delta * 0.5; // Velocidad del misil visual
     if (activeDART.progress >= 1.0) {
         // IMPACTO
-        scene.remove(activeDART.mesh);
+        window.disposeHierarchy(activeDART.mesh);
         triggerDARTImpact(activeDART.target.position);
         showDARTReport(activeDART);
         activeDART = null;
@@ -5818,7 +5848,7 @@ function triggerDARTImpact(pos) {
     // Animamos las partículas un poco (forma rudimentaria pero efectiva)
     let frames = 0;
     function animExplosion() {
-        if(frames++ > 60) { scene.remove(pts); return false; }
+        if(frames++ > 60) { window.disposeHierarchy(pts); return false; }
         const arr = pts.geometry.attributes.position.array;
         for(let i=0; i<pCount; i++) {
             arr[i*3] += pVel[i*3];
