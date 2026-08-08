@@ -63,12 +63,14 @@ El laboratorio TITAN acepta contribuciones de desarrolladores, físicos, matemá
 ---
 
 ### 🗺️ 4. Roadmap Público (2026–2027)
-- 🌌 Módulo de expansión galáctica y cúmulo del Grupo Local (Andrómeda M31)
-- 🪐 Simulador de atmósferas exoplanetarias y espectrometría 3D
-- ☄️ Radar NEO avanzado con cálculo de masa y probabilidad de colisión K-Pg
-- 🪐 Generador de exosistemas persistentes
-- 📐 Panel de topología cúbica ($L_\infty$) y esférica ($L_2$) en tiempo real
-- 🔭 Integración con bases de datos astronómicas internacionales (SIMBAD, Gaia, IAU)
+- ✅ **[COMPLETADO]** Panel de topología cúbica ($L_\infty$), Manhattan y esférica ($L_2$) en tiempo real (aplicable a agujeros negros, exoplanetas y discos de acreción).
+- 🚀 **[EN DESARROLLO]** Módulo de Vuelo Espacial TITAN-CRAFT (Nave pilotable 6DOF con inercia y físicas).
+- 🎮 **[EN DESARROLLO]** Módulo de Progresión RPG (Motor de descubrimientos, XP y desbloqueo de naves).
+- 🌌 Módulo de expansión galáctica y cúmulo del Grupo Local (Andrómeda M31).
+- 🪐 Simulador de atmósferas exoplanetarias y espectrometría 3D.
+- ☄️ Radar NEO avanzado con cálculo de masa y probabilidad de colisión K-Pg.
+- 🪐 Generador de exosistemas persistentes.
+- 🔭 Integración con bases de datos astronómicas internacionales (SIMBAD, Gaia, IAU).
 
 ---
 
@@ -168,12 +170,14 @@ The TITAN laboratory welcomes contributions from developers, physicists, mathema
 ---
 
 ### 🗺️ 4. Public Roadmap (2026–2027)
-- 🌌 Galactic expansion module and Local Group cluster (Andromeda M31)
-- 🪐 Exoplanetary atmosphere simulator and 3D spectrometry
-- ☄️ Advanced NEO radar with mass calculation and impact probability
-- 🪐 Persistent exosystem generator
-- 📐 Real-time cubic ($L_\infty$) and spherical ($L_2$) topology panel
-- 🔭 Integration with international astronomical databases (SIMBAD, Gaia, IAU)
+- ✅ **[COMPLETED]** Real-time cubic ($L_\infty$), Manhattan, and spherical ($L_2$) topology panel (applied to black holes, exoplanets, and accretion disks).
+- 🚀 **[IN DEVELOPMENT]** TITAN-CRAFT Spacecraft Module (6DOF pilotable ship with inertia & physics).
+- 🎮 **[IN DEVELOPMENT]** RPG Progression Module (Discovery engine, XP system, and ship unlocking).
+- 🌌 Galactic expansion module and Local Group cluster (Andromeda M31).
+- 🪐 Exoplanetary atmosphere simulator and 3D spectrometry.
+- ☄️ Advanced NEO radar with mass calculation and impact probability.
+- 🪐 Persistent exosystem generator.
+- 🔭 Integration with international astronomical databases (SIMBAD, Gaia, IAU).
 
 ---
 
