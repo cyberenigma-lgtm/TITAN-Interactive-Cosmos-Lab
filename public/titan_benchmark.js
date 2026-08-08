@@ -14,21 +14,35 @@ window.TITAN.Benchmark = {
     init: function() {
         console.log("[BENCHMARK] Inicializando Tech Demo...");
         
-        // Add Stats.js UI
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js';
-        script.onload = () => {
-            this.stats = new Stats();
-            this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-            this.stats.dom.style.position = 'absolute';
-            this.stats.dom.style.right = '0px';
-            this.stats.dom.style.top = '0px';
-            this.stats.dom.style.left = 'auto'; // Override default left
-            this.stats.dom.style.display = 'none';
-            this.stats.dom.id = 'benchmark-stats';
-            document.body.appendChild(this.stats.dom);
+        // Custom FPS Counter (No external dependencies)
+        this.stats = {
+            dom: document.createElement('div'),
+            frames: 0,
+            prevTime: performance.now(),
+            update: function() {
+                this.frames++;
+                const time = performance.now();
+                if (time >= this.prevTime + 1000) {
+                    const fps = Math.round((this.frames * 1000) / (time - this.prevTime));
+                    this.dom.innerHTML = `<span style="font-size:24px; font-weight:bold; color:${fps > 30 ? '#0f0' : '#f00'};">${fps} FPS</span><br><span style="font-size:12px; color:#aaa;">50,000 ASTEROIDS</span><br><span style="font-size:12px; color:#aaa;">PCF SOFT SHADOWS</span>`;
+                    this.prevTime = time;
+                    this.frames = 0;
+                }
+            }
         };
-        document.head.appendChild(script);
+        this.stats.dom.id = 'benchmark-stats';
+        this.stats.dom.style.position = 'absolute';
+        this.stats.dom.style.right = '20px';
+        this.stats.dom.style.top = '20px';
+        this.stats.dom.style.background = 'rgba(0, 0, 0, 0.8)';
+        this.stats.dom.style.border = '1px solid #ff9900';
+        this.stats.dom.style.padding = '10px';
+        this.stats.dom.style.borderRadius = '8px';
+        this.stats.dom.style.fontFamily = 'monospace';
+        this.stats.dom.style.textAlign = 'right';
+        this.stats.dom.style.zIndex = '9999';
+        this.stats.dom.style.display = 'none';
+        document.body.appendChild(this.stats.dom);
         
         if (typeof THREE !== 'undefined') {
             this.dummy = new THREE.Object3D();
@@ -167,8 +181,6 @@ window.TITAN.Benchmark = {
         
         requestAnimationFrame(() => this.benchmarkLoop());
         
-        if (this.stats) this.stats.begin();
-        
         const time = performance.now() * 0.0005;
         
         // Rotar el enjambre de asteroides masivamente
@@ -182,7 +194,9 @@ window.TITAN.Benchmark = {
             window.renderer.render(window.scene, window.camera);
         }
         
-        if (this.stats) this.stats.end();
+        if (this.stats && typeof this.stats.update === 'function') {
+            this.stats.update();
+        }
     }
 };
 
