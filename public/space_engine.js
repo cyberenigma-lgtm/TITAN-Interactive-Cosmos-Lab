@@ -7,6 +7,36 @@
  */
 
 // ============================================================================
+window.disposeHierarchy = function(node) {
+    if (!node) return;
+    
+    // Dispose de todos los hijos recursivamente
+    node.traverse((child) => {
+        if (child.geometry) {
+            child.geometry.dispose();
+        }
+        if (child.material) {
+            // Un material puede ser un array
+            let materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach((mat) => {
+                // Dispose texturas
+                if (mat.map) mat.map.dispose();
+                if (mat.lightMap) mat.lightMap.dispose();
+                if (mat.bumpMap) mat.bumpMap.dispose();
+                if (mat.normalMap) mat.normalMap.dispose();
+                if (mat.specularMap) mat.specularMap.dispose();
+                if (mat.envMap) mat.envMap.dispose();
+                mat.dispose();
+            });
+        }
+    });
+    
+    // Desvincular de su padre
+    if (node.parent) {
+        node.parent.remove(node);
+    }
+};
+
 // 🔬 BASE DE DATOS CIENTÍFICA — CATÁLOGO DE OBJETOS CELESTES
 // Datos basados en: NASA, ESA, SIMBAD, Hipparcos, IAU
 // ============================================================================
@@ -3383,36 +3413,6 @@ document.getElementById('slider-warp').addEventListener('input', (e) => {
     document.getElementById('val-warp').innerText = physicsWarp.toFixed(2);
     logTitan(`Métrica Alcubierre (Warp) recalibrada a ${physicsWarp.toFixed(2)}`);
 });
-
-window.disposeHierarchy = function(node) {
-    if (!node) return;
-    
-    // Dispose de todos los hijos recursivamente
-    node.traverse((child) => {
-        if (child.geometry) {
-            child.geometry.dispose();
-        }
-        if (child.material) {
-            // Un material puede ser un array
-            let materials = Array.isArray(child.material) ? child.material : [child.material];
-            materials.forEach((mat) => {
-                // Dispose texturas
-                if (mat.map) mat.map.dispose();
-                if (mat.lightMap) mat.lightMap.dispose();
-                if (mat.bumpMap) mat.bumpMap.dispose();
-                if (mat.normalMap) mat.normalMap.dispose();
-                if (mat.specularMap) mat.specularMap.dispose();
-                if (mat.envMap) mat.envMap.dispose();
-                mat.dispose();
-            });
-        }
-    });
-    
-    // Desvincular de su padre
-    if (node.parent) {
-        node.parent.remove(node);
-    }
-};
 
 function logTitan(msg) {
     const out = document.getElementById('console-output');
