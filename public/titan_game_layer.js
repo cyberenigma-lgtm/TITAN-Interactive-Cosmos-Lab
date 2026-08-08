@@ -242,6 +242,27 @@ window.TITAN.GameLayer.Economy = {
         
         const isVaultFull = this.getTotalCargo() >= this.getMaxCapacity();
         
+        // Venta Automática en la Estación Orbital (Tierra / [0,0,0])
+        const distToBase = cameraPos.length(); // Distancia al origen
+        if (distToBase < 200.0 && this.getTotalCargo() > 0) {
+            // Calcular valor en XP (10% del valor ponderado del cargamento)
+            const valueTotal = (this.resources.Metal * 2) + (this.resources.Crystals * 3) + (this.resources.RecycledJunk * 1);
+            const xpGained = Math.floor(valueTotal * 0.1);
+            
+            // Vaciar bóveda
+            this.resources.Metal = 0;
+            this.resources.Crystals = 0;
+            this.resources.RecycledJunk = 0;
+            
+            if (xpGained > 0) {
+                if(window.logTitan) window.logTitan(`💰 CARGAMENTO VENDIDO: +${xpGained} XP transferidos a los laboratorios.`);
+                if(window.TITAN.GameLayer.Progression) {
+                    window.TITAN.GameLayer.Progression.addXP(xpGained);
+                }
+            }
+            this.updateUI();
+        }
+        
         for (let i = this.activeDebris.length - 1; i >= 0; i--) {
             let debris = this.activeDebris[i];
             debris.rotation.x += debris.userData.rotX;
@@ -851,24 +872,30 @@ window.TITAN.GameLayer.Spacecraft = {
     updateSpacecraftPhysics: function(dt, camera) {
         if (!this.isActive || !camera) return;
         
-        // 0. Homing Auto-Pilot (Búsqueda inteligente de recursos)
-        if (this.autoPilot && window.TITAN.GameLayer.Economy.activeDebris.length > 0 && this.shipMesh) {
-            let closestDebris = null;
-            let minDist = Infinity;
+        // 0. Homing Auto-Pilot (Búsqueda inteligente o Retorno a Base)
+        if (this.autoPilot && this.shipMesh) {
+            const isVaultFull = window.TITAN.GameLayer.Economy.getTotalCargo() >= window.TITAN.GameLayer.Economy.getMaxCapacity();
+            let targetPosition = null;
             
-            // Buscar la chatarra o anomalía más cercana
-            for (let debris of window.TITAN.GameLayer.Economy.activeDebris) {
-                const dist = this.shipMesh.position.distanceTo(debris.position);
-                if (dist < minDist) {
-                    minDist = dist;
-                    closestDebris = debris;
+            if (isVaultFull) {
+                // Retorno automático a base
+                targetPosition = new THREE.Vector3(0, 0, 0);
+            } else if (window.TITAN.GameLayer.Economy.activeDebris.length > 0) {
+                // Buscar la chatarra o anomalía más cercana
+                let minDist = Infinity;
+                for (let debris of window.TITAN.GameLayer.Economy.activeDebris) {
+                    const dist = this.shipMesh.position.distanceTo(debris.position);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        targetPosition = debris.position;
+                    }
                 }
             }
             
-            if (closestDebris) {
-                // Calcular orientación hacia el recurso
+            if (targetPosition) {
+                // Calcular orientación hacia el recurso o la base
                 const m = new THREE.Matrix4();
-                m.lookAt(this.shipMesh.position, closestDebris.position, new THREE.Vector3(0,1,0));
+                m.lookAt(this.shipMesh.position, targetPosition, new THREE.Vector3(0,1,0));
                 const targetDirQuat = new THREE.Quaternion().setFromRotationMatrix(m);
                 const euler = new THREE.Euler().setFromQuaternion(targetDirQuat, 'YXZ');
                 
