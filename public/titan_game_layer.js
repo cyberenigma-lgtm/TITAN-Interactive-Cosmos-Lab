@@ -28,6 +28,11 @@ window.TITAN.GameLayer.Progression = {
         if(window.logTitan) window.logTitan(`[RPG] Has ganado +${amount} XP.`);
         this.checkLevelUp();
         this.updateUI();
+        
+        // Sincronización con el Ránking Global (Firebase)
+        if (window.TITAN && window.TITAN.Leaderboard) {
+            window.TITAN.Leaderboard.updateScore(this.level, this.xp);
+        }
     },
     
     checkLevelUp: function() {

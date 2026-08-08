@@ -258,3 +258,10 @@ http://localhost:8080
 ---
 
 *Created with scientific precision and cosmological vision by / Creado por **José Manuel** — 2026*
+
+
+## 🏆 Ránking Global de Pilotos (En Vivo)
+<!-- RANKING_START -->
+¡El universo está vacío! Juega a TITAN-CRAFT y sé el primero en dejar tu huella.
+
+<!-- RANKING_END -->

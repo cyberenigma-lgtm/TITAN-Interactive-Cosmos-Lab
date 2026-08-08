@@ -28,6 +28,11 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/FilmPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FilmShader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Lensflare.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="leaderboard.js?v=1.0"></script>
+    
     <!-- TITAN RPG Expansion (Spacecraft, Progression, Economy) -->
     <script src="titan_game_layer.js?v=2.1"></script>
     <!-- Ace Editor -->
@@ -99,6 +104,11 @@
                 <li style="margin-right: 15px;">
                     <button id="btn-titan-craft" style="background:rgba(255,0,85,0.15); border:1px solid rgba(255,0,85,0.5); color:#ff0055; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow: 0 0 10px rgba(255,0,85,0.2);">
                         🚀 ACTIVAR NAVE (TITAN-CRAFT)
+                    </button>
+                </li>
+                <li style="margin-right: 15px;">
+                    <button onclick="if(window.TITAN && window.TITAN.Leaderboard) window.TITAN.Leaderboard.showRankingModal()" style="background:rgba(0,255,255,0.15); border:1px solid rgba(0,255,255,0.5); color:#00ffff; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow: 0 0 10px rgba(0,255,255,0.2);">
+                        🏆 RANKING GLOBAL
                     </button>
                 </li>
                 <li style="position:relative;" class="obs-panel">
