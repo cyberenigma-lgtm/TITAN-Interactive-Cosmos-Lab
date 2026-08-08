@@ -848,7 +848,7 @@ window.TITAN.GameLayer.Spacecraft = {
         this.cockpitOverlay = overlay;
     },
     
-    updateSpacecraftPhysics: function(camera) {
+    updateSpacecraftPhysics: function(dt, camera) {
         if (!this.isActive || !camera) return;
         
         // 1. Calcular orientaciones
