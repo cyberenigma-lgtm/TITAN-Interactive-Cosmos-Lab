@@ -8,6 +8,20 @@
 window.TITAN = window.TITAN || {};
 window.TITAN.GameLayer = window.TITAN.GameLayer || {};
 
+// Memoria Compartida para Físicas (Object Pooling / Flyweight Pattern)
+// Esto elimina la saturación del Garbage Collector y estabiliza los FPS.
+const _v1 = new THREE.Vector3();
+const _v2 = new THREE.Vector3();
+const _v3 = new THREE.Vector3();
+const _q1 = new THREE.Quaternion();
+const _q2 = new THREE.Quaternion();
+const _targetQuat = new THREE.Quaternion();
+const _m1 = new THREE.Matrix4();
+const _e1 = new THREE.Euler();
+const _xAxis = new THREE.Vector3(1, 0, 0);
+const _yAxis = new THREE.Vector3(0, 1, 0);
+const _zAxis = new THREE.Vector3(0, 0, -1);
+
 // ============================================================================
 // 1. GAME PROGRESSION MODULE
 // ============================================================================
@@ -925,12 +939,12 @@ window.TITAN.GameLayer.Spacecraft = {
         
         laser.position.copy(this.shipMesh.position);
         
-        const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(this.shipMesh.quaternion);
+        _v1.copy(_zAxis);
+        _v1.applyQuaternion(this.shipMesh.quaternion);
         laser.quaternion.copy(this.shipMesh.quaternion);
         
-        laser.position.addScaledVector(forward, 2);
-        laser.userData.velocity = forward.multiplyScalar(this.maxSpeed * 4.0);
+        laser.position.addScaledVector(_v1, 2);
+        laser.userData.velocity = _v1.multiplyScalar(this.maxSpeed * 4.0);
         laser.userData.life = 100;
         
         if (window.scene) window.scene.add(laser);
@@ -1108,12 +1122,12 @@ window.TITAN.GameLayer.Spacecraft = {
             
             if (isVaultFull) {
                 // Retorno automático a base
-                targetPosition = new THREE.Vector3(0, 0, 0);
+                targetPosition = _v1.set(0, 0, 0);
             } else if (window.TITAN.GameLayer.Economy.activeDebris.length > 0) {
                 // Buscar la chatarra o anomalía más cercana
                 let minDist = Infinity;
                 for (let debris of window.TITAN.GameLayer.Economy.activeDebris) {
-                    const dist = this.shipMesh.position.distanceTo(debris.position);
+                    const dist = this.shipMesh.position.distanceToSquared(debris.position); // Faster than distanceTo
                     if (dist < minDist) {
                         minDist = dist;
                         targetPosition = debris.position;
@@ -1123,28 +1137,27 @@ window.TITAN.GameLayer.Spacecraft = {
             
             if (targetPosition) {
                 // Calcular orientación hacia el recurso o la base
-                const m = new THREE.Matrix4();
-                m.lookAt(this.shipMesh.position, targetPosition, new THREE.Vector3(0,1,0));
-                const targetDirQuat = new THREE.Quaternion().setFromRotationMatrix(m);
-                const euler = new THREE.Euler().setFromQuaternion(targetDirQuat, 'YXZ');
+                _m1.lookAt(this.shipMesh.position, targetPosition, _yAxis);
+                _q1.setFromRotationMatrix(_m1);
+                _e1.setFromQuaternion(_q1, 'YXZ');
                 
                 // Suavizar Yaw (evitando el salto polar)
-                let dy = euler.y - this.yaw;
+                let dy = _e1.y - this.yaw;
                 while (dy > Math.PI) dy -= Math.PI * 2;
                 while (dy < -Math.PI) dy += Math.PI * 2;
                 
                 this.yaw += dy * 0.02; // Velocidad de giro del piloto
-                this.pitch += (euler.x - this.pitch) * 0.02;
+                this.pitch += (_e1.x - this.pitch) * 0.02;
             }
         }
         
         // 1. Calcular orientaciones
-        const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
-        const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.pitch);
-        const targetQuat = qYaw.multiply(qPitch);
+        _q1.setFromAxisAngle(_yAxis, this.yaw);
+        _q2.setFromAxisAngle(_xAxis, this.pitch);
+        _targetQuat.copy(_q1).multiply(_q2);
         
         // Suavizado de rotación (inercia visual de la cámara)
-        camera.quaternion.slerp(targetQuat, 0.1);
+        camera.quaternion.slerp(_targetQuat, 0.1);
         
         // 2. Dinámica de Aceleración y Turbo de Consumo
         let currentMaxSpeed = this.maxSpeed;
@@ -1185,23 +1198,18 @@ window.TITAN.GameLayer.Spacecraft = {
         
         // --- 3. MOVIMIENTO TRASLACIONAL DE LA NAVE ---
         if (this.shipMesh) {
-            this.shipMesh.quaternion.copy(targetQuat);
+            this.shipMesh.quaternion.copy(_targetQuat);
         }
         
-        const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(targetQuat);
-        
-        const right = new THREE.Vector3(1, 0, 0);
-        right.applyQuaternion(targetQuat);
-        
-        const up = new THREE.Vector3(0, 1, 0);
-        up.applyQuaternion(targetQuat);
+        _v1.copy(_zAxis).applyQuaternion(_targetQuat);
+        _v2.copy(_xAxis).applyQuaternion(_targetQuat);
+        _v3.copy(_yAxis).applyQuaternion(_targetQuat);
         
         // Mover la nave
         if (this.shipMesh) {
-            this.shipMesh.position.addScaledVector(forward, this.velocity);
-            if (this.keys.A) this.shipMesh.position.addScaledVector(right, -this.maxSpeed * 0.2);
-            if (this.keys.D) this.shipMesh.position.addScaledVector(right, this.maxSpeed * 0.2);
+            this.shipMesh.position.addScaledVector(_v1, this.velocity);
+            if (this.keys.A) this.shipMesh.position.addScaledVector(_v2, -this.maxSpeed * 0.2);
+            if (this.keys.D) this.shipMesh.position.addScaledVector(_v2, this.maxSpeed * 0.2);
         }
         
         // --- 3.5. ACOPLAMIENTO DE LA CÁMARA ---
@@ -1216,20 +1224,21 @@ window.TITAN.GameLayer.Spacecraft = {
             const lagDistance = 15 + (Math.abs(this.velocity) * 0.5);
             const height = 4;
             
-            const desiredCamPos = this.shipMesh.position.clone()
-                                  .addScaledVector(forward, -lagDistance)
-                                  .addScaledVector(up, height);
+            _v3.copy(this.shipMesh.position)
+               .addScaledVector(_v1, -lagDistance)
+               .addScaledVector(_yAxis, height); // _yAxis is absolute up, or we can use _v3
                                   
-            camera.position.lerp(desiredCamPos, 0.2); // Seguimiento suave (momentum inercial)
+            camera.position.lerp(_v3, 0.2); // Seguimiento suave (momentum inercial)
             
             // Hacer que la cámara apunte a un punto por delante de la nave
-            const targetPos = this.shipMesh.position.clone().addScaledVector(forward, 20);
-            camera.lookAt(targetPos);
+            _v1.copy(this.shipMesh.position).addScaledVector(_v1, 20); // Reuse _v1 safely here since it's just target Pos
+            camera.lookAt(_v1);
         }
         
         // Actualizar centro de los controles para cuando desactivemos el PointerLock
         if (window.controls && this.shipMesh) {
-            window.controls.target.copy(this.shipMesh.position).addScaledVector(forward, 10);
+            _v1.copy(_zAxis).applyQuaternion(_targetQuat);
+            window.controls.target.copy(this.shipMesh.position).addScaledVector(_v1, 10);
         }
         
         // --- 4. ACTUALIZAR LÁSERES ---
