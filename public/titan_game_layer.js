@@ -851,6 +851,37 @@ window.TITAN.GameLayer.Spacecraft = {
     updateSpacecraftPhysics: function(dt, camera) {
         if (!this.isActive || !camera) return;
         
+        // 0. Homing Auto-Pilot (Búsqueda inteligente de recursos)
+        if (this.autoPilot && window.TITAN.GameLayer.Economy.activeDebris.length > 0 && this.shipMesh) {
+            let closestDebris = null;
+            let minDist = Infinity;
+            
+            // Buscar la chatarra o anomalía más cercana
+            for (let debris of window.TITAN.GameLayer.Economy.activeDebris) {
+                const dist = this.shipMesh.position.distanceTo(debris.position);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestDebris = debris;
+                }
+            }
+            
+            if (closestDebris) {
+                // Calcular orientación hacia el recurso
+                const m = new THREE.Matrix4();
+                m.lookAt(this.shipMesh.position, closestDebris.position, new THREE.Vector3(0,1,0));
+                const targetDirQuat = new THREE.Quaternion().setFromRotationMatrix(m);
+                const euler = new THREE.Euler().setFromQuaternion(targetDirQuat, 'YXZ');
+                
+                // Suavizar Yaw (evitando el salto polar)
+                let dy = euler.y - this.yaw;
+                while (dy > Math.PI) dy -= Math.PI * 2;
+                while (dy < -Math.PI) dy += Math.PI * 2;
+                
+                this.yaw += dy * 0.02; // Velocidad de giro del piloto
+                this.pitch += (euler.x - this.pitch) * 0.02;
+            }
+        }
+        
         // 1. Calcular orientaciones
         const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
         const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.pitch);
