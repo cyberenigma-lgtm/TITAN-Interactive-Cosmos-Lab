@@ -897,8 +897,18 @@ window.TITAN.GameLayer.Spacecraft = {
         }
         
         // --- 3. MOVIMIENTO TRASLACIONAL DE LA NAVE ---
+        if (this.shipMesh) {
+            this.shipMesh.quaternion.copy(targetQuat);
+        }
+        
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(targetQuat);
+        
         const right = new THREE.Vector3(1, 0, 0);
-        right.applyQuaternion(quaternion);
+        right.applyQuaternion(targetQuat);
+        
+        const up = new THREE.Vector3(0, 1, 0);
+        up.applyQuaternion(targetQuat);
         
         // Mover la nave
         if (this.shipMesh) {
@@ -914,8 +924,6 @@ window.TITAN.GameLayer.Spacecraft = {
             camera.quaternion.copy(this.shipMesh.quaternion);
         } else {
             // 3ª Persona: Cámara orbitando detrás (Chasing camera)
-            const up = new THREE.Vector3(0, 1, 0);
-            up.applyQuaternion(quaternion);
             
             // Distancia y altura de la cámara dinámica (se aleja al acelerar)
             const lagDistance = 15 + (Math.abs(this.velocity) * 0.5);
