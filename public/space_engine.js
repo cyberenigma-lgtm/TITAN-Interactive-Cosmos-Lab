@@ -4530,15 +4530,20 @@ function animate() {
             m.mesh.getWorldPosition(mWorldPos);
             
             if (m.labelDiv) {
-                const pos2D = mWorldPos.clone().project(camera);
-                if (pos2D.z < 1) { // Solo si está frente a la cámara
-                    const x = (pos2D.x * .5 + .5) * window.innerWidth;
-                    const y = (pos2D.y * -.5 + .5) * window.innerHeight;
-                    m.labelDiv.style.left = (x + 10) + 'px';
-                    m.labelDiv.style.top = (y - 10) + 'px';
-                    m.labelDiv.style.display = 'block';
-                } else {
+                const isGroupVisible = typeof metGroup !== 'undefined' ? metGroup.visible : true;
+                if (!isGroupVisible) {
                     m.labelDiv.style.display = 'none';
+                } else {
+                    const pos2D = mWorldPos.clone().project(camera);
+                    if (pos2D.z < 1) { // Solo si está frente a la cámara
+                        const x = (pos2D.x * .5 + .5) * window.innerWidth;
+                        const y = (pos2D.y * -.5 + .5) * window.innerHeight;
+                        m.labelDiv.style.left = (x + 10) + 'px';
+                        m.labelDiv.style.top = (y - 10) + 'px';
+                        m.labelDiv.style.display = 'block';
+                    } else {
+                        m.labelDiv.style.display = 'none';
+                    }
                 }
             }
             
@@ -4550,7 +4555,7 @@ function animate() {
             ]);
             m.traj.geometry.setAttribute('position', new THREE.BufferAttribute(pts, 3));
             m.traj.geometry.attributes.position.needsUpdate = true;
-            m.traj.visible = true;
+            m.traj.visible = (typeof metGroup !== 'undefined' && !metGroup.visible) ? false : true;
             
             // Encontrar el cuerpo celeste más cercano a la anomalía
             let closestBody = null;
