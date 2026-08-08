@@ -265,6 +265,6 @@ http://localhost:8080
 | Rango | Callsign (Piloto) | Nivel | Experiencia (XP) |
 | :---: | :--- | :---: | :---: |
 | 🥇 | **cyberenigma-lgt** | 2 | 1621 |
-| 🥈 | **Piloto_2823** | 1 | 850 |
+| 🥈 | **Piloto_2823** | 2 | 1250 |
 
 <!-- RANKING_END -->
