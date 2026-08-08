@@ -434,6 +434,7 @@ window.otherUniverses = new THREE.Group();
 window.otherUniverses.visible = false; // Solo visibles con el toggle
 scene.add(window.otherUniverses);
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000000);
+window.camera = camera;
 camera.position.set(75, 200, 400);
 
 const renderer = new THREE.WebGLRenderer({ 
@@ -615,97 +616,93 @@ fetch('./data/hipparcos.json')
                 logTitan(`Cargadas líneas de constelaciones 3D.`);
             }).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando constellations_3d: ${e.message}`); });
         
-        // === SIMBAD (Professional Astronomical Data & Constellations) ===
+        // === CATÁLOGO GAIA / HIPPARCOS (Massive Point Cloud) ===
         window.simbadGroup = new THREE.Group();
         window.ourUniverse.add(window.simbadGroup);
         window.namedStars = [];
+        window.gaiaStarsData = []; // Store metadata for raycaster
 
-        function renderSimbadStar(s) {
-            // Tamaño según radio estelar si existe, o por defecto
-            const rVal = parseFloat(s.radius) || 2.0;
-            const size = Math.min(8.0, Math.max(1.5, rVal * 0.15));
-
-            // Malla 3D para la estrella con fotosfera resplandeciente
-            const starGeo = new THREE.SphereGeometry(size, 24, 24);
-            const starMat = new THREE.MeshBasicMaterial({ color: s.color || 0xffddaa });
-            const starMesh = new THREE.Mesh(starGeo, starMat);
-            
-            // Halo estelar exterior
-            const glowGeo = new THREE.SphereGeometry(size * 1.8, 16, 16);
-            const glowMat = new THREE.MeshBasicMaterial({
-                color: s.color || 0xffddaa,
-                transparent: true,
-                opacity: 0.35,
-                blending: THREE.AdditiveBlending
-            });
-            const glowMesh = new THREE.Mesh(glowGeo, glowMat);
-            starMesh.add(glowMesh);
-
-            starMesh.position.set(75 + s.x * 10, 75 + s.y * 10, 75 + s.z * 10);
-            
-            starMesh.userData = {
-                name: s.name,
-                isSIMBAD: true,
-                isExtraSystem: true,
-                spectralColor: s.color,
-                simbad: {
-                    name: s.name,
-                    type: s.sp_type,
-                    distance: `${s.dist_ly} ly`,
-                    mag: s.mag,
-                    temp: s.temp,
-                    mass: s.mass,
-                    radius: s.radius,
-                    img: s.img,
-                    desc: s.desc
-                }
-            };
-            
-            // Crear Etiqueta HTML Flotante para la estrella
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'planet-label star-label';
-            labelDiv.innerHTML = `<span style="color:#ffd700;">★</span> ${s.name} <span style="font-size:9px;color:#00ffcc;opacity:0.8;">[${s.sp_type || 'Estrella'}]</span>`;
-            labelDiv.style.pointerEvents = 'auto';
-            labelDiv.style.cursor = 'pointer';
-            labelDiv.style.borderColor = 'rgba(255, 215, 0, 0.4)';
-            labelDiv.style.background = 'rgba(10, 15, 30, 0.75)';
-
-            labelDiv.addEventListener('click', (e) => {
-                e.stopPropagation();
-                focusObject(starMesh, size * 6, s.name, s.desc || "Estrella de catálogo astronómico", s.mass || "Desconocida", s.radius || "Desconocido");
-                showLabPanel(s.name, {
-                    type: `ESTRELLA — ${s.sp_type || 'Catálogo SIMBAD'}`,
-                    dist: `${s.dist_ly} ly`,
-                    mag: s.mag,
-                    temp: s.temp,
-                    mass: s.mass,
-                    radius: s.radius,
-                    spectral: s.sp_type,
-                    desc: s.desc,
-                    img: s.img,
-                    simbad_url: `https://simbad.cds.unistra.fr/simbad/sim-basic?Ident=${encodeURIComponent(s.name)}`
-                });
-            });
-
-            labelsContainer.appendChild(labelDiv);
-            window.namedStars.push({ mesh: starMesh, label: labelDiv });
-            window.simbadGroup.add(starMesh);
-        }
-
-        fetch('./data/simbad_stars.json')
+        fetch('./data/gaia_stars.json')
             .then(res => res.json())
-            .then(simbadData => {
-                simbadData.forEach(s => renderSimbadStar(s));
-                logTitan(`Cargadas ${simbadData.length} estrellas conocidas y de constelaciones con etiquetas 3D.`);
-            }).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando simbad_stars: ${e.message}`); });
-
-        // Registrar función global para añadir descubrimientos en caliente
-        window.addNewStarDiscovery = function(newStar) {
-            renderSimbadStar(newStar);
-            logTitan(`🌟 [NUEVO DESCUBRIMIENTO] Registrada nueva estrella: ${newStar.name}`);
-        };
-    })
-    .catch(err => logTitan(`Error cargando Hipparcos/SIMBAD: ${err}`));
+            .then(gaiaData => {
+                window.gaiaStarsData = gaiaData;
+                const starCount = gaiaData.length;
+                
+                const positions = new Float32Array(starCount * 3);
+                const colors = new Float32Array(starCount * 3);
+                const sizes = new Float32Array(starCount);
+                
+                const colorObj = new THREE.Color();
+                
+                for(let i = 0; i < starCount; i++) {
+                    const s = gaiaData[i];
+                    
+                    // Positions
+                    positions[i * 3] = 75 + s.x * 10;
+                    positions[i * 3 + 1] = 75 + s.y * 10;
+                    positions[i * 3 + 2] = 75 + s.z * 10;
+                    
+                    // Colors
+                    colorObj.setHex(s.color || 0xffffff);
+                    colors[i * 3] = colorObj.r;
+                    colors[i * 3 + 1] = colorObj.g;
+                    colors[i * 3 + 2] = colorObj.b;
+                    
+                    // Sizes (Brighter stars are larger/brighter in the shader)
+                    // Visual magnitude: lower is brighter
+                    const mag = s.mag || 10;
+                    sizes[i] = Math.max(0.5, 5.0 - (mag / 2.0));
+                }
+                
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+                
+                // Custom Shader Material for glow and soft edges
+                const material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        time: { value: 0 }
+                    },
+                    vertexShader: `
+                        attribute float size;
+                        varying vec3 vColor;
+                        void main() {
+                            vColor = color;
+                            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                            gl_PointSize = size * (300.0 / -mvPosition.z);
+                            gl_Position = projectionMatrix * mvPosition;
+                        }
+                    `,
+                    fragmentShader: `
+                        varying vec3 vColor;
+                        void main() {
+                            // Circular smooth particle
+                            float r = distance(gl_PointCoord, vec2(0.5));
+                            if (r > 0.5) discard;
+                            
+                            // Soft glow edge
+                            float intensity = 1.0 - (r * 2.0);
+                            intensity = pow(intensity, 1.5);
+                            
+                            gl_FragColor = vec4(vColor, intensity);
+                        }
+                    `,
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    vertexColors: true
+                });
+                
+                const points = new THREE.Points(geometry, material);
+                points.userData = { isGaiaCloud: true };
+                window.simbadGroup.add(points);
+                
+                logTitan(`[SISTEMA] Nube de Puntos cargada: ${starCount.toLocaleString()} estrellas (Catálogo Gaia/Hipparcos).`);
+            })
+            .catch(err => logTitan(`[ERROR] Falló la carga del catálogo espacial masivo: ${err}`));
+    }) // close: .then(data => {...}) — Hipparcos fetch callback
+    .catch(err => logTitan(`Error cargando Hipparcos: ${err}`));
 // createStarfield(); - Eliminado para fondo puramente matemático
 
 // === SISTEMA SOLAR COMPLETO ===
@@ -862,6 +859,7 @@ const planetsData = [
 ];
 
 const planets = [];
+window.planets = planets;
 const labelsContainer = document.getElementById('labels-container');
 const orbits = [];
 
@@ -2567,6 +2565,7 @@ rockTexture.wrapT = THREE.RepeatWrapping;
 rockTexture.repeat.set(2, 2);
 
 const meteorites = []; 
+window.meteorites = meteorites;
 for(let i=0; i<20; i++) {
     const metMat = new THREE.MeshStandardMaterial({
         map: rockTexture,
@@ -2607,27 +2606,6 @@ for(let i=0; i<20; i++) {
     scene.add(trajLine); // Trayectoria añadida a la escena global para coordenadas absolutas
     meteorites.push({ mesh: m, traj: trajLine, labelDiv: metDiv, targetPos: new THREE.Vector3(), prevPos: new THREE.Vector3(), isThreat: false });
 }
-
-// Inicializar Bólidos, Asteroides y Cometas Reales Clasificados
-const realNEOList = [
-    // --- CLASE APOLO / ATÓN / AMOR (Potencialmente Peligrosos - PHA) ---
-    { name: "NEO-99942 Apophis", classType: "apolo", dist: 105, speed: 1.4, inc: 0.05, desc: "Asteroide Apolo potencialmente peligroso. Encuentro cercano con la Tierra en 2029." },
-    { name: "NEO-101955 Bennu", classType: "apolo", dist: 135, speed: 1.1, inc: 0.10, desc: "Asteroide rico en carbono explorado por OSIRIS-REx de la NASA." },
-    { name: "NEO-433 Eros", classType: "apolo", dist: 145, speed: 0.9, inc: 0.18, desc: "Asteroide Amor masivo de 34 km explorado por NEAR Shoemaker." },
-    { name: "NEO-2024 YR4", classType: "apolo", dist: 98, speed: 1.6, inc: 0.04, desc: "Bólido hiperbólico recién detectado con ventana de encuentro orbital cercano." },
-    { name: "NEO-1950 DA", classType: "apolo", dist: 168, speed: 0.8, inc: 0.21, desc: "Asteroide Apolo con rotación acelerada por efecto Yarkovsky." },
-    { name: "NEO-4179 Toutatis", classType: "apolo", dist: 172, speed: 0.7, inc: 0.08, desc: "Asteroide binario lobulado de 5.4 km en rotación no principal." },
-    { name: "NEO-65803 Didymos", classType: "apolo", dist: 122, speed: 1.2, inc: 0.06, desc: "Sistema binario con Dimorphos, objetivo del impacto cinético DART." },
-    { name: "NEO-162173 Ryugu", classType: "apolo", dist: 118, speed: 1.0, inc: 0.10, desc: "Asteroide primitivo tipo C explorado por la misión Hayabusa2." },
-
-    // --- CLASE COMETARIA / NÚCLEOS HELADOS ---
-    { name: "Cometa 1P/Halley", classType: "comet", dist: 220, speed: 2.1, inc: 0.35, desc: "Cometa periódico helado con cola de plasma ionizado. Órbita retrógrada." },
-    { name: "Cometa C/2020 F3 NEOWISE", classType: "comet", dist: 240, speed: 2.5, inc: 0.45, desc: "Cometa hiperbólico de largo periodo con desgasificación brillante." },
-
-    // --- CLASE BÓLIDOS INTERESTELARES ---
-    { name: "Interestelar 1I/'Oumuamua", classType: "interstellar", dist: 280, speed: 3.2, inc: 0.60, desc: "Primer objeto interestelar detectado atravesando el Sistema Solar a 87 km/s." },
-    { name: "Interestelar 2I/Borisov", classType: "interstellar", dist: 310, speed: 3.0, inc: 0.52, desc: "Cometa extrasolar procedente del espacio interestelar con abundancia de CO." }
-];
 
 function createSpecializedNEOMesh(neo) {
     let geo, mat;
@@ -2729,31 +2707,78 @@ function createSpecializedNEOMesh(neo) {
     }
 }
 
-realNEOList.forEach((neo, i) => {
-    if (i < meteorites.length) {
-        const m = meteorites[i];
-        
-        // Reemplazar malla genérica por malla científica 3D especializada
-        window.disposeHierarchy(m.mesh);
-        const customMesh = createSpecializedNEOMesh(neo);
-        m.mesh = customMesh;
-        metGroup.add(m.mesh);
+let realNEOList = [];
 
-        m.mesh.visible = true;
-        m.classType = neo.classType;
-        m.mesh.userData = { name: neo.name, mass: "Bólido / Asteroide", radius: "0.4 - 34 km", isNEO: true, desc: neo.desc, classType: neo.classType };
-        if (m.labelDiv) {
-            m.labelDiv.textContent = neo.name;
-            m.labelDiv.style.display = 'block';
+async function fetchRealNEOs() {
+    try {
+        const response = await fetch('http://127.0.0.1:8080/api/neo');
+        const json = await response.json();
+        
+        if (json.data && json.data.length > 0) {
+            // Mapping NASA JPL CAD API to our internal format
+            // data array fields are mapped in json.fields
+            const fields = json.fields;
+            const desIdx = fields.indexOf("des"); // Name / Designation
+            const distIdx = fields.indexOf("dist"); // Nominal approach distance (au)
+            const vRelIdx = fields.indexOf("v_rel"); // Relative velocity (km/s)
+            
+            realNEOList = json.data.map((item, idx) => {
+                const distAU = parseFloat(item[distIdx]);
+                // NASA dist is in AU. We scale it for visual purposes (e.g. 1 AU = 100 units in game)
+                // Avoid placing everything exactly at 0
+                const visualDist = 80 + (distAU * 2000); 
+                
+                return {
+                    name: item[desIdx],
+                    classType: "apolo", // Simplification, could be parsed if H or orbit class is provided
+                    dist: visualDist,
+                    speed: parseFloat(item[vRelIdx]) * 0.05,
+                    inc: Math.random() * 0.2, // Random inclination for visual variety
+                    desc: `NEO detectado por NASA JPL. Distancia mínima: ${distAU.toFixed(4)} AU. Vel: ${item[vRelIdx]} km/s.`
+                };
+            });
+            
+            if (window.logTitan) window.logTitan(`[NASA CNEOS] ${realNEOList.length} objetos cercanos a la Tierra cargados en tiempo real.`);
         }
-        const angle = (i / realNEOList.length) * Math.PI * 2;
-        m.mesh.position.set(Math.cos(angle) * neo.dist, (Math.random()-0.5) * 15, Math.sin(angle) * neo.dist);
-        const nextAngle = angle + 0.08;
-        m.targetPos.set(Math.cos(nextAngle) * neo.dist, (Math.random()-0.5) * 15, Math.sin(nextAngle) * neo.dist);
-        m.neoData = neo;
-        m.neoData.angle = angle;
+    } catch (e) {
+        console.warn("No se pudo contactar con la API de la NASA. Usando datos de respaldo.", e);
+        realNEOList = [
+            { name: "NEO-99942 Apophis", classType: "apolo", dist: 105, speed: 1.4, inc: 0.05, desc: "Asteroide Apolo. Datos locales (Sin conexión)." },
+            { name: "Cometa 1P/Halley", classType: "comet", dist: 220, speed: 2.1, inc: 0.35, desc: "Cometa periódico. Datos locales (Sin conexión)." }
+        ];
     }
-});
+    
+    realNEOList.forEach((neo, i) => {
+        if (i < meteorites.length) {
+            const m = meteorites[i];
+            
+            window.disposeHierarchy(m.mesh);
+            const customMesh = createSpecializedNEOMesh(neo);
+            m.mesh = customMesh;
+            metGroup.add(m.mesh);
+
+            m.mesh.visible = true;
+            m.classType = neo.classType;
+            m.mesh.userData = { name: neo.name, mass: "Bólido / Asteroide", radius: "Desconocido", isNEO: true, desc: neo.desc, classType: neo.classType };
+            if (m.labelDiv) {
+                m.labelDiv.textContent = neo.name;
+                m.labelDiv.style.display = 'block';
+            }
+            const angle = (i / realNEOList.length) * Math.PI * 2;
+            m.mesh.position.set(Math.cos(angle) * neo.dist, (Math.random()-0.5) * 15, Math.sin(angle) * neo.dist);
+            const nextAngle = angle + 0.08;
+            m.targetPos.set(Math.cos(nextAngle) * neo.dist, (Math.random()-0.5) * 15, Math.sin(nextAngle) * neo.dist);
+            m.neoData = neo;
+            m.neoData.angle = angle;
+        }
+    });
+    
+    renderNEOCatalogList();
+}
+
+// Inicializar la carga asíncrona de datos de la NASA
+setTimeout(() => { fetchRealNEOs(); }, 2000);
+
 
 // Controladores UI para el Panel de Catálogo de Bólidos NEO
 let activeNEOFilter = "all";
@@ -3926,6 +3951,59 @@ window.addEventListener('click', (e) => {
             
             found = true;
             break;
+        } else if (obj.userData && obj.userData.isGaiaCloud && intersects[i].index !== undefined) {
+            const idx = intersects[i].index;
+            if (window.gaiaStarsData && window.gaiaStarsData[idx]) {
+                const s = window.gaiaStarsData[idx];
+                
+                const pos = new THREE.Vector3();
+                pos.fromBufferAttribute(obj.geometry.attributes.position, idx);
+                pos.applyMatrix4(obj.matrixWorld);
+                
+                const uName = s.name;
+                infoPanel.classList.remove('hidden');
+                tName.textContent = uName;
+                
+                document.getElementById('target-mass').textContent = "Masa Estelar";
+                document.getElementById('target-radius').textContent = "Punto Cuántico (Point Cloud)";
+                document.getElementById('target-dist').textContent = `${s.dist_ly} ly`;
+                document.getElementById('target-mag').textContent = `${s.mag} (Mag Visual)`;
+                document.getElementById('target-temp').textContent = s.sp_class ? `Clase ${s.sp_class}` : "Desconocido";
+                
+                const typeEl = document.getElementById('target-type');
+                typeEl.style.display = "block";
+                typeEl.textContent = `ESTRELLA REAL (CATÁLOGO GAIA/HYG) - CLASE ${s.sp_class || '?'}`;
+                
+                const imgEl = document.getElementById('target-image');
+                imgEl.style.display = "none";
+                
+                const btnContainer = document.getElementById('landing-btn-container');
+                btnContainer.innerHTML = '';
+                
+                controls.target.copy(pos);
+                
+                // Generamos un target proxy para las sondas (no hay mesh, solo coordenadas)
+                const mockTarget = new THREE.Object3D();
+                mockTarget.position.copy(pos);
+                mockTarget.userData = { isGaiaStar: true, name: uName };
+                window.trackedObject = mockTarget;
+                
+                // Show Lab Panel
+                showLabPanel(uName, {
+                    type: `ESTRELLA — Catálogo Gaia/HYG`,
+                    dist: `${s.dist_ly} ly`,
+                    mag: s.mag,
+                    temp: s.sp_class ? `Espectro Clase ${s.sp_class}` : "-",
+                    mass: "No disp.",
+                    radius: "No disp.",
+                    spectral: s.sp_class || "-",
+                    desc: "Estrella real masiva importada desde la base de datos astrométrica. Renderizada vía sistema de partículas (Point Cloud) para máximo rendimiento.",
+                    simbad_url: `https://simbad.cds.unistra.fr/simbad/sim-basic?Ident=${encodeURIComponent(s.name.replace('HIP ', 'HIP+'))}`
+                });
+                
+                found = true;
+                break;
+            }
         } else if (window.hipparcosGroup && window.hipparcosGroup.children.length > 0 && obj === window.hipparcosGroup.children[0]) {
             const pos = new THREE.Vector3();
             pos.fromBufferAttribute(obj.geometry.attributes.position, intersects[i].index);
@@ -6094,7 +6172,11 @@ function applyMode() {
         }
         
         obsPanels.forEach(el => el.style.display = 'none');
-        labPanels.forEach(el => el.style.display = '');
+        labPanels.forEach(el => {
+            if (el.id === 'labos-dock') el.style.display = 'flex';
+            else if (el.id === 'app-nbody' || el.id === 'app-astrometry') el.style.display = 'none'; // Controlled by LabOS
+            else el.style.display = '';
+        });
         
         if (typeof cosmicFill !== 'undefined') cosmicFill.intensity = 0.6;
         if (typeof controls !== 'undefined') controls.dampingFactor = 0.15;
@@ -6277,7 +6359,7 @@ if (btnDesi) {
             
             if (window.logTitan) window.logTitan(`[DESI] Mapa DESI DESACTIVADO. Retornando al Grupo Local.`);
         }
-    });
-}
+    }); // end addEventListener
+} // end if (btnDesi)
 
 

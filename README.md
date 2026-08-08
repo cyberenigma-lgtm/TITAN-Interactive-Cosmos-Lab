@@ -1,6 +1,6 @@
-# 🌌 APOCALYPSE ENGINE / TITAN-LAB
-> **Author & Creator / Autor:** José Manuel (`cyberenigma-lgtm`)  
-> **Copyright © 2026 José Manuel. All Rights Reserved / Todos los Derechos Reservados.**  
+﻿# 🌌 APOCALYPSE ENGINE / TITAN-LAB
+> **Author & Creator / Autor:** José Manuel (`cyberenigma-lgtm`)
+> **Copyright © 2026 José Manuel. All Rights Reserved / Todos los Derechos Reservados.**
 > **License:** Private Intellectual Property (Open Educational & Institutional Access).
 > **https://cyberenigma-lgtm.github.io/TITAN-Interactive-Cosmos-Lab/**
 
@@ -14,30 +14,29 @@
 
 ## 📸 Showcase & Screenshots / Galería del Laboratorio
 
-<p align="center">
-  <img src="./public/screenshots/system_overview.png" width="85%" alt="System Overview" />
-  <br><em>General view of the 3D simulation with Keplerian orbits & live Titan Console / Vista general de la simulación 3D con órbitas keplerianas y consola Titan en vivo.</em>
+<p align=`center`>
+  <img src=`./public/screenshots/labos_dock.png` width=`85%` alt=`TITAN LabOS Environment` />
+  <br><em>TITAN LabOS — entorno Data Science con apps arrastrables, integración NASA CNEOS y simulador N-Cuerpos.</em>
 </p>
-
 <hr>
-
-<p align="center">
-  <img src="./public/screenshots/earth_moon.png" width="85%" alt="Earth & Moon Telemetry" />
-  <br><em>Earth and Moon with dynamic camera telemetry & metric vectorization / Tierra y Luna con telemetría dinámica de distancia y vectorización métrica.</em>
+<p align=`center`>
+  <img src=`./public/screenshots/astrometry_mode.png` width=`85%` alt=`TITAN Astrometry Module` />
+  <br><em>Analizador Espectral — detecta estrellas reales del Catálogo Gaia (83.467 astros) por clic con raycasting GPU.</em>
 </p>
-
 <hr>
-
-<p align="center">
-  <img src="./public/screenshots/neo_radar.png" width="85%" alt="NEO Radar & Defense" />
-  <br><em>Real-time radar & kinetic defense panel against NEO anomalies (DART Mission) / Radar en tiempo real y panel de defensa cinemática contra anomalías NEO (Misión DART).</em>
+<p align=`center`>
+  <img src=`./public/screenshots/labos_nbody.png` width=`85%` alt=`TITAN N-Body Simulator` />
+  <br><em>Simulador N-Cuerpos — espaguetización, chorros de plasma y destrucción de horizonte de sucesos en tiempo real.</em>
 </p>
-
 <hr>
-
-<p align="center">
-  <img src="./public/screenshots/blackhole.png" width="85%" alt="Sagittarius A* Event Horizon" />
-  <br><em>Relativistic simulation of the supermassive black hole Sagittarius A* / Simulación relativista del agujero negro supermasivo Sagitario A*.</em>
+<p align=`center`>
+  <img src=`./public/screenshots/full_activation.png` width=`85%` alt=`TITAN Full Activation` />
+  <br><em>Activación completa — 83.467 estrellas reales HYG/Gaia, Vía Láctea volumétrica, Telaraña Cósmica y sistema solar keplerian.</em>
+</p>
+<hr>
+<p align=`center`>
+  <img src=`./public/screenshots/blackhole.png` width=`85%` alt=`Sagittarius A*` />
+  <br><em>Simulación relativista de Sagitario A* con horizonte de sucesos, disco de acreción y chorros de plasma.</em>
 </p>
 
 ---
@@ -45,102 +44,101 @@
 ## 🇪🇸 Español
 
 ### 🎯 1. Objetivo del Proyecto
-TITAN-Interactive-Cosmos-Lab es un laboratorio de astrofísica computacional y simulación cosmológica orientado a investigación, divulgación científica y desarrollo tecnológico. Su propósito es facilitar el estudio del universo mediante herramientas interactivas, modelos físicos avanzados y módulos de análisis espacial.
+TITAN es un laboratorio de astrofísica computacional y simulación cosmológica orientado a investigación y divulgación científica. Conecta con bases de datos astronómicas reales (ESA Gaia, NASA JPL, SIMBAD) para ofrecer una experiencia científica de precisión.
 
 ---
 
 ### 🔬 2. Impacto Científico y Social
-TITAN permite visualizar fenómenos astronómicos complejos, estudiar estructuras galácticas, analizar trayectorias NEO y simular eventos de impacto. Su uso potencial incluye educación, investigación universitaria, divulgación científica y desarrollo de herramientas de defensa planetaria.
+TITAN permite visualizar fenómenos astronómicos complejos, estudiar estructuras galácticas a escala real, analizar trayectorias NEO reales de la NASA y simular la termodinámica de agujeros negros. Su uso potencial incluye educación, investigación universitaria y divulgación científica.
 
 ---
 
 ### 🤝 3. Colaboración Abierta
-El laboratorio TITAN acepta contribuciones de desarrolladores, físicos, matemáticos, artistas digitales y divulgadores. Las propuestas de mejora, módulos adicionales y nuevas funciones son bienvenidas mediante issues y pull requests.
 
-- 💡 [Crear Propuesta de Función u Optimización](https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab/issues/new)
-- 📜 [Normas de Contribución y Código de Conducta](#-normas-de-contribución)
+- 💡 [Crear Propuesta de Función](https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab/issues/new)
 
 ---
 
 ### 🗺️ 4. Roadmap Público (2026–2027)
-- ✅ **[COMPLETADO]** Panel de topología cúbica ($L_\infty$), Manhattan y esférica ($L_2$) en tiempo real (aplicable a agujeros negros, exoplanetas y discos de acreción).
-- 🚀 **[EN DESARROLLO]** Módulo de Vuelo Espacial TITAN-CRAFT (Nave pilotable 6DOF con inercia y físicas).
-- 🎮 **[EN DESARROLLO]** Módulo de Progresión RPG (Motor de descubrimientos, XP y desbloqueo de naves).
-- 🌌 Módulo de expansión galáctica y cúmulo del Grupo Local (Andrómeda M31).
-- 🪐 Simulador de atmósferas exoplanetarias y espectrometría 3D.
-- ☄️ Radar NEO avanzado con cálculo de masa y probabilidad de colisión K-Pg.
-- 🪐 Generador de exosistemas persistentes.
-- 🔭 Integración con bases de datos astronómicas internacionales (SIMBAD, Gaia, IAU).
+
+> **🚀 ACTUALIZACIÓN MAYOR (Agosto 2026) — Catálogo Gaia, TITAN Studio & Físicas Termodinámicas**
+>
+> **Catálogo Estelar Real (HYG / Gaia ESA):**
+> El fondo del motor ya no es un skybox estático. Son **83.467 estrellas reales** del catálogo HYG (Hipparcos + Yale + Gliese), renderizadas como **Nube de Puntos GPU** con shader GLSL personalizado y color termodinámico real por clase espectral (O, B, A, F, G, K, M). Cada estrella es clicable devolviendo su ID HIP real, distancia en años luz, magnitud visual y clase espectral.
+>
+> **Física de Agujeros Negros Completa:**
+> El motor N-Cuerpos aplica ahora consecuencias físicas a TODO objeto dentro del campo gravitatorio:
+> - **Espaguetización geométrica** proporcional a la distancia al horizonte
+> - **Fricción Térmica** — material emissive rojo/naranja candente
+> - **Chorros de Plasma** — haz cian brillante (blending aditivo) conectando objeto con agujero negro
+> - **Telemetría de Consola** — cada evento registrado con nombre, coordenadas y tipo de destrucción
+> - **Horizonte de Sucesos** — los objetos son eliminados al cruzarlo con log de destrucción
+>
+> **TITAN Studio (Suite Científica Completa):**
+> - 📏 **Telemetría Láser**: Mide distancias reales en Unidades Astronómicas (UA) entre cualquier par de cuerpos
+> - ✨ **Fábrica de Materia**: Inyecta planetas, gigantes gaseosos y estrellas directamente en la simulación
+> - 📸 **Estudio de Captura**: Exporta el framebuffer WebGL en PNG de alta resolución
+
+- ✅ **[COMPLETADO]** Topología N-dimensional (cúbica, Manhattan, esférica) en tiempo real
+- ✅ **[COMPLETADO]** Conexión API NASA JPL CNEOS — asteroides NEO reales con nombre y velocidad
+- ✅ **[COMPLETADO]** **Catálogo HYG/Gaia: 83.467 estrellas reales — Point Cloud GPU con shader termodinámico**
+- ✅ **[COMPLETADO]** **Física termodinámica completa (Espaguetización + Plasma Jets + Horizonte de Sucesos)**
+- ✅ **[COMPLETADO]** **TITAN Studio: Telemetría Láser + Fábrica de Materia + Captura de Imágenes**
+- ✅ **[COMPLETADO]** **Astrometría avanzada: identifica estrellas reales Gaia por clic en Point Cloud**
+- ✅ **[COMPLETADO]** **Corrección de coordenadas mundiales WebGL (getWorldPosition) para físicas precisas**
+- 🚀 **[EN DESARROLLO]** TITAN-CRAFT: Nave pilotable 6DOF con inercia y económia espacial
+- 🎮 **[EN DESARROLLO]** Motor RPG: Descubrimientos, XP y desbloqueo de naves
+- 🌌 Módulo galáctica: Andrómeda M31 y Grupo Local completo
+- 🪐 Simulador de atmósferas exoplanetarias y espectrometría 3D
 
 ---
 
 ### 🎓 5. Licencia de Uso Institucional
-Las instituciones educativas y científicas pueden solicitar acceso extendido al laboratorio TITAN para proyectos de investigación, divulgación o docencia. Para acuerdos institucionales, contactar al autor mediante los canales del repositorio.
+Las instituciones educativas y científicas pueden solicitar acceso extendido. Para acuerdos institucionales, contactar al autor mediante los canales del repositorio.
 
 ---
 
-### 📩 6. Cómo Proponer Colaboración
-Las propuestas de uso, investigación o desarrollo pueden enviarse mediante:
-- Issues del repositorio
-- Pull requests
-- Contacto directo con el autor
-- Documentos de propuesta formal
+### 🏆 6. Elegibilidad para Subvenciones
+TITAN cumple los requisitos para ayudas de innovación tecnológica, divulgación científica, investigación universitaria y programas europeos (Creative Europe, Horizon).
 
 ---
 
-### 🏆 7. Elegibilidad para Subvenciones
-TITAN cumple los requisitos para ayudas de:
-- Innovación tecnológica
-- Divulgación científica
-- Proyectos culturales digitales
-- Investigación universitaria
-- Desarrollo de software científico
-- Programas europeos (Creative Europe, Horizon)
-
----
-
-### 🧩 8. Arquitectura del Sistema
+### 🧩 7. Arquitectura del Sistema
 ```
 /ApocalypseEngine
   /public
-    index.html        ← Interfaz principal del laboratorio
-    space_engine.js   ← Motor de renderizado 3D y físicas (226KB)
-    style.css         ← Sistema de diseño visual glassmorphism / cyberpunk
-    /textures         ← Mapas de textura planetaria (NASA)
-    /data             ← Catálogos astronómicos reales (Hipparcos, Nebulosas)
-  /core               ← Núcleo backend DVTRGAS [PROPIETARIO - No publicado]
-  server.py           ← Servidor API de datos astronómicos
-  fetch_nebulae.py    ← Generador de catálogo de nebulosas 3D
-  generate_cosmic_web.py ← Generador de filamentos galácticos
-  reconstruct_galaxy.py  ← Reconstructor galáctico volumétrico
-  nebula_photo_to_3d.py  ← Extractor de nubes 3D desde fotos NASA/Hubble/JWST
-  LICENSE             ← Licencia legal de uso restringido
-  CHANGELOG.md        ← Historial de versiones y commits
+    index.html              ← Interfaz principal del laboratorio
+    space_engine.js         ← Motor de renderizado 3D WebGL y físicas (320KB)
+    lab_apps.js             ← TITAN Studio (Astrometría, N-Cuerpos, Telemetría, Captura)
+    titan_game_layer.js     ← Módulo de vuelo espacial y RPG
+    style.css               ← Sistema de diseño glassmorphism / cyberpunk
+    /textures               ← Texturas planetarias NASA
+    /data
+      gaia_stars.json       ← 83.467 estrellas reales (HYG: Hipparcos + Yale + Gliese)
+      hipparcos.json        ← Catálogo fotométrico Hipparcos (~120k puntos)
+      milky_way.bin         ← Reconstrucción volumétrica Vía Láctea (1M puntos)
+      cosmic_web.bin        ← Filamentos del Universo Observable
+  /scripts
+    fetch_gaia_data.py      ← Descargador automático catálogo HYG (ESA/Gaia)
+  /core                     ← Núcleo DVTRGAS [PROPIETARIO — No publicado]
+  server.py                 ← Servidor API datos astronómicos (Python)
 ```
 
 ---
 
-### 🛡️ 9. Derechos de Autor y Propiedad Intelectual
+### 🛡️ 8. Derechos de Autor
 > **⚠️ ADVERTENCIA LEGAL:** Este proyecto es **propiedad intelectual exclusiva** de **José Manuel**.
 
-**Queda PROHIBIDO:**
-- Copiar o reproducir el código, total o parcialmente.
-- Redistribuir en cualquier forma o medio.
-- Modificar o crear obras derivadas.
-- Usar con fines comerciales o lucrativos.
-- Integrar en otros motores o frameworks.
-- Reclamar autoría o propiedad sobre el código.
-
-Todos los archivos contienen **marcas de agua digitales** de autoría. Consulta el archivo [LICENSE](./LICENSE) para los términos completos.
+Queda PROHIBIDO copiar, redistribuir, modificar, usar comercialmente o reclamar autoría del código. Consulta [LICENSE](./LICENSE) para los términos completos.
 
 ---
 
-### 🚀 10. Ejecución Local
+### 🚀 9. Ejecución Local
 ```bash
-# 1. Clonar el repositorio
+# 1. Clonar
 git clone https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab.git
 
-# 2. Iniciar el servidor de datos
+# 2. Iniciar servidor (descarga catálogo Gaia automáticamente la primera vez)
 python server.py
 
 # 3. Abrir en el navegador
@@ -152,103 +150,90 @@ http://localhost:8080
 ## 🇬🇧 English
 
 ### 🎯 1. Project Goal
-TITAN-Interactive-Cosmos-Lab is a computational astrophysics and cosmological simulation laboratory aimed at research, scientific outreach, and technological development. Its purpose is to facilitate the study of the universe through interactive tools, advanced physical models, and spatial analysis modules.
+TITAN is a computational astrophysics and cosmological simulation laboratory connected to real astronomical databases (ESA Gaia, NASA JPL, SIMBAD) for scientifically accurate, interactive exploration of the universe.
 
 ---
 
 ### 🔬 2. Scientific & Social Impact
-TITAN allows visualization of complex astronomical phenomena, study of galactic structures, analysis of NEO trajectories, and simulation of impact events. Potential applications include education, university research, scientific communication, and planetary defense tool development.
+TITAN visualizes complex astronomical phenomena, real galactic structures, real NASA NEO trajectories, and black hole thermodynamics. Applications include education, university research, and scientific outreach.
 
 ---
 
-### 🤝 3. Open Collaboration
-The TITAN laboratory welcomes contributions from developers, physicists, mathematicians, digital artists, and science communicators. Improvement proposals, additional modules, and new features are welcome via issues and pull requests.
+### 🗺️ 3. Public Roadmap (2026–2027)
 
-- 💡 [Submit Feature Request or Proposal](https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab/issues/new)
-- 📜 [Contribution Guidelines](#-open-collaboration)
+> **🚀 MAJOR UPDATE (August 2026) — Gaia Catalog, TITAN Studio & Thermodynamic Physics**
+>
+> **Real Star Catalog (HYG / Gaia ESA):**
+> The engine background is no longer a static skybox. It now renders **83,467 real stars** from the HYG catalog (Hipparcos + Yale + Gliese) as a **GPU Point Cloud** with a custom GLSL shader and real thermodynamic color per spectral class (O, B, A, F, G, K, M). Every star is clickable, returning its real HIP ID, distance in light-years, visual magnitude, and spectral class.
+>
+> **Complete Black Hole Physics:**
+> The N-Body engine now applies full thermodynamic consequences to ALL objects inside the gravitational field:
+> - **Geometric Spaghettification** proportional to event horizon proximity
+> - **Thermal Friction** — red/orange emissive glow
+> - **Plasma Jets** — bright cyan additive-blended beam connecting object to black hole
+> - **Console Telemetry** — every event logged with name, coordinates, and destruction type
+> - **Event Horizon** — objects are removed upon crossing with destruction log
+>
+> **TITAN Studio (Scientific Suite):**
+> - 📏 **Laser Telemetry**: Measures real Astronomical Unit (AU) distances between any two bodies
+> - ✨ **Matter Factory**: Injects planets, gas giants, and stars directly into the simulation
+> - 📸 **Capture Studio**: Exports the WebGL GPU framebuffer as a full-resolution PNG
 
----
-
-### 🗺️ 4. Public Roadmap (2026–2027)
-- ✅ **[COMPLETED]** Real-time cubic ($L_\infty$), Manhattan, and spherical ($L_2$) topology panel (applied to black holes, exoplanets, and accretion disks).
-- 🚀 **[IN DEVELOPMENT]** TITAN-CRAFT Spacecraft Module (6DOF pilotable ship with inertia & physics).
-- 🎮 **[IN DEVELOPMENT]** RPG Progression Module (Discovery engine, XP system, and ship unlocking).
-- **Multiversal Topology**: Expansion of the local macro-universe.
-- **🎮 NEW: TITAN-CRAFT (GameLayer)**: A procedural space game engine injected onto the physics simulator. Features free flight (IXS Enterprise), cockpit view (1st/3rd person), Fog of War, Discovery Radar (XP), Scrap Economy (OGame Style), Golden Mines (Multipliers), and an **Infinite Procedural Universe** powered by Chunks that generates galaxies in real-time as you travel into deep space. Group cluster (Andromeda M31).
-- 🪐 Exoplanetary atmosphere simulator and 3D spectrometry.
-- ☄️ Advanced NEO radar with mass calculation and impact probability.
-- 🪐 Persistent exosystem generator.
-- 🔭 Integration with international astronomical databases (SIMBAD, Gaia, IAU).
-
----
-
-### 🎓 5. Institutional License & Usage
-Educational and scientific institutions can request extended access to the TITAN laboratory for research, outreach, or teaching projects. For institutional agreements, contact the author through the repository channels.
-
----
-
-### 📩 6. How to Propose Collaboration
-Proposals for usage, research, or development can be submitted via:
-- Repository Issues
-- Pull Requests
-- Direct contact with the author
-- Formal proposal documents
-
----
-
-### 🏆 7. Grant & Funding Eligibility
-TITAN meets the eligibility criteria for funding in:
-- Technological innovation
-- Scientific dissemination & outreach
-- Digital cultural projects
-- University & academic research
-- Scientific software development
-- European programs (Creative Europe, Horizon Europe)
+- ✅ **[COMPLETED]** Real-time N-dimensional topology panel (cubic, Manhattan, spherical)
+- ✅ **[COMPLETED]** NASA JPL CNEOS async API — real NEO asteroids with name and velocity
+- ✅ **[COMPLETED]** **HYG/Gaia catalog: 83,467 real stars — GPU Point Cloud with thermodynamic shader**
+- ✅ **[COMPLETED]** **Complete thermodynamic physics (Spaghettification + Plasma Jets + Event Horizon)**
+- ✅ **[COMPLETED]** **TITAN Studio: Laser Telemetry + Matter Factory + Image Capture**
+- ✅ **[COMPLETED]** **Advanced Astrometry: identifies real Gaia stars by click on GPU Point Cloud**
+- ✅ **[COMPLETED]** **WebGL world coordinate fix (getWorldPosition) for precise gravitational physics**
+- 🚀 **[IN DEVELOPMENT]** TITAN-CRAFT: 6DOF pilotable ship with inertia and space economy
+- 🎮 **[IN DEVELOPMENT]** RPG Engine: Discoveries, XP, and ship unlocking
+- 🌌 Galactic expansion: Andromeda M31 and full Local Group
+- 🪐 Exoplanetary atmosphere simulator and 3D spectrometry
 
 ---
 
-### 🧩 8. System Architecture
+### 🏆 4. Grant & Funding Eligibility
+TITAN meets criteria for technological innovation, scientific outreach, university research, and European programs (Creative Europe, Horizon Europe).
+
+---
+
+### 🧩 5. System Architecture
 ```
 /ApocalypseEngine
   /public
-    index.html        ← Main laboratory interface
-    space_engine.js   ← 3D Rendering & physics engine (226KB)
-    style.css         ← Glassmorphism & cyberpunk UI styling
-    /textures         ← NASA planetary textures
-    /data             ← Real astronomical catalogs (Hipparcos, Nebulae)
-  /core               ← DVTRGAS backend core [PROPRIETARY - Not Published]
-  server.py           ← Astronomical data API server
-  fetch_nebulae.py    ← 3D Nebulae catalog generator
-  generate_cosmic_web.py ← Cosmic web filament generator
-  reconstruct_galaxy.py  ← Volumetric galaxy reconstructor
-  nebula_photo_to_3d.py  ← 3D point cloud extractor from NASA/Hubble/JWST photos
-  LICENSE             ← Restricted legal license
-  CHANGELOG.md        ← Version history
+    index.html              ← Main laboratory interface
+    space_engine.js         ← 3D WebGL rendering & physics engine (320KB)
+    lab_apps.js             ← TITAN Studio (Astrometry, N-Body, Telemetry, Capture)
+    titan_game_layer.js     ← Space flight & RPG progression module
+    style.css               ← Glassmorphism & cyberpunk UI design system
+    /textures               ← NASA planetary textures
+    /data
+      gaia_stars.json       ← 83,467 real stars (HYG: Hipparcos + Yale + Gliese)
+      hipparcos.json        ← Hipparcos photometric catalog (~120k points)
+      milky_way.bin         ← Volumetric Milky Way reconstruction (1M points)
+      cosmic_web.bin        ← Observable Universe galactic filaments
+  /scripts
+    fetch_gaia_data.py      ← Auto-downloader for HYG/Gaia catalog
+  /core                     ← DVTRGAS backend core [PROPRIETARY — Not Published]
+  server.py                 ← Astronomical data API server (Python)
 ```
 
 ---
 
-### 🛡️ 9. Copyright & Intellectual Property
+### 🛡️ 6. Copyright & Intellectual Property
 > **⚠️ LEGAL NOTICE:** This project is the **exclusive intellectual property** of **José Manuel**.
 
-**It is strictly PROHIBITED to:**
-- Copy or reproduce the code, in whole or in part.
-- Redistribute in any form or medium.
-- Modify, transform, or create derivative works.
-- Use for commercial or lucrative purposes.
-- Integrate into other engines or frameworks.
-- Claim authorship or ownership of the code.
-
-See the [LICENSE](./LICENSE) file for complete legal terms.
+It is strictly **PROHIBITED** to copy, redistribute, modify, use commercially, or claim authorship of the code. See [LICENSE](./LICENSE) for complete legal terms.
 
 ---
 
-### 🚀 10. Local Setup
+### 🚀 7. Local Setup
 ```bash
 # 1. Clone repository
 git clone https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab.git
 
-# 2. Start data server
+# 2. Start data server (auto-downloads Gaia catalog on first run)
 python server.py
 
 # 3. Open in browser

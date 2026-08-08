@@ -3,7 +3,7 @@
 ## What is TITAN-LAB?
 TITAN-Interactive-Cosmos-Lab is a real-time 3D cosmological simulation and astrophysics research laboratory built on WebGL + Three.js.
 
-It integrates real astronomical catalogs (Hipparcos, NASA, SIMBAD, Gaia), orbital physics engines, and a planetary defense system based on the NASA/DART mission.
+It integrates real astronomical catalogs (Hipparcos, NASA JPL, SIMBAD, Gaia), interactive orbital physics engines, asynchronous asteroid telemetry, and a **TITAN LabOS** operational environment for in-situ physical experimentation.
 
 ---
 
@@ -29,12 +29,12 @@ python server.py
 | Module | Description |
 |:---|:---|
 | 🪐 **Solar System** | Keplerian orbits with NASA-textured planets and real moons |
-| ☄️ **NEO Radar** | Real-time tracking of Apophis, Bennu, 'Oumuamua, Halley, Eros |
+| 🛰️ **NEO Radar (NASA JPL)** | Real-time CNEOS telemetry: Distance and $v\_rel$ of actual asteroids |
 | 🛡️ **DART Mission** | Kinetic impactor simulation with Dimorphos debris plume |
-| 🕳️ **Black Holes** | Relativistic Sgr A*, M87*, TON 618 with accretion disk |
+| 🕳️ **TITAN LabOS** | Experimental environment (Data Science UI) with draggable App Dock |
 | 🌌 **Stellarium** | 1M star galactic volume + Hipparcos catalog + ZOA interpolation |
 | ⏱️ **Chronograph** | Bidirectional time travel: Big Bang → year 7000 AD |
-| 🔬 **DVTRGAS** | L₂/L∞ spatial topology physics engine (proprietary core) |
+| 🔬 **N-Body Physics** | Black hole injection, orbital spaghettification, and planetary thermal friction |
 | 🚀 **Hyper-Warp** | Hermite-interpolated light-speed travel between targets |
 
 ---

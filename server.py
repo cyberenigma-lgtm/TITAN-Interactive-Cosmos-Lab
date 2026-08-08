@@ -11,10 +11,12 @@ import os
 import json
 import math
 import importlib
+import ctypes
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import random
 import threading
 import time
+import subprocess
 
 # Añadimos el núcleo DVTRGAS al path de forma dinámica
 _CORE_PATH = os.path.join(os.path.dirname(__file__), 'core')
@@ -43,6 +45,22 @@ except ImportError as _e:
     class Meteorito:
         def __init__(self, x, y, z, vx, vy, vz): self.x=x; self.y=y; self.z=z; self.masa=1
 
+# === PUENTE BLACK BOX (DVTRGAS 25 DLL) ===
+try:
+    _dll_path = os.path.join(_CORE_PATH, "dvtrgas25_core.dll")
+    if os.path.exists(_dll_path):
+        _dvtrgas_native = ctypes.CDLL(_dll_path)
+        print("\n[TITAN] 🛡️ NÚCLEO MATEMÁTICO PROPIETARIO DETECTADO (BLACK BOX).")
+        print("[TITAN] 🚀 Aceleración nativa C activada para DVTRGAS 25.")
+        _USE_NATIVE = True
+    else:
+        _USE_NATIVE = False
+        print("\n[TITAN] ⚠️ Núcleo propietario no encontrado (Black Box ausente).")
+        print("[TITAN] 🌐 Ejecutando en Modo Simulación Pública (Código Abierto).\n")
+except Exception as e:
+    _USE_NATIVE = False
+    print(f"[TITAN] Error cargando Black Box DLL: {e}")
+
 # === EL CEREBRO MATEMÁTICO ===
 class UniversoDVTRGAS:
     def __init__(self):
@@ -54,6 +72,13 @@ class UniversoDVTRGAS:
         
         print("[DVTRGAS] Inicializando motor matemático y conectando catálogo...")
         self.catalogo = poblar_grid_con_datos(self.grid, self.tamano, num_galaxias=1500)
+        
+        # Validar y generar catálogo Gaia si es necesario
+        ruta_gaia = os.path.join(os.path.dirname(__file__), 'public', 'data', 'gaia_stars.json')
+        if not os.path.exists(ruta_gaia):
+            print("[TITAN] Catálogo astronómico real no encontrado. Iniciando descarga asíncrona (HYG)...")
+            ruta_script = os.path.join(os.path.dirname(__file__), 'scripts', 'fetch_gaia_data.py')
+            subprocess.Popen([sys.executable, ruta_script])
         
         # Cargar Asteroides Reales (NASA NeoWs)
         try:
@@ -182,6 +207,23 @@ class CosmosAPIHandler(BaseHTTPRequestHandler):
                     self.wfile.write(f.read().encode('utf-8'))
             except:
                 self.wfile.write(b"{}")
+            return
+            
+        if self.path == '/api/neo':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            try:
+                import urllib.request
+                # NASA JPL Center for Near Earth Object Studies (CNEOS) - Close Approach Data API
+                # date-min = today, limit = 50 objects
+                req = urllib.request.Request('https://ssd-api.jpl.nasa.gov/cad.api?date-min=now&limit=50&fullname=true')
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    data = response.read()
+                    self.wfile.write(data)
+            except Exception as e:
+                print(f"[NASA API ERROR] {e}")
+                self.wfile.write(json.dumps({"error": str(e), "data": []}).encode('utf-8'))
             return
             
         if self.path == '/api/simulacion':

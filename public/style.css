@@ -327,9 +327,61 @@ button:hover {
 
 /* Star labels extra dim en distancia */
 .star-label {
-    font-size: 9px !important;
-    opacity: 0.6;
-    font-weight: 400 !important;
+    font-size: 10px; font-family: monospace; color: #ff3366;
+    z-index: 1000;
+}
+
+/* =========================================================
+   TITAN LabOS: SCIENTIFIC AESTHETICS OVERRIDE
+   ========================================================= */
+.lab-panel {
+    background: rgba(6, 8, 12, 0.98) !important;
+    border: 1px solid rgba(70, 110, 150, 0.4) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.9) !important;
+    border-radius: 3px !important; /* Sharp professional corners */
+    backdrop-filter: blur(10px) !important;
+    font-family: 'JetBrains Mono', 'Courier New', Consolas, monospace !important;
+}
+
+.lab-panel h3, .lab-panel .drag-handle {
+    color: #7ab2d6 !important;
+    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    border-bottom: 1px solid rgba(70, 110, 150, 0.3) !important;
+    letter-spacing: 2px !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 10px !important;
+    text-shadow: none !important;
+}
+
+.lab-panel span, .lab-panel label, .lab-panel div {
+    font-family: 'JetBrains Mono', 'Courier New', Consolas, monospace !important;
+    text-shadow: none !important;
+}
+
+/* Override inline neon colors inside lab-panel */
+.lab-panel [style*="color"] {
+    color: #a0c4d9 !important; /* Uniform pale data blue */
+}
+
+.lab-panel input, .lab-panel select, .lab-panel button {
+    background: rgba(15, 25, 40, 0.8) !important;
+    border: 1px solid rgba(70, 110, 150, 0.5) !important;
+    color: #cceeff !important;
+    border-radius: 2px !important;
+    font-family: 'JetBrains Mono', 'Courier New', Consolas, monospace !important;
+    text-shadow: none !important;
+}
+
+.lab-panel button:hover {
+    background: rgba(70, 110, 150, 0.3) !important;
+    border-color: #7ab2d6 !important;
+}
+
+.lab-panel input[type=range] {
+    accent-color: #7ab2d6 !important;
+}    font-weight: 400 !important;
 }
 .star-label:hover { opacity: 0.95 !important; }
 

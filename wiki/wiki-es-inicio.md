@@ -3,7 +3,7 @@
 ## ¿Qué es TITAN-LAB?
 TITAN-Interactive-Cosmos-Lab es un laboratorio de astrofísica computacional y simulación cosmológica en tiempo real, construido sobre WebGL + Three.js.
 
-Integra catálogos astronómicos reales (Hipparcos, NASA, SIMBAD, Gaia), motores de física orbital y un sistema de defensa planetaria basado en la misión NASA/DART.
+Integra catálogos astronómicos reales (Hipparcos, NASA JPL, SIMBAD, Gaia), motores de física orbital interactivos, telemetría asíncrona de asteroides y un entorno operativo **TITAN LabOS** para la experimentación física in-situ.
 
 ---
 
@@ -29,12 +29,12 @@ python server.py
 | Módulo | Descripción |
 |:---|:---|
 | 🪐 **Sistema Solar** | Órbitas keplerianas con planetas texturizados NASA y lunas reales |
-| ☄️ **Radar NEO** | Seguimiento en tiempo real de Apofis, Bennu, 'Oumuamua, Halley, Eros |
+| 🛰️ **Radar NEO (NASA JPL)** | Telemetría CNEOS en tiempo real: Distancia y $v\_rel$ de asteroides reales actuales |
 | 🛡️ **Misión DART** | Simulación de interceptor cinético con pluma de escombros de Dimorphos |
-| 🕳️ **Agujeros Negros** | Sgr A*, M87*, TON 618 relativistas con disco de acreción |
+| 🕳️ **TITAN LabOS** | Entorno experimental (Data Science UI) con Dock de Aplicaciones arrastrables |
 | 🌌 **Stellarium** | Galaxia volumétrica 1M estrellas + catálogo Hipparcos + extrapolación ZOA |
 | ⏱️ **Cronógrafo** | Viaje temporal bidireccional: Big Bang → año 7000 d.C. |
-| 🔬 **DVTRGAS** | Motor de topología espacial L₂/L∞ (núcleo propietario) |
+| 🔬 **Física N-Cuerpos** | Inyección de agujeros negros, espaguetización orbital y fricción térmica planetaria |
 | 🚀 **Hyper-Warp** | Viaje a velocidad de la luz con interpolación Hermite entre objetivos |
 
 ---

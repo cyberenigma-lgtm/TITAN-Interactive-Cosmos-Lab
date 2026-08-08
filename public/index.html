@@ -179,7 +179,7 @@
     </aside>
 
     <!-- TITAN EXCHANGE & HANGAR (Tokenomics) -->
-    <aside id="exchange-panel" class="glass-card sci-fi-frame panel-draggable lab-panel" style="position:absolute; top: 15rem; right: 2rem; width: 380px; z-index: 105; display: none;">
+    <aside id="exchange-panel" class="glass-card sci-fi-frame panel-draggable craft-panel" style="position:absolute; top: 15rem; right: 2rem; width: 380px; z-index: 105; display: none;">
         <h3 class="drag-handle" style="color:#ffd700; border-bottom: 1px solid #ffd700; margin-bottom:10px; padding-bottom:5px;">🏦 TITAN EXCHANGE & HANGAR</h3>
         
         <!-- Supply Data -->
@@ -890,6 +890,105 @@
         }
     </script>
 
+    <!-- TITAN LabOS Ecosystem -->
+    <div id="labos-dock" class="lab-panel" style="display:none; position:absolute; bottom:20px; left:50%; transform:translateX(-50%); padding:10px 20px; border-radius:10px; flex-direction:row; gap:20px; z-index:200; justify-content:center; align-items:center;">
+        <button onclick="LabOS.toggleApp('app-nbody')" style="background:none; border:none; color:#7ab2d6; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" title="Simulador Gravitacional N-Cuerpos">
+            <span style="font-size:24px;">🕳️</span>
+            <span style="font-size:9px; font-weight:bold;">N-CUERPOS</span>
+        </button>
+        <button onclick="LabOS.toggleApp('app-astrometry')" style="background:none; border:none; color:#7ab2d6; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" title="Analizador Espectral y Astrometría">
+            <span style="font-size:24px;">🔭</span>
+            <span style="font-size:9px; font-weight:bold;">ASTROMETRÍA</span>
+        </button>
+        <button onclick="document.getElementById('physics-editor-panel').style.display='block'" style="background:none; border:none; color:#7ab2d6; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" title="Consola Ecuaciones DVTRGAS">
+            <span style="font-size:24px;">📝</span>
+            <span style="font-size:9px; font-weight:bold;">DVTRGAS</span>
+        </button>
+        <button onclick="LabOS.captureStudio()" style="background:none; border:none; color:#7ab2d6; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" title="Estudio de Captura">
+            <span style="font-size:24px;">📸</span>
+            <span style="font-size:9px; font-weight:bold;">CAPTURA</span>
+        </button>
+        <button onclick="LabOS.toggleApp('app-measure')" style="background:none; border:none; color:#7ab2d6; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" title="Telemetría y Medición Láser">
+            <span style="font-size:24px;">📏</span>
+            <span style="font-size:9px; font-weight:bold;">TELEMETRÍA</span>
+        </button>
+        <button onclick="LabOS.toggleApp('app-creator')" style="background:none; border:none; color:#7ab2d6; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" title="Fábrica de Materia">
+            <span style="font-size:24px;">✨</span>
+            <span style="font-size:9px; font-weight:bold;">CREADOR</span>
+        </button>
+    </div>
+
+    <!-- APP 1: Simulador N-Cuerpos -->
+    <aside id="app-nbody" class="glass-card panel-draggable lab-panel" style="display:none; position:absolute; top:10rem; left:25rem; width:300px; z-index:150;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(70,110,150,0.3); padding-bottom:5px; margin-bottom:10px;">
+            <h3 class="drag-handle" style="margin:0; border:none; padding:0;">🕳️ SIMULADOR N-CUERPOS</h3>
+            <button onclick="LabOS.closeApp('app-nbody')" style="background:none; border:none; color:#7ab2d6; cursor:pointer;">✕</button>
+        </div>
+        <div style="font-size:10px; color:#a0c4d9; margin-bottom:10px;">Inyecta pozos gravitatorios en tiempo real para observar perturbaciones orbitales.</div>
+        <button id="btn-inject-bh" style="width:100%; padding:8px; margin-bottom:10px; cursor:pointer;">➕ INYECTAR AGUJERO NEGRO (10k M☉)</button>
+        <button id="btn-clear-masses" style="width:100%; padding:8px; cursor:pointer; background:rgba(255,50,50,0.1)!important; border-color:rgba(255,50,50,0.5)!important; color:#ff8888!important;">🗑️ LIMPIAR ANOMALÍAS</button>
+    </aside>
+
+    <!-- APP 2: Astrometría -->
+    <aside id="app-astrometry" class="glass-card panel-draggable lab-panel" style="display:none; position:absolute; top:10rem; right:25rem; width:320px; z-index:150;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(70,110,150,0.3); padding-bottom:5px; margin-bottom:10px;">
+            <h3 class="drag-handle" style="margin:0; border:none; padding:0;">🔭 ANALIZADOR ESPECTRAL</h3>
+            <button onclick="LabOS.closeApp('app-astrometry')" style="background:none; border:none; color:#7ab2d6; cursor:pointer;">✕</button>
+        </div>
+        <div id="astro-status" style="font-size:10px; color:#a0c4d9; margin-bottom:10px;">Modo Selección Activo. Haz clic en una estrella o asteroide.</div>
+        <div id="astro-data" style="display:none; flex-direction:column; gap:5px; background:rgba(0,0,0,0.5); padding:10px; border-radius:4px;">
+            <div style="font-size:12px; font-weight:bold; color:#fff;" id="astro-name">OBJETO</div>
+            <div style="font-size:10px; color:#7ab2d6;" id="astro-class">Clase Espectral: -</div>
+            <div style="font-size:10px; color:#7ab2d6;" id="astro-temp">Temperatura: -</div>
+            <div style="font-size:10px; color:#7ab2d6;" id="astro-mass">Masa Estimada: -</div>
+            
+            <!-- Espectrograma Fake -->
+            <div style="margin-top:10px; font-size:9px; color:#888;">ESPECTRO DE ABSORCIÓN</div>
+            <div style="width:100%; height:30px; background:linear-gradient(90deg, violet, indigo, blue, green, yellow, orange, red); position:relative; border-radius:2px; margin-top:2px;">
+                <div id="astro-spectral-lines" style="position:absolute; top:0; left:0; width:100%; height:100%; background:repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(0,0,0,0.8) 15px, rgba(0,0,0,0.8) 17px);"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- APP 3: Telemetría / Medición -->
+    <aside id="app-measure" class="glass-card panel-draggable lab-panel" style="display:none; position:absolute; top:10rem; left:50%; transform:translateX(-50%); width:300px; z-index:150;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(70,110,150,0.3); padding-bottom:5px; margin-bottom:10px;">
+            <h3 class="drag-handle" style="margin:0; border:none; padding:0;">📏 REGLA ASTRONÓMICA</h3>
+            <button onclick="LabOS.closeApp('app-measure')" style="background:none; border:none; color:#7ab2d6; cursor:pointer;">❌</button>
+        </div>
+        <div id="measure-status" style="font-size:10px; color:#a0c4d9; margin-bottom:10px;">Haz clic en el Punto A...</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:11px;">
+            <div style="color:#00ff88;">A: <span id="measure-a">N/A</span></div>
+            <div style="color:#00ffff;">B: <span id="measure-b">N/A</span></div>
+        </div>
+        <div style="background:rgba(0,0,0,0.5); padding:10px; border-radius:4px; text-align:center;">
+            <div style="font-size:9px; color:#7ab2d6;">DISTANCIA ABSOLUTA</div>
+            <div id="measure-result" style="font-size:18px; color:#fff; font-weight:bold; font-family:'Courier New', Courier, monospace;">0.00 UA</div>
+        </div>
+        <button onclick="LabOS.clearMeasurement()" style="width:100%; padding:8px; margin-top:10px; cursor:pointer; background:rgba(70,110,150,0.2); border:1px solid rgba(70,110,150,0.5); color:#7ab2d6;">BORRAR LÁSER</button>
+    </aside>
+
+    <!-- APP 4: Creador Estelar -->
+    <aside id="app-creator" class="glass-card panel-draggable lab-panel" style="display:none; position:absolute; top:10rem; left:25rem; width:280px; z-index:150;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(70,110,150,0.3); padding-bottom:5px; margin-bottom:10px;">
+            <h3 class="drag-handle" style="margin:0; border:none; padding:0;">✨ FÁBRICA DE MATERIA</h3>
+            <button onclick="LabOS.closeApp('app-creator')" style="background:none; border:none; color:#7ab2d6; cursor:pointer;">❌</button>
+        </div>
+        <div style="font-size:10px; color:#a0c4d9; margin-bottom:10px;">Inyecta objetos frente a la cámara (Z-50).</div>
+        
+        <div style="margin-bottom:10px;">
+            <label style="font-size:10px; color:#7ab2d6;">Tipo de Cuerpo:</label>
+            <select id="creator-type" style="width:100%; padding:5px; background:rgba(0,0,0,0.5); border:1px solid rgba(70,110,150,0.5); color:#fff;">
+                <option value="planet">Planeta Terrestre</option>
+                <option value="gas_giant">Gigante Gaseoso</option>
+                <option value="star_dwarf">Estrella (Enana Roja)</option>
+                <option value="star_blue">Estrella (Supergigante Azul)</option>
+            </select>
+        </div>
+        <button onclick="LabOS.spawnMatter()" style="width:100%; padding:8px; margin-bottom:10px; cursor:pointer; background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.5); color:#00ff88;">🚀 INYECTAR MATERIA</button>
+    </aside>
+
+    <script src="lab_apps.js"></script>
     <script src="fx_module.js"></script>
     <script src="space_engine.js?v=639216452922343440"></script>
     <script src="planetarium.js"></script>

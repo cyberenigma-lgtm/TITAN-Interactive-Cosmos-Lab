@@ -1015,6 +1015,7 @@ window.TITAN.GameLayer.Spacecraft = {
         
         if (window.scene) {
             window.scene.add(this.shipMesh);
+            this.shipMesh.visible = this.isActive === true; // Ocultar si no estamos pilotando
         }
     },
     
@@ -1262,7 +1263,8 @@ window.TITAN.GameLayer.Spacecraft = {
         if (Math.random() < 0.01) { 
             const spawnPos = camera.position.clone();
             // Aparece delante de la nave a cierta distancia
-            spawnPos.addScaledVector(forward, 200 + Math.random()*200);
+            const _fwdDir = this.shipMesh ? _v1.clone() : new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            spawnPos.addScaledVector(_fwdDir, 200 + Math.random()*200);
             window.TITAN.GameLayer.Economy.spawnSpaceDebris(spawnPos);
         }
         
