@@ -1,11 +1,11 @@
 /*
  * ============================================================================
- * APOCALYPSE ENGINE â€” TITAN VISUAL SYSTEM v3.0 "DEEP SPACE"
- * Autor y Creador Original: JosÃ© Manuel
- * Copyright (c) 2026 JosÃ© Manuel. Todos los derechos reservados.
- * Licencia: CC BY-NC-ND 4.0 | Uso prohibido sin autorizaciÃ³n expresa.
- * EstÃ©tica: Ciencia FicciÃ³n Realista â€” Sin neÃ³n. Sin cyberpunk.
- * ColorimetrÃ­a basada en datos astronÃ³micos reales.
+ * APOCALYPSE ENGINE Ã¢â‚¬â€ TITAN VISUAL SYSTEM v3.0 "DEEP SPACE"
+ * Autor y Creador Original: JosÃƒÂ© Manuel
+ * Copyright (c) 2026 JosÃƒÂ© Manuel. Todos los derechos reservados.
+ * Licencia: CC BY-NC-ND 4.0 | Uso prohibido sin autorizaciÃƒÂ³n expresa.
+ * EstÃƒÂ©tica: Ciencia FicciÃƒÂ³n Realista Ã¢â‚¬â€ Sin neÃƒÂ³n. Sin cyberpunk.
+ * ColorimetrÃƒÂ­a basada en datos astronÃƒÂ³micos reales.
  * ============================================================================
  */
 
@@ -16,7 +16,7 @@
     --text-secondary: #8a9bac;
     --text-dim:       #4a5a68;
     --accent-color:   #00ffcc; /* Sci-Fi Cyan brillante */
-    --accent-sci:     #00ccff; /* Azul neón tecnológico */
+    --accent-sci:     #00ccff; /* Azul neÃ³n tecnolÃ³gico */
     --accent-glow:    rgba(0, 255, 204, 0.4);
     --amber:          #d4a843;
     --amber-dim:      #8a6a28;
@@ -24,7 +24,7 @@
     --alert-red:      #ff3366;
     --console-green:  #00ff00;
     --console-dim:    #003300;
-    --glass-bg:       rgba(2, 6, 16, 0.7); /* Índigo muy oscuro */
+    --glass-bg:       rgba(2, 6, 16, 0.7); /* Ãndigo muy oscuro */
     --glass-border:   rgba(0, 255, 204, 0.2);
     --glass-shadow:   0 8px 32px rgba(0,0,0,0.9);
     --panel-inner:    rgba(0, 20, 40, 0.4);
@@ -289,7 +289,7 @@ button:hover {
 
 
 /* ============================
-   DEEP SPACE v3.1 â€” PANELS ULTRA-TRANSPARENT
+   DEEP SPACE v3.1 Ã¢â‚¬â€ PANELS ULTRA-TRANSPARENT
    Los paneles son ventanas de nave, no pantallas de videojuego
    ============================ */
 
@@ -301,7 +301,7 @@ button:hover {
     font-size: 0.66rem !important;
 }
 
-/* Todos los paneles flotantes: mÃ¡s transparentes */
+/* Todos los paneles flotantes: mÃƒÂ¡s transparentes */
 .glass-card {
     background: rgba(3,6,12,0.78) !important;
     border: 1px solid rgba(180,200,220,0.07) !important;
@@ -358,7 +358,7 @@ button:hover {
     color: rgba(200,216,232,0.5) !important;
 }
 
-/* Inputs: fondo vacÃ­o */
+/* Inputs: fondo vacÃƒÂ­o */
 input[type="text"], input[type="number"], select, textarea {
     background: rgba(0,0,0,0.55) !important;
     border: 1px solid rgba(180,200,220,0.1) !important;
@@ -386,14 +386,14 @@ input[type="text"]:focus, select:focus {
     border-top: 1px solid rgba(180,200,220,0.04) !important;
 }
 
-/* Era buttons aÃºn mÃ¡s dim */
+/* Era buttons aÃƒÂºn mÃƒÂ¡s dim */
 .era-btn {
     opacity: 0.6;
     transition: opacity 0.2s !important;
 }
 .era-btn:hover, .era-btn.active { opacity: 1.0 !important; }
 
-/* BotÃ³n de descubrimiento: contenido, no decorativo */
+/* BotÃƒÂ³n de descubrimiento: contenido, no decorativo */
 #btn-register-star, .btn-discover {
     background: rgba(122,158,106,0.08) !important;
     border: 1px solid rgba(122,158,106,0.2) !important;
@@ -420,11 +420,11 @@ input[type="text"]:focus, select:focus {
     text-shadow: none !important;
 }
 
-/* Eliminar todos los box-shadow de neÃ³n residuales */
+/* Eliminar todos los box-shadow de neÃƒÂ³n residuales */
 * {
     text-shadow: none !important;
 }
-/* ExcepciÃ³n: sombra de texto solo donde necesitamos legibilidad sobre 3D */
+/* ExcepciÃƒÂ³n: sombra de texto solo donde necesitamos legibilidad sobre 3D */
 .planet-label, #target-name, header h1 {
     text-shadow: 0 1px 3px rgba(0,0,0,0.9) !important;
 }
@@ -433,7 +433,7 @@ input[type="text"]:focus, select:focus {
    OBSERVATORY CINEMATIC HUD EFFECTS
    ========================================================================== */
 
-/* Viñeta Oscura (Efecto de cristal grueso / casco espacial) */
+/* ViÃ±eta Oscura (Efecto de cristal grueso / casco espacial) */
 .cinematic-vignette {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -443,7 +443,7 @@ input[type="text"]:focus, select:focus {
     box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
 }
 
-/* Retícula de Apuntado Central */
+/* RetÃ­cula de Apuntado Central */
 .targeting-reticle {
     position: fixed;
     top: 50%; left: 50%;
@@ -473,13 +473,49 @@ input[type="text"]:focus, select:focus {
     opacity: 0.3;
 }
 
-/* Animación sutil de brillo en la UI */
+/* AnimaciÃ³n sutil de brillo en la UI */
 @keyframes hudPulse {
     0% { box-shadow: inset 0 0 10px rgba(126,184,212,0.05); }
     50% { box-shadow: inset 0 0 20px rgba(126,184,212,0.15); }
     100% { box-shadow: inset 0 0 10px rgba(126,184,212,0.05); }
 }
+
 .glass-card {
     animation: hudPulse 4s infinite;
 }
 
+/* SCI-FI FRAME BORDER */
+.sci-fi-frame {
+    position: relative;
+    background: rgba(10, 15, 25, 0.8) !important;
+    border: none !important;
+    clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+    border-radius: 0 !important;
+    box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.1) !important;
+}
+
+.sci-fi-frame::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        linear-gradient(90deg, #00ffff 0%, transparent 30%),
+        linear-gradient(-90deg, #00ffff 0%, transparent 30%),
+        linear-gradient(180deg, #00ffff 0%, transparent 30%),
+        linear-gradient(0deg, #00ffff 0%, transparent 30%);
+    background-size: 100% 2px, 100% 2px, 2px 100%, 2px 100%;
+    background-repeat: no-repeat;
+    background-position: top, bottom, left, right;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.8;
+}
+
+.sci-fi-frame::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 2px solid rgba(100, 150, 200, 0.3);
+    clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+    pointer-events: none;
+}

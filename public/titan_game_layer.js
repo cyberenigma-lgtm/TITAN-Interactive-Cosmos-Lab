@@ -149,7 +149,6 @@ window.TITAN.GameLayer.Economy = {
         Metal: 0,
         Crystals: 0,
         Deuterium: 0,
-        DarkMatter: 0,
         RecycledJunk: 0,
         AstronomicalData: 0
     },
@@ -160,12 +159,19 @@ window.TITAN.GameLayer.Economy = {
     // Variables de Mecánicas Avanzadas
     resourceMultiplier: 1,
     multiplierTimer: 0, // Segundos restantes
+    drainTimer: 0, // Temporizador para el Drain (Mantenimiento Warp)
     lastTime: performance.now(),
     
     getMaxCapacity: function() {
-        // La bóveda escala con el nivel de la nave
+        const shipType = (window.TITAN.GameLayer.Spacecraft && window.TITAN.GameLayer.Spacecraft.currentShipType) || 'MULE';
         const shipLvl = (window.TITAN.GameLayer.Spacecraft && window.TITAN.GameLayer.Spacecraft.shipLevel) || 1;
-        return shipLvl * 5000;
+        
+        let baseCapacity = 5000;
+        if (shipType === 'MULE') baseCapacity = 25000; // Pasiva: Capacidad Masiva
+        if (shipType === 'VOYAGER') baseCapacity = 2500;
+        if (shipType === 'CORSAIR') baseCapacity = 1500;
+        
+        return shipLvl * baseCapacity;
     },
     
     getTotalCargo: function() {
@@ -196,14 +202,18 @@ window.TITAN.GameLayer.Economy = {
     spawnSpaceDebris: function(position) {
         if (typeof THREE === 'undefined') return;
         
-        const isAnomaly = Math.random() < 0.05; // 5% de que sea una Mina de Oro
+        const rand = Math.random();
+        const isAnomaly = rand < 0.05; // 5% de que sea una Mina de Oro
+        const isHazard = rand >= 0.05 && rand < 0.20; // 15% Amenaza (Pirata / Asteroide Denso)
         
-        const size = isAnomaly ? 3 : (Math.random() * 2 + 1);
+        const size = isAnomaly ? 3 : (isHazard ? 5 : (Math.random() * 2 + 1));
         const geo = new THREE.DodecahedronGeometry(size, 0);
         
         let mat;
         if (isAnomaly) {
             mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 1.0, roughness: 0.1, emissive: 0xffaa00, emissiveIntensity: 0.5 });
+        } else if (isHazard) {
+            mat = new THREE.MeshStandardMaterial({ color: 0xaa2222, metalness: 0.5, roughness: 0.8, emissive: 0x550000, emissiveIntensity: 0.8 });
         } else {
             mat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.4 });
         }
@@ -214,6 +224,10 @@ window.TITAN.GameLayer.Economy = {
             const light = new THREE.PointLight(0xffd700, 2, 50);
             mesh.add(light);
             mesh.userData.isAnomaly = true;
+        } else if (isHazard) {
+            const light = new THREE.PointLight(0xff0000, 2, 20);
+            mesh.add(light);
+            mesh.userData.isHazard = true;
         }
         
         mesh.position.copy(position);
@@ -247,22 +261,39 @@ window.TITAN.GameLayer.Economy = {
         
         const isVaultFull = this.getTotalCargo() >= this.getMaxCapacity();
         
-        // Venta Automática en la Estación Orbital (Tierra / [0,0,0])
+        const shipType = (window.TITAN.GameLayer.Spacecraft && window.TITAN.GameLayer.Spacecraft.currentShipType) || 'MULE';
+        
+        // DRAIN (Quema / Mantenimiento)
+        // Consumir CHR pasivamente como "Combustible Warp" cuando la nave se mueve a alta velocidad
+        if (window.TITAN.GameLayer.Spacecraft && window.TITAN.GameLayer.Spacecraft.isActive && Math.abs(window.TITAN.GameLayer.Spacecraft.velocity) > 0.1) {
+            let drainThreshold = 10.0;
+            if (shipType === 'CORSAIR') drainThreshold = 20.0; // Pasiva: 50% menos consumo Warp
+            
+            this.drainTimer += dtSec;
+            if (this.drainTimer > drainThreshold) { // Cada X segundos de vuelo
+                this.drainTimer = 0;
+                if (window.TITAN.TokenomicsLayer) {
+                    window.TITAN.TokenomicsLayer.burnCHR(1, "Mantenimiento Warp");
+                }
+            }
+        }
+        
+        // Venta Automática en la Estación Orbital (Tierra / [0,0,0]) - FAUCET
         const distToBase = cameraPos.length(); // Distancia al origen
         if (distToBase < 200.0 && this.getTotalCargo() > 0) {
-            // Calcular valor en XP (10% del valor ponderado del cargamento)
+            // Calcular valor en CHR (10% del valor ponderado del cargamento)
             const valueTotal = (this.resources.Metal * 2) + (this.resources.Crystals * 3) + (this.resources.RecycledJunk * 1);
-            const xpGained = Math.floor(valueTotal * 0.1);
+            const chrGained = Math.floor(valueTotal * 0.1);
             
             // Vaciar bóveda
             this.resources.Metal = 0;
             this.resources.Crystals = 0;
             this.resources.RecycledJunk = 0;
             
-            if (xpGained > 0) {
-                if(window.logTitan) window.logTitan(`💰 CARGAMENTO VENDIDO: +${xpGained} XP transferidos a los laboratorios.`);
+            if (chrGained > 0 && window.TITAN.TokenomicsLayer) {
+                window.TITAN.TokenomicsLayer.mintCHR(chrGained);
                 if(window.TITAN.GameLayer.Progression) {
-                    window.TITAN.GameLayer.Progression.addXP(xpGained);
+                    window.TITAN.GameLayer.Progression.addXP(Math.floor(chrGained * 0.5));
                 }
             }
             this.updateUI();
@@ -273,16 +304,64 @@ window.TITAN.GameLayer.Economy = {
             debris.rotation.x += debris.userData.rotX;
             debris.rotation.y += debris.userData.rotY;
             
-            // Detección de colisión (Recolección)
-            if (cameraPos.distanceTo(debris.position) < 20.0) {
-                if (debris.userData.isAnomaly) {
+            let collectRadius = 20.0;
+            if (shipType === 'MULE') collectRadius = 60.0; // Pasiva: Imán de basura
+            
+            // Detección colisión LÁSERES
+            if (window.TITAN.GameLayer.Spacecraft && window.TITAN.GameLayer.Spacecraft.lasers) {
+                let laserHit = false;
+                for (let j = window.TITAN.GameLayer.Spacecraft.lasers.length - 1; j >= 0; j--) {
+                    const laser = window.TITAN.GameLayer.Spacecraft.lasers[j];
+                    if (laser.position.distanceTo(debris.position) < (debris.geometry.parameters.radius || 5) * 1.5) {
+                        // HIT!
+                        if (window.scene) window.scene.remove(laser);
+                        window.TITAN.GameLayer.Spacecraft.lasers.splice(j, 1);
+                        
+                        if (debris.userData.isHazard) {
+                            if(window.logTitan) window.logTitan("💥 ¡AMENAZA DESTRUIDA! Recompensa: +100 CHR");
+                            if (window.TITAN.TokenomicsLayer) window.TITAN.TokenomicsLayer.mintCHR(100);
+                        } else if (debris.userData.isAnomaly) {
+                             if(window.logTitan) window.logTitan("❌ Has destruido una anomalía científica con los láseres...");
+                        } else {
+                             if(window.logTitan) window.logTitan("💥 Basura espacial vaporizada.");
+                        }
+                        
+                        this.removeDebris(debris, i);
+                        laserHit = true;
+                        break;
+                    }
+                }
+                if (laserHit) continue;
+            }
+            
+            // Detección de colisión (Nave)
+            if (cameraPos.distanceTo(debris.position) < collectRadius) {
+                if (debris.userData.isHazard) {
+                     // Daño al escudo o casco
+                     if (window.TITAN.GameLayer.Spacecraft) {
+                         window.TITAN.GameLayer.Spacecraft.shield -= 25;
+                         if (window.TITAN.GameLayer.Spacecraft.shield < 0) {
+                             window.TITAN.GameLayer.Spacecraft.hull += window.TITAN.GameLayer.Spacecraft.shield;
+                             window.TITAN.GameLayer.Spacecraft.shield = 0;
+                         }
+                         if(window.logTitan) window.logTitan("⚠️ ¡IMPACTO! Escudos dañados.");
+                         if (window.TITAN.GameLayer.Spacecraft.hull <= 0) {
+                             if(window.logTitan) window.logTitan("💀 FALLO ESTRUCTURAL CRÍTICO. SISTEMAS OFFLINE.");
+                         }
+                     }
+                     this.removeDebris(debris, i);
+                } else if (debris.userData.isAnomaly) {
                     // Recoger anomalía SIEMPRE (ignora la bóveda temporalmente o da un plus masivo)
                     this.resources.Metal += 1000; // Bonus duro
                     this.resources.Crystals += 500;
+                    if (window.TITAN.TokenomicsLayer) {
+                        let oikReward = 50;
+                        if (shipType === 'VOYAGER') oikReward = 150; // Pasiva: Escáner profundo (x3 OIK)
+                        window.TITAN.TokenomicsLayer.mintOIK(oikReward);
+                    }
                     this.resourceMultiplier = 2; // Multiplicador x2
                     this.multiplierTimer = 300; // 5 Minutos (300 segundos)
                     
-                    if(window.logTitan) window.logTitan("🌟 ¡ANOMALÍA RECOLECTADA! +1000 Metal. MULTIPLICADOR x2 ACTIVADO (5 min).");
                     this.removeDebris(debris, i);
                 } else {
                     // Basura normal
@@ -319,12 +398,16 @@ window.TITAN.GameLayer.Economy = {
             const vaultClass = this.getTotalCargo() >= this.getMaxCapacity() ? "color:#f00; animation: blink 1s infinite;" : "color:#fff;";
             let multiHtml = this.resourceMultiplier > 1 ? `<span style="color:#ffd700; font-weight:bold; margin-left:15px; border:1px solid gold; padding:2px 5px; border-radius:3px;">⚡ x${this.resourceMultiplier} (${Math.ceil(this.multiplierTimer)}s)</span>` : "";
             
+            let chrBal = window.TITAN.TokenomicsLayer ? window.TITAN.TokenomicsLayer.wallet.CHR : 0;
+            let oikBal = window.TITAN.TokenomicsLayer ? window.TITAN.TokenomicsLayer.wallet.OIK : 0;
+            
             ui.innerHTML = `
                 <style>@keyframes blink { 50% { opacity: 0.3; } }</style>
-                <span style="color:#a8b2c1">METAL:</span> ${Math.floor(this.resources.Metal)} |
-                <span style="color:#4cc9f0">CRISTAL:</span> ${Math.floor(this.resources.Crystals)} |
-                <span style="color:#f72585">DEUTERIO:</span> ${Math.floor(this.resources.Deuterium)} |
-                <span style="color:#888888">CHATARRA:</span> ${Math.floor(this.resources.RecycledJunk)} 
+                <span style="color:#00ffff; font-weight:bold; font-size:16px;">CHR: ${Math.floor(chrBal)}</span> |
+                <span style="color:#ff00aa; font-weight:bold; font-size:16px;">OIK: ${Math.floor(oikBal)}</span> |
+                <span style="color:#a8b2c1">MET:</span> ${Math.floor(this.resources.Metal)} |
+                <span style="color:#4cc9f0">CRI:</span> ${Math.floor(this.resources.Crystals)} |
+                <span style="color:#888888">CHAT:</span> ${Math.floor(this.resources.RecycledJunk)} 
                 <br>
                 <span style="${vaultClass} font-size: 12px;">CARGA BÓVEDA: ${Math.floor(this.getTotalCargo())} / ${this.getMaxCapacity()}</span>
                 ${multiHtml}
@@ -359,23 +442,49 @@ window.TITAN.GameLayer.Economy = {
             side: THREE.DoubleSide
         });
         const glassDome = new THREE.Mesh(frameGeo, glassMat);
-        glassDome.scale.set(0.99, 0.99, 0.99);
+               // 3. Ecosistema Interno (Ciudad / Naturaleza)
+        const coreGeo = new THREE.IcosahedronGeometry(60, 2);
+        const coreMat = new THREE.MeshStandardMaterial({
+            color: 0x113322, metalness: 0.2, roughness: 0.8
+        });
+        const innerCore = new THREE.Mesh(coreGeo, coreMat);
         
+        // 4. Mejoras Dinámicas por Nivel
+        if (this.stationLevel >= 1) {
+            // Nivel 1: Radar de Largo Alcance
+            const radarGeo = new THREE.CylinderGeometry(40, 10, 20, 16);
+            const radarMat = new THREE.MeshStandardMaterial({ color: 0x88aaee, wireframe: true });
+            const radar = new THREE.Mesh(radarGeo, radarMat);
+            radar.position.set(0, 100, 0);
+            this.stationMesh.add(radar);
+        }
+        
+        if (this.stationLevel >= 2) {
+            // Nivel 2: Refinería Pasiva (Núcleo brillante)
+            const refineryGeo = new THREE.SphereGeometry(30, 32, 32);
+            const refineryMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, wireframe: true });
+            const refinery = new THREE.Mesh(refineryGeo, refineryMat);
+            const glowLight = new THREE.PointLight(0xffaa00, 5, 200);
+            refinery.add(glowLight);
+            this.stationMesh.add(refinery);
+        }
+        
+        this.stationMesh.add(exoFrame);
+        this.stationMesh.add(glassDome);
+        this.stationMesh.add(innerCore);
         // 3. Ecosistema Interno (Ciudad / Naturaleza)
         // Simulamos el núcleo verde y urbano dentro del dodecaedro
-        const coreGeo = new THREE.IcosahedronGeometry(75, 2);
-        const coreMat = new THREE.MeshStandardMaterial({
+        const coreGeoOld = new THREE.IcosahedronGeometry(75, 2);
+        const coreMatOld = new THREE.MeshStandardMaterial({
             color: 0x2d5a27, // Verde vegetación
             metalness: 0.2,
             roughness: 0.8
         });
-        const ecoCore = new THREE.Mesh(coreGeo, coreMat);
+        const ecoCore = new THREE.Mesh(coreGeoOld, coreMatOld);
         
         // Luces internas de la ciudad
         const cityLights = new THREE.PointLight(0xffddaa, 2, 200);
         
-        this.stationMesh.add(exoFrame);
-        this.stationMesh.add(glassDome);
         this.stationMesh.add(ecoCore);
         this.stationMesh.add(cityLights);
         
@@ -535,18 +644,32 @@ window.TITAN.GameLayer.Spacecraft = {
     isActive: false,
     autoPilot: false, // Control de Crucero
     shipLevel: 1,
+    
+    // SISTEMA DE FLOTA (Naves Múltiples)
+    currentShipType: 'MULE',
+    shipProfiles: {
+        'MULE': { name: 'CARGUERO PESADO (MULE)', maxSpeed: 2.0, turnSpeed: 0.002, cargoBase: 5000, turboEff: 1.0, color: 0xffaa00 },
+        'VOYAGER': { name: 'SONDA CIENTÍFICA (VOYAGER)', maxSpeed: 9.0, turnSpeed: 0.006, cargoBase: 100, turboEff: 1.0, color: 0x00ffff },
+        'CORSAIR': { name: 'CAZA LIGERO (CORSAIR)', maxSpeed: 5.0, turnSpeed: 0.004, cargoBase: 1500, turboEff: 0.5, color: 0xff0055 }
+    },
+    
     velocity: 0,
-    maxSpeed: 0.5, // Velocidad base reducida para mejor control
-    acceleration: 0.02, // Aceleración suave
-    rotationSpeed: 0.002,
+    maxSpeed: 2.0, // Se actualizará al cambiar de nave
+    acceleration: 0.02,
+    rotationSpeed: 0.002, // Se actualizará al cambiar de nave
     
     // Vectores direccionales
-    pitch: 0,
-    yaw: 0,
+            const pitch = 0;
+    const yaw = 0;
     
     // Sistema Dual de Cámara y Malla
     cameraMode: '1st', // '1st' o '3rd'
-    shipMesh: null,
+    
+    // Combate y Defensa
+    shield: 100,
+    hull: 100,
+    lasers: [],
+    
     cockpitOverlay: null,
     
     keys: { W:false, A:false, S:false, D:false, Shift:false, Space:false, V:false, P:false },
@@ -687,6 +810,11 @@ window.TITAN.GameLayer.Spacecraft = {
             this.updateUI(); // Forzar refesco
         }
         
+        // Disparar Láser (Solo CORSAIR)
+        if (k === 'KeyF' && isDown) {
+            this.fireLaser();
+        }
+        
         if (k === 'KeyV' && isDown) {
             // Toggle Cámara
             this.cameraMode = this.cameraMode === '1st' ? '3rd' : '1st';
@@ -700,84 +828,95 @@ window.TITAN.GameLayer.Spacecraft = {
         }
     },
     
+    fireLaser: function() {
+        if (!this.isActive || !this.shipMesh || this.currentShipType !== 'CORSAIR') {
+            if (this.currentShipType !== 'CORSAIR') {
+                if(window.logTitan) window.logTitan("⚠️ [SISTEMA] Armas inoperativas. Se requiere chasis CORSAIR.");
+            }
+            return;
+        }
+        if (typeof THREE === 'undefined') return;
+        
+        const laserGeo = new THREE.CylinderGeometry(0.2, 0.2, 8, 8);
+        laserGeo.rotateX(Math.PI / 2);
+        const laserMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+        const laser = new THREE.Mesh(laserGeo, laserMat);
+        
+        laser.position.copy(this.shipMesh.position);
+        
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(this.shipMesh.quaternion);
+        laser.quaternion.copy(this.shipMesh.quaternion);
+        
+        laser.position.addScaledVector(forward, 2);
+        laser.userData.velocity = forward.multiplyScalar(this.maxSpeed * 4.0);
+        laser.userData.life = 100;
+        
+        if (window.scene) window.scene.add(laser);
+        this.lasers.push(laser);
+        
+        if(window.logTitan) window.logTitan("💥 Pew! Pew!");
+    },
+    
     buildShipMesh: function() {
         if (typeof THREE === 'undefined') return;
         
-        // Crear un chasis procedimental estilo IXS Enterprise (NASA Warp Concept)
-        this.shipMesh = new THREE.Group();
+        // Limpiar malla anterior
+        if (this.shipMesh && window.scene) {
+            window.scene.remove(this.shipMesh);
+        }
         
-        const hullMat = new THREE.MeshStandardMaterial({ 
-            color: 0xeeeeee, metalness: 0.6, roughness: 0.4 
-        });
-        const darkMat = new THREE.MeshStandardMaterial({ 
-            color: 0x333333, metalness: 0.8, roughness: 0.2 
-        });
-        const glowMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        this.shipMesh = new THREE.Group();
+        const profile = this.shipProfiles[this.currentShipType];
+        
+        const hullMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.3 });
+        const accentMat = new THREE.MeshStandardMaterial({ color: profile.color, metalness: 0.5, roughness: 0.2 });
+        const glowMat = new THREE.MeshBasicMaterial({ color: profile.color });
         const engineGlowMat = new THREE.MeshBasicMaterial({ color: 0xff4400 });
         
-        // --- FUSELAJE CENTRAL ---
-        // Módulo de Comando (Frente)
-        const commandModule = new THREE.Mesh(new THREE.SphereGeometry(1.5, 32, 32), hullMat);
-        commandModule.scale.set(1, 1, 2);
-        commandModule.position.set(0, 0, -5);
+        if (this.currentShipType === 'MULE') {
+            const body = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 8), accentMat);
+            const containers = new THREE.Mesh(new THREE.BoxGeometry(3.5, 2.5, 6), hullMat);
+            containers.position.y = 1;
+            const engine1 = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 2, 16), hullMat);
+            engine1.rotation.x = Math.PI/2; engine1.position.set(-1.5, 0, 4);
+            const engine2 = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 2, 16), hullMat);
+            engine2.rotation.x = Math.PI/2; engine2.position.set(1.5, 0, 4);
+            const nozzle1 = new THREE.Mesh(new THREE.SphereGeometry(0.7), engineGlowMat);
+            nozzle1.position.set(-1.5, 0, 5);
+            const nozzle2 = new THREE.Mesh(new THREE.SphereGeometry(0.7), engineGlowMat);
+            nozzle2.position.set(1.5, 0, 5);
+            this.shipMesh.add(body, containers, engine1, engine2, nozzle1, nozzle2);
+        } 
+        else if (this.currentShipType === 'VOYAGER') {
+            const body = new THREE.Mesh(new THREE.ConeGeometry(2, 10, 16), hullMat);
+            body.rotation.x = Math.PI/2;
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(2.5, 0.2, 16, 32), glowMat);
+            ring.position.z = 2;
+            const engine = new THREE.Mesh(new THREE.SphereGeometry(1.2), engineGlowMat);
+            engine.position.z = 5;
+            const dish = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16, 0, Math.PI), accentMat);
+            dish.position.set(0, 1.5, -2); dish.rotation.x = -Math.PI/2;
+            this.shipMesh.add(body, ring, engine, dish);
+        }
+        else if (this.currentShipType === 'CORSAIR') {
+            const body = new THREE.Mesh(new THREE.TetrahedronGeometry(4), hullMat);
+            body.scale.set(1, 0.3, 1.5);
+            const wing1 = new THREE.Mesh(new THREE.BoxGeometry(5, 0.2, 2), accentMat);
+            wing1.position.set(-3, 0, 1); wing1.rotation.y = Math.PI/4;
+            const wing2 = new THREE.Mesh(new THREE.BoxGeometry(5, 0.2, 2), accentMat);
+            wing2.position.set(3, 0, 1); wing2.rotation.y = -Math.PI/4;
+            const engine = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 1), engineGlowMat);
+            engine.position.z = 3;
+            this.shipMesh.add(body, wing1, wing2, engine);
+        }
         
-        // Cuerpo principal (Cilindro largo)
-        const mainBody = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 10, 32), hullMat);
-        mainBody.rotation.x = Math.PI / 2;
-        mainBody.position.set(0, 0, 0);
-        
-        // Módulo de Ingeniería (Atrás)
-        const engModule = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.5, 3, 32), darkMat);
-        engModule.rotation.x = Math.PI / 2;
-        engModule.position.set(0, 0, 5);
-        
-        // Resplandor del reactor principal
-        const mainEngine = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), engineGlowMat);
-        mainEngine.position.set(0, 0, 6.5);
-        
-        // --- ANILLOS WARP (ALCUBIERRE DRIVE) ---
-        const ringGeo = new THREE.TorusGeometry(4.5, 0.8, 16, 64);
-        
-        const warpRing1 = new THREE.Mesh(ringGeo, darkMat);
-        warpRing1.position.set(0, 0, -2);
-        
-        const warpRing2 = new THREE.Mesh(ringGeo, darkMat);
-        warpRing2.position.set(0, 0, 2);
-        
-        // Emisores Warp (brillo azul interno en los anillos)
-        const innerRingGeo = new THREE.TorusGeometry(4.4, 0.2, 8, 64);
-        const warpGlow1 = new THREE.Mesh(innerRingGeo, glowMat);
-        warpRing1.add(warpGlow1);
-        
-        const warpGlow2 = new THREE.Mesh(innerRingGeo, glowMat);
-        warpRing2.add(warpGlow2);
-        
-        // Soportes de los anillos
-        const supportGeo = new THREE.CylinderGeometry(0.2, 0.2, 4, 8);
-        const support1 = new THREE.Mesh(supportGeo, hullMat);
-        support1.position.set(0, 2.5, -2);
-        const support2 = new THREE.Mesh(supportGeo, hullMat);
-        support2.position.set(0, -2.5, -2);
-        const support3 = new THREE.Mesh(supportGeo, hullMat);
-        support3.position.set(0, 2.5, 2);
-        const support4 = new THREE.Mesh(supportGeo, hullMat);
-        support4.position.set(0, -2.5, 2);
-        
-        // Ensamblar nave
-        this.shipMesh.add(commandModule);
-        this.shipMesh.add(mainBody);
-        this.shipMesh.add(engModule);
-        this.shipMesh.add(mainEngine);
-        this.shipMesh.add(warpRing1);
-        this.shipMesh.add(warpRing2);
-        this.shipMesh.add(support1);
-        this.shipMesh.add(support2);
-        this.shipMesh.add(support3);
-        this.shipMesh.add(support4);
-        
-        // Escalar nave para el juego
-        this.shipMesh.scale.set(0.5, 0.5, 0.5);
-        this.shipMesh.visible = false; // Invisible por defecto
+        // Faros delanteros
+        const headLight1 = new THREE.PointLight(0xffffff, 2, 50);
+        headLight1.position.set(-2, 0, -5);
+        const headLight2 = new THREE.PointLight(0xffffff, 2, 50);
+        headLight2.position.set(2, 0, -5);
+        this.shipMesh.add(headLight1, headLight2);
         
         if (window.scene) {
             window.scene.add(this.shipMesh);
@@ -785,7 +924,11 @@ window.TITAN.GameLayer.Spacecraft = {
     },
     
     buildCockpitOverlay: function() {
-        // Interfaz de cabina HTML 2D de altísima fidelidad (Estilo Elite Dangerous / Star Citizen)
+        if (document.getElementById('cockpit-overlay')) {
+            this.cockpitOverlay = document.getElementById('cockpit-overlay');
+            return;
+        }
+        
         const overlay = document.createElement('div');
         overlay.id = 'cockpit-overlay';
         overlay.style.position = 'absolute';
@@ -827,9 +970,9 @@ window.TITAN.GameLayer.Spacecraft = {
                     <div style="width:30%; height:100%; z-index:1; border-right: 1px solid rgba(0,255,255,0.2); padding-right:15px;">
                         <h4 style="color:#0ff; font-family:'Outfit',sans-serif; margin:0 0 10px 0; font-size:12px; letter-spacing:2px; text-shadow:0 0 5px #0ff;">SHIELD DYNAMICS</h4>
                         <div style="width:100%; height:8px; background:#112; border-radius:4px; margin-bottom:5px; overflow:hidden; border:1px solid #055;">
-                            <div style="width:100%; height:100%; background:#0ff; box-shadow:0 0 10px #0ff;"></div>
+                            <div id="shield-bar-ui" style="width:100%; height:100%; background:#0ff; box-shadow:0 0 10px #0ff; transition: width 0.3s;"></div>
                         </div>
-                        <div style="font-family:monospace; color:#88a; font-size:10px;">INTEGRITY: 100%</div>
+                        <div id="integrity-text-ui" style="font-family:monospace; color:#88a; font-size:10px;">INTEGRITY: 100%</div>
                         <div style="font-family:monospace; color:#88a; font-size:10px;">GRAV-PLATING: ONLINE</div>
                     </div>
                     
@@ -1008,7 +1151,20 @@ window.TITAN.GameLayer.Spacecraft = {
             window.controls.target.copy(this.shipMesh.position).addScaledVector(forward, 10);
         }
         
-        // --- 4. INTEGRACIÓN DE ECONOMÍA Y DESCUBRIMIENTOS ---
+        // --- 4. ACTUALIZAR LÁSERES ---
+        if (this.lasers) {
+            for (let i = this.lasers.length - 1; i >= 0; i--) {
+                const laser = this.lasers[i];
+                laser.position.add(laser.userData.velocity);
+                laser.userData.life--;
+                if (laser.userData.life <= 0) {
+                    if (window.scene) window.scene.remove(laser);
+                    this.lasers.splice(i, 1);
+                }
+            }
+        }
+        
+        // --- 5. INTEGRACIÓN DE ECONOMÍA Y DESCUBRIMIENTOS ---
         const scanPos = this.shipMesh ? this.shipMesh.position : camera.position;
         window.TITAN.GameLayer.Economy.updateDebrisPhysics(scanPos);
         
@@ -1020,7 +1176,7 @@ window.TITAN.GameLayer.Spacecraft = {
             window.TITAN.GameLayer.Economy.spawnSpaceDebris(spawnPos);
         }
         
-        // --- 5. INTEGRACIÓN RPG (RADAR, NIEBLA Y UNIVERSO INFINITO) ---
+        // --- 6. INTEGRACIÓN RPG (RADAR, NIEBLA Y UNIVERSO INFINITO) ---
         window.TITAN.GameLayer.Progression.updateProgressionPhysics(scanPos);
         window.TITAN.GameLayer.UniverseGenerator.update(scanPos);
         
@@ -1032,12 +1188,30 @@ window.TITAN.GameLayer.Spacecraft = {
         if (ui && camera) {
             const apStatus = this.autoPilot ? `<span style="color:#0f0; margin-left:10px; animation: blink 2s infinite;">[AUTO-PILOT ON]</span>` : '';
             
+            let passiveText = '';
+            if (this.currentShipType === 'MULE') passiveText = 'PASIVA: Radio Recolección x3, Carga x5';
+            else if (this.currentShipType === 'VOYAGER') passiveText = 'PASIVA: Warp x2, Escáner Anomalías x3';
+            else if (this.currentShipType === 'CORSAIR') passiveText = 'PASIVA: Combustible Warp -50% | ARMAS: [F]';
+
             ui.innerHTML = `
                 VELOCIDAD: ${this.velocity.toFixed(2)} UA/s | 
                 NIVEL DE NAVE: ${this.shipLevel} ${apStatus} <br>
+                <span style="color:#ffd700; font-size:12px; font-weight:bold;">${passiveText}</span><br>
             <span style="color:#a8b2c1">CÁMARA:</span> ${this.cameraMode === '1st' ? '[1ª CABINA]' : '[3ª EXTERNA]'} (Tecla V)<br>
             COORDENADAS: [X: ${camera.position.x.toFixed(0)}, Y: ${camera.position.y.toFixed(0)}, Z: ${camera.position.z.toFixed(0)}]
             `;
+            
+            // Actualizar Cabina
+            const shieldUi = document.getElementById('shield-bar-ui');
+            if (shieldUi) {
+                shieldUi.style.width = Math.max(0, this.shield) + '%';
+                shieldUi.style.background = this.shield > 30 ? '#0ff' : '#f00';
+            }
+            const hullUi = document.getElementById('integrity-text-ui');
+            if (hullUi) {
+                hullUi.innerHTML = `INTEGRITY: ${Math.max(0, this.hull)}%`;
+                hullUi.style.color = this.hull > 30 ? '#88a' : '#f00';
+            }
         }
         
         // Actualizar SYS RADAR
