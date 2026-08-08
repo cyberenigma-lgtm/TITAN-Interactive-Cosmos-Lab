@@ -173,7 +173,8 @@ The TITAN laboratory welcomes contributions from developers, physicists, mathema
 - ✅ **[COMPLETED]** Real-time cubic ($L_\infty$), Manhattan, and spherical ($L_2$) topology panel (applied to black holes, exoplanets, and accretion disks).
 - 🚀 **[IN DEVELOPMENT]** TITAN-CRAFT Spacecraft Module (6DOF pilotable ship with inertia & physics).
 - 🎮 **[IN DEVELOPMENT]** RPG Progression Module (Discovery engine, XP system, and ship unlocking).
-- 🌌 Galactic expansion module and Local Group cluster (Andromeda M31).
+- **Multiversal Topology**: Expansion of the local macro-universe.
+- **🎮 NEW: TITAN-CRAFT (GameLayer)**: A procedural space game engine injected onto the physics simulator. Features free flight (IXS Enterprise), cockpit view (1st/3rd person), Fog of War, Discovery Radar (XP), Scrap Economy (OGame Style), Golden Mines (Multipliers), and an **Infinite Procedural Universe** powered by Chunks that generates galaxies in real-time as you travel into deep space. Group cluster (Andromeda M31).
 - 🪐 Exoplanetary atmosphere simulator and 3D spectrometry.
 - ☄️ Advanced NEO radar with mass calculation and impact probability.
 - 🪐 Persistent exosystem generator.

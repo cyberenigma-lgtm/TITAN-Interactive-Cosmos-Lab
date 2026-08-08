@@ -418,6 +418,7 @@ function showLabPanel(name, extraData = {}) {
 // Configuración básica de Three.js
 const container = document.getElementById('webgl-container');
 const scene = new THREE.Scene();
+window.scene = scene; // Exponer globalmente para TITAN.GameLayer
 
 // === Cargar Fondo de la Vía Láctea (Skybox) ===
 const milkyWayTex = new THREE.TextureLoader().load('./textures/milky_way.jpg');
@@ -4193,6 +4194,12 @@ const MS_PER_DAY = 86400000;
 
 function animate() {
     requestAnimationFrame(animate);
+    
+    // === HOOK TITAN.GameLayer (Vuelo 6DOF e interacciones) ===
+    // Se ejecuta de manera totalmente independiente al renderizado científico
+    if (window.TITAN && window.TITAN.GameLayer && window.TITAN.GameLayer.Spacecraft) {
+        window.TITAN.GameLayer.Spacecraft.updateSpacecraftPhysics(0.016, camera);
+    }
     
     // Ejecutar tareas globales (ej. Animaciones DART)
     if (window.tasksToRun && window.tasksToRun.length > 0) {
