@@ -207,7 +207,19 @@ window.TITAN.GameLayer.Economy = {
         const isHazard = rand >= 0.05 && rand < 0.20; // 15% Amenaza (Pirata / Asteroide Denso)
         
         const size = isAnomaly ? 3 : (isHazard ? 5 : (Math.random() * 2 + 1));
-        const geo = new THREE.DodecahedronGeometry(size, 0);
+        const geo = new THREE.DodecahedronGeometry(size, 1); // Detail 1 = más vértices
+        
+        // Perturbación de vértices para dar aspecto rocoso procedural
+        if (geo.attributes && geo.attributes.position) {
+            const posAttr = geo.attributes.position;
+            const vec = new THREE.Vector3();
+            for (let v = 0; v < posAttr.count; v++) {
+                vec.fromBufferAttribute(posAttr, v);
+                vec.normalize().multiplyScalar(size * (0.8 + Math.random() * 0.4));
+                posAttr.setXYZ(v, vec.x, vec.y, vec.z);
+            }
+            geo.computeVertexNormals();
+        }
         
         let mat;
         if (isAnomaly) {
@@ -220,14 +232,35 @@ window.TITAN.GameLayer.Economy = {
         
         const mesh = new THREE.Mesh(geo, mat);
         
-        if (isAnomaly) {
-            const light = new THREE.PointLight(0xffd700, 2, 50);
+        if (isAnomaly || isHazard) {
+            // Añadir luz puntual
+            const light = new THREE.PointLight(isAnomaly ? 0xffd700 : 0xff0000, 2, isAnomaly ? 50 : 20);
             mesh.add(light);
-            mesh.userData.isAnomaly = true;
-        } else if (isHazard) {
-            const light = new THREE.PointLight(0xff0000, 2, 20);
-            mesh.add(light);
-            mesh.userData.isHazard = true;
+            
+            // Generar Sistema de Partículas Orbitales (Polvo estelar o humo tóxico)
+            const pGeo = new THREE.BufferGeometry();
+            const pCount = isAnomaly ? 50 : 100;
+            const pPos = new Float32Array(pCount * 3);
+            for(let p=0; p<pCount; p++) {
+                pPos[p*3] = (Math.random() - 0.5) * size * 4;
+                pPos[p*3+1] = (Math.random() - 0.5) * size * 4;
+                pPos[p*3+2] = (Math.random() - 0.5) * size * 4;
+            }
+            pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+            const pMat = new THREE.PointsMaterial({
+                color: isAnomaly ? 0xffd700 : 0xff4400,
+                size: isAnomaly ? 0.3 : 0.5,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            const particles = new THREE.Points(pGeo, pMat);
+            
+            // Animación de las partículas se hará en el render loop a través del mesh
+            mesh.add(particles);
+            
+            if (isAnomaly) mesh.userData.isAnomaly = true;
+            if (isHazard) mesh.userData.isHazard = true;
         }
         
         mesh.position.copy(position);
@@ -280,23 +313,39 @@ window.TITAN.GameLayer.Economy = {
         
         // Venta Automática en la Estación Orbital (Tierra / [0,0,0]) - FAUCET
         const distToBase = cameraPos.length(); // Distancia al origen
-        if (distToBase < 200.0 && this.getTotalCargo() > 0) {
-            // Calcular valor en CHR (10% del valor ponderado del cargamento)
-            const valueTotal = (this.resources.Metal * 2) + (this.resources.Crystals * 3) + (this.resources.RecycledJunk * 1);
-            const chrGained = Math.floor(valueTotal * 0.1);
-            
-            // Vaciar bóveda
-            this.resources.Metal = 0;
-            this.resources.Crystals = 0;
-            this.resources.RecycledJunk = 0;
-            
-            if (chrGained > 0 && window.TITAN.TokenomicsLayer) {
-                window.TITAN.TokenomicsLayer.mintCHR(chrGained);
-                if(window.TITAN.GameLayer.Progression) {
-                    window.TITAN.GameLayer.Progression.addXP(Math.floor(chrGained * 0.5));
-                }
+        
+        // Controlar visibilidad del panel de Hangar
+        const exchangePanel = document.getElementById('exchange-panel');
+        if (distToBase < 300.0) {
+            if (exchangePanel && exchangePanel.style.display === 'none') {
+                exchangePanel.style.display = 'block';
+                if(window.logTitan) window.logTitan("📡 [ESTACIÓN ORBITAL] Acoplamiento exitoso. Red de comercio conectada.");
             }
-            this.updateUI();
+            
+            // Faucet: Vender carga si la hay
+            if (this.getTotalCargo() > 0) {
+                // Calcular valor en CHR (10% del valor ponderado del cargamento)
+                const valueTotal = (this.resources.Metal * 2) + (this.resources.Crystals * 3) + (this.resources.RecycledJunk * 1);
+                const chrGained = Math.floor(valueTotal * 0.1);
+                
+                // Vaciar bóveda
+                this.resources.Metal = 0;
+                this.resources.Crystals = 0;
+                this.resources.RecycledJunk = 0;
+                
+                if (chrGained > 0 && window.TITAN.TokenomicsLayer) {
+                    window.TITAN.TokenomicsLayer.mintCHR(chrGained);
+                    if(window.TITAN.GameLayer.Progression) {
+                        window.TITAN.GameLayer.Progression.addXP(Math.floor(chrGained * 0.5));
+                    }
+                }
+                this.updateUI();
+            }
+        } else {
+            if (exchangePanel && exchangePanel.style.display === 'block') {
+                exchangePanel.style.display = 'none';
+                if(window.logTitan) window.logTitan("📡 [ESTACIÓN ORBITAL] Saliendo del alcance de comunicaciones. Red desconectada.");
+            }
         }
         
         for (let i = this.activeDebris.length - 1; i >= 0; i--) {
@@ -569,13 +618,16 @@ window.TITAN.GameLayer.UniverseGenerator = {
         // 1 a 3 sistemas solares por chunk habitado
         const numSystems = 1 + Math.floor(this.pseudoRandom(seed++) * 3);
         const starColors = [0xffaa00, 0xff3333, 0x88ccff, 0xffffff, 0x00ffff];
+        const textureLoader = new THREE.TextureLoader();
+        const starTexture = textureLoader.load('./textures/sun.jpg');
         
         for(let i=0; i<numSystems; i++) {
             const sColor = starColors[Math.floor(this.pseudoRandom(seed++) * starColors.length)];
             const sSize = 200 + this.pseudoRandom(seed++) * 800; // Estrellas masivas
             
             const sGeo = new THREE.SphereGeometry(sSize, 32, 32);
-            const sMat = new THREE.MeshBasicMaterial({ color: sColor });
+            // La estrella usará la textura del sol, teñida con su color procedural
+            const sMat = new THREE.MeshBasicMaterial({ color: sColor, map: starTexture });
             const sMesh = new THREE.Mesh(sGeo, sMat);
             
             // Distribuir de forma pseudoaleatoria dentro del cuadrante
@@ -606,14 +658,43 @@ window.TITAN.GameLayer.UniverseGenerator = {
             
             // Generar planetas procedimentales orbitando
             const numPlanets = Math.floor(this.pseudoRandom(seed++) * 6);
+            const planetTextures = [
+                './textures/earth.jpg', './textures/mars.jpg', './textures/venus.jpg', 
+                './textures/jupiter.jpg', './textures/mercury.jpg', './textures/neptune.jpg', 
+                './textures/uranus.jpg', './textures/moon.jpg'
+            ];
+            
             for(let p=0; p<numPlanets; p++) {
                 const pColor = new THREE.Color().setHSL(this.pseudoRandom(seed++), 0.8, 0.4);
                 const pSize = 10 + this.pseudoRandom(seed++) * 50;
                 const pDist = sSize * 2.5 + this.pseudoRandom(seed++) * 3000;
                 
-                const pGeo = new THREE.SphereGeometry(pSize, 16, 16);
-                const pMat = new THREE.MeshStandardMaterial({ color: pColor, roughness: 0.8, metalness: 0.2 });
+                const pGeo = new THREE.SphereGeometry(pSize, 32, 32); // Mayor detalle
+                
+                // Elegir textura pseudo-aleatoria
+                const texPath = planetTextures[Math.floor(this.pseudoRandom(seed++) * planetTextures.length)];
+                const pTex = textureLoader.load(texPath);
+                
+                const pMat = new THREE.MeshStandardMaterial({ 
+                    map: pTex,
+                    color: pColor, // Tiñe la textura ligeramente para crear infinitas variaciones
+                    roughness: 0.8, 
+                    metalness: 0.2 
+                });
+                
                 const pMesh = new THREE.Mesh(pGeo, pMat);
+                
+                // Atmósfera (Halo Aditivo)
+                const atmoGeo = new THREE.SphereGeometry(pSize * 1.15, 32, 32);
+                const atmoMat = new THREE.MeshBasicMaterial({ 
+                    color: pColor, 
+                    transparent: true, 
+                    opacity: 0.15, 
+                    blending: THREE.AdditiveBlending,
+                    side: THREE.BackSide
+                });
+                const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
+                pMesh.add(atmoMesh);
                 
                 const angle = this.pseudoRandom(seed++) * Math.PI * 2;
                 pMesh.position.set(
