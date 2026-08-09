@@ -36,7 +36,7 @@
 <hr>
 <p align="center">
   <img src="public/screenshots/blackhole.png" width="85%" alt="Sagittarius A*" />
-  <br><em>Simulación relativista de Sagitario A* con horizonte de sucesos, disco de acreción y chorros de plasma.</em>
+  <br><em>(UI Versión Antigua) Simulación relativista de Sagitario A* con horizonte de sucesos, disco de acreción y chorros de plasma.</em>
 </p>
 
 ---
