@@ -15,27 +15,27 @@
 ## 📸 Showcase & Screenshots / Galería del Laboratorio
 
 <p align="center">
-  <img src="./public/screenshots/labos_dock.png" width="85%" alt="TITAN LabOS Environment" />
+  <img src="public/screenshots/labos_dock.png" width="85%" alt="TITAN LabOS Environment" />
   <br><em>TITAN LabOS — entorno Data Science con apps arrastrables, integración NASA CNEOS y simulador N-Cuerpos.</em>
 </p>
 <hr>
 <p align="center">
-  <img src="./public/screenshots/astrometry_mode.png" width="85%" alt="TITAN Astrometry Module" />
+  <img src="public/screenshots/astrometry_mode.png" width="85%" alt="TITAN Astrometry Module" />
   <br><em>Analizador Espectral — detecta estrellas reales del Catálogo Gaia (83.467 astros) por clic con raycasting GPU.</em>
 </p>
 <hr>
 <p align="center">
-  <img src="./public/screenshots/labos_nbody.png" width="85%" alt="TITAN N-Body Simulator" />
+  <img src="public/screenshots/labos_nbody.png" width="85%" alt="TITAN N-Body Simulator" />
   <br><em>Simulador N-Cuerpos — espaguetización, chorros de plasma y destrucción de horizonte de sucesos en tiempo real.</em>
 </p>
 <hr>
 <p align="center">
-  <img src="./public/screenshots/full_activation.png" width="85%" alt="TITAN Full Activation" />
+  <img src="public/screenshots/full_activation.png" width="85%" alt="TITAN Full Activation" />
   <br><em>Activación completa — 83.467 estrellas reales HYG/Gaia, Vía Láctea volumétrica, Telaraña Cósmica y sistema solar keplerian.</em>
 </p>
 <hr>
 <p align="center">
-  <img src="./public/screenshots/blackhole.png" width="85%" alt="Sagittarius A*" />
+  <img src="public/screenshots/blackhole.png" width="85%" alt="Sagittarius A*" />
   <br><em>Simulación relativista de Sagitario A* con horizonte de sucesos, disco de acreción y chorros de plasma.</em>
 </p>
 
