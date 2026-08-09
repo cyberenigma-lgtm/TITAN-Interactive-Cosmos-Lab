@@ -494,7 +494,7 @@ function fetchGalaxias() {
         const puntos = new THREE.Points(geo, mat);
         window.ourUniverse.add(puntos);
     })
-    .catch(e => console.error("Error cargando universo", e));
+    .catch(e => console.warn("Modo standalone (sin servidor local): Universo extendido no cargado.", e.message));
 }
 fetchGalaxias();
 
@@ -4225,7 +4225,7 @@ let realStarsData = [];
 // Fetch Knowledge Base
 fetch('/api/knowledge').then(r => r.json()).then(data => {
     astroKnowledge = data;
-}).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Knowledge fetch error: ${e.message}`); });
+}).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Knowledge no disponible (Modo estático).`); });
 
 const starsInstancedMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 const starsInstancedGeo = new THREE.SphereGeometry(0.15, 4, 4);
