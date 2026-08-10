@@ -33,7 +33,8 @@ Gracias a la inyección directa en memoria gráfica (Instancing), TITAN desvincu
 | :--- | :---: | :---: | :---: |
 | **PC Antiguo (Dual Core, 4GB RAM, Gráfica Integrada HD)** | ~3.000 estrellas (Lag severo) | **~85.000 estrellas (60 FPS fluidos)** | **+2.700%** |
 | **PC Gama Media (i5, 8GB RAM, GTX 1060 o similar)** | ~15.000 estrellas (Límite Draw Calls) | **~1.500.000 estrellas (Sin caídas)** | **+10.000%** |
-| **PC Gama Alta / Workstation (RTX 3080/4090)** | ~60.000 estrellas (Cuello de botella CPU) | **> 15.000.000 estrellas (Límite VRAM)** | **Absoluto** |
+| **PC de Desarrollo (GEEKOM GT1 Ultra 9 - Máquina Creadora)** | ~25.000 estrellas (Cuello botella CPU) | **> 5.000.000 estrellas (60 FPS)** | **+20.000%** |
+| **Workstation Gama Alta (RTX 3080/4090)** | ~60.000 estrellas (Cuello botella CPU) | **> 15.000.000 estrellas (Límite VRAM)** | **Absoluto** |
 
 > *Nota: Un motor 3D clásico dibuja cada estrella pidiendo permiso a la CPU una por una (creando un Cuello de Botella / Draw Call Bottleneck). TITAN empaqueta todo el catálogo galáctico en una única matriz matemática gigante y la envía de un solo golpe a la GPU, puenteando las limitaciones del procesador central.*
 
