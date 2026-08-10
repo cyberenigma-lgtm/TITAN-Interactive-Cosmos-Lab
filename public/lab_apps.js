@@ -16,6 +16,52 @@ window.LabOS = {
     dragPlane: null,
     intersection: null,
     offset: null,
+    eclipsesData: [],
+
+    loadEclipses: function() {
+        fetch('./data/eclipses.json')
+        .then(r => r.json())
+        .then(data => {
+            this.eclipsesData = data;
+            this.renderEclipsesList();
+        })
+        .catch(e => {
+            const list = document.getElementById('eclipses-list');
+            if(list) list.innerHTML = '<div style="text-align:center; color:#ff8888;">Error cargando eclipses.json</div>';
+        });
+    },
+
+    renderEclipsesList: function() {
+        const container = document.getElementById('eclipses-list');
+        if (!container) return;
+        container.innerHTML = '';
+        this.eclipsesData.forEach(eclipse => {
+            const btn = document.createElement('div');
+            btn.style.padding = '8px';
+            btn.style.background = 'rgba(70,110,150,0.1)';
+            btn.style.border = '1px solid rgba(70,110,150,0.3)';
+            btn.style.cursor = 'pointer';
+            btn.style.borderRadius = '5px';
+            btn.innerHTML = `
+                <div style="font-weight:bold; color:#fff; font-size:12px;">${eclipse.name}</div>
+                <div style="font-size:10px; color:#7ab2d6;">Fecha: ${new Date(eclipse.date).toLocaleDateString()}</div>
+                <div style="font-size:9px; color:#a0c4d9; margin-top:3px;">${eclipse.desc}</div>
+            `;
+            btn.onmouseover = () => btn.style.background = 'rgba(70,110,150,0.3)';
+            btn.onmouseout = () => btn.style.background = 'rgba(70,110,150,0.1)';
+            btn.onclick = () => this.triggerEclipse(eclipse);
+            container.appendChild(btn);
+        });
+    },
+
+    triggerEclipse: function(eclipse) {
+        if(window.logTitan) window.logTitan(`[ECLIPSES] Sincronizando efemérides para: ${eclipse.name}`);
+        if (window.triggerEclipseSync) {
+            window.triggerEclipseSync(eclipse);
+        } else {
+            console.warn("space_engine.js no está listo para eclipses.");
+        }
+    },
 
     init: function() {
         if (typeof THREE !== 'undefined') {
@@ -45,6 +91,9 @@ window.LabOS = {
 
         // Start Physics Hook
         this.physicsLoop();
+        
+        // Cargar datos de eclipses
+        this.loadEclipses();
     },
 
     toggleApp: function(appId) {

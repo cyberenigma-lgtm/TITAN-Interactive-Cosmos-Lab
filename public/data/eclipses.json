@@ -1,0 +1,82 @@
+﻿[
+    {
+        "id": "solar_2026",
+        "name": "Eclipse Solar Total (España)",
+        "type": "solar",
+        "date": "2026-08-12T17:45:00Z",
+        "duration": "2m 18s",
+        "desc": "Visible en Groenlandia, Islandia y España.",
+        "lat": 42.8581,
+        "lon": -1.6866
+    },
+    {
+        "id": "lunar_2026",
+        "name": "Eclipse Lunar Total",
+        "type": "lunar",
+        "date": "2026-03-03T11:34:00Z",
+        "duration": "58m",
+        "desc": "Visible en América, Asia y Australia.",
+        "lat": 19.4326,
+        "lon": -99.1332
+    },
+    {
+        "id": "solar_2027",
+        "name": "Eclipse Solar Total (África)",
+        "type": "solar",
+        "date": "2027-08-02T10:07:00Z",
+        "duration": "6m 23s",
+        "desc": "Visible en el Norte de África y Oriente Medio.",
+        "lat": 25.6989,
+        "lon": 32.6421
+    },
+    {
+        "id": "lunar_2028",
+        "name": "Eclipse Lunar Total",
+        "type": "lunar",
+        "date": "2028-12-31T16:53:00Z",
+        "duration": "1h 11m",
+        "desc": "Visible en Europa, África y Asia.",
+        "lat": 40.4168,
+        "lon": -3.7038
+    },
+    {
+        "id": "solar_2028",
+        "name": "Eclipse Solar Total (Australia)",
+        "type": "solar",
+        "date": "2028-07-22T02:56:00Z",
+        "duration": "5m 10s",
+        "desc": "Visible en Australia y Nueva Zelanda.",
+        "lat": -33.8688,
+        "lon": 151.2093
+    },
+    {
+        "id": "solar_2030",
+        "name": "Eclipse Solar Total (Sudáfrica)",
+        "type": "solar",
+        "date": "2030-11-25T06:51:00Z",
+        "duration": "3m 44s",
+        "desc": "Visible en el sur de África y Océano Índico.",
+        "lat": -29.8587,
+        "lon": 31.0218
+    },
+    {
+        "id": "lunar_2032",
+        "name": "Eclipse Lunar Total",
+        "type": "lunar",
+        "date": "2032-04-25T15:14:00Z",
+        "duration": "1h 5m",
+        "desc": "Visible en Asia y Australia.",
+        "lat": 35.6762,
+        "lon": 139.6503
+    },
+    {
+        "id": "solar_2033",
+        "name": "Eclipse Solar Total (Alaska)",
+        "type": "solar",
+        "date": "2033-03-30T18:02:00Z",
+        "duration": "2m 37s",
+        "desc": "Visible en Alaska y Rusia.",
+        "lat": 61.2181,
+        "lon": -149.9003
+    }
+]

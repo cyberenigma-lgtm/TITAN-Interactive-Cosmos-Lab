@@ -4264,6 +4264,82 @@ fetch('/api/galaxias').then(r => r.json()).then(data => {
     scene.add(starsInstancedMesh);
 }).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Galaxias fetch error: ${e.message}`); });
 
+// === MÓDULO ECLIPSES (EPHEMERIS OVERRIDE) ===
+window.eclipseSyncData = null;
+window.triggerEclipseSync = function(eclipse) {
+    const targetDate = new Date(eclipse.date);
+    const targetMs = targetDate.getTime();
+    
+    // Set time to the eclipse time using the native function
+    if (typeof applyEngineTime === 'function') {
+        applyEngineTime(targetMs);
+    } else {
+        engineTime = targetMs;
+    }
+    
+    const targetDays = targetMs / MS_PER_DAY;
+    
+    window.eclipseSyncData = {
+        type: eclipse.type,
+        targetDays: targetDays
+    };
+    
+    // Update the UI date display immediately
+    updateTimelineUI();
+    
+    // REDUCE SIMULATION SPEED TO 0.05x so the eclipse doesn't end immediately
+    timeSpeed = 0.05;
+    originalTimeSpeed = 0.05;
+    const speedUI = document.getElementById('speed-display');
+    if (speedUI) speedUI.innerText = "0.1x"; // Lowest UI shows usually
+    const slider = document.getElementById('speed-slider');
+    if (slider) slider.value = 0.5;
+
+    // Stellarium Mode: Land on Earth at eclipse coordinates
+    if (window.Planetarium && eclipse.lat !== undefined && eclipse.lon !== undefined) {
+        // Wait a frame for physics to update
+        setTimeout(() => {
+            // Open planetarium UI just in case it needs to be visible
+            const pUI = document.getElementById('planetarium-ui');
+            if (pUI) pUI.style.display = 'block';
+            
+            window.Planetarium.executeLanding({
+                name: eclipse.name,
+                lat: eclipse.lat,
+                lon: eclipse.lon
+            });
+            
+            // Look up at the sky (Zenith)
+            window.Planetarium.lat = 90;
+            window.Planetarium.lon = 0;
+            if (typeof window.Planetarium.updateCameraLook === 'function') {
+                window.Planetarium.updateCameraLook();
+            }
+            
+            if(window.logTitan) window.logTitan(`[SISTEMA] Stellarium mode activado para eclipse. Lat: ${eclipse.lat}, Lon: ${eclipse.lon}`);
+        }, 100);
+    } else {
+        // Fallback: Focus camera on Earth from space
+        const earth = planets.find(p => p.data && p.data.name === "Tierra");
+        if (earth) {
+            if(window.LabOS && window.LabOS.offset) window.LabOS.offset.set(0, 0, 0); // reset offset
+            setTimeout(() => {
+                const eWorld = new THREE.Vector3();
+                earth.mesh.getWorldPosition(eWorld);
+                
+                if (eclipse.type === 'solar') {
+                    camera.position.set(eWorld.x + 3, eWorld.y + 0.2, eWorld.z - 3);
+                } else {
+                    camera.position.set(eWorld.x - 3, eWorld.y + 0.2, eWorld.z + 3);
+                }
+                controls.target.copy(eWorld);
+                
+                if(window.logTitan) window.logTitan(`[SISTEMA] Sincronización efemérides completada. Fecha: ${targetDate.toLocaleDateString()}`);
+            }, 100);
+        }
+    }
+};
+
 // === ANIMACIÓN FLUIDA WEBGL ===
 const tempV = new THREE.Vector3();
 
@@ -4493,7 +4569,23 @@ function animate() {
             if (p.moonOrbits) {
                 p.moonOrbits.forEach(moon => {
                     moon.group.position.x = p.mesh.position.x;
-                    moon.group.rotation.y = (daysSinceEpoch / moon.speed) * Math.PI * 2;
+                    let phaseAngle = (daysSinceEpoch / moon.speed) * Math.PI * 2;
+                    
+                    // Sobrescritura Efemérides (Eclipses)
+                    if (window.eclipseSyncData && p.data.name === "Tierra") {
+                        const daysToEclipse = Math.abs(daysSinceEpoch - window.eclipseSyncData.targetDays);
+                        if (daysToEclipse < 2) {
+                            // Target angle: PI para Solar (entre Tierra y Sol), 0 para Lunar (detrás de la Tierra)
+                            const targetAngle = window.eclipseSyncData.type === 'solar' ? Math.PI : 0;
+                            const blend = Math.max(0, 1.0 - (daysToEclipse / 2));
+                            
+                            // Interpolación angular
+                            const diff = (targetAngle - phaseAngle) % (Math.PI * 2);
+                            phaseAngle = phaseAngle + diff * blend;
+                        }
+                    }
+                    
+                    moon.group.rotation.y = phaseAngle;
                 });
             }
             

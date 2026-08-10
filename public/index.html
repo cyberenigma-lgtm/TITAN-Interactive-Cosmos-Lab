@@ -916,6 +916,10 @@
             <span style="font-size:24px;">✨</span>
             <span style="font-size:9px; font-weight:bold;">CREADOR</span>
         </button>
+        <button onclick="LabOS.toggleApp('app-eclipses')" style="background:none; border:none; color:#7ab2d6; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" title="Eventos y Eclipses">
+            <span style="font-size:24px;">🌘</span>
+            <span style="font-size:9px; font-weight:bold;">ECLIPSES</span>
+        </button>
     </div>
 
     <!-- APP 1: Simulador N-Cuerpos -->
@@ -986,6 +990,19 @@
             </select>
         </div>
         <button onclick="LabOS.spawnMatter()" style="width:100%; padding:8px; margin-bottom:10px; cursor:pointer; background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.5); color:#00ff88;">🚀 INYECTAR MATERIA</button>
+    </aside>
+
+    <!-- APP 5: Eclipses y Eventos -->
+    <aside id="app-eclipses" class="glass-card panel-draggable lab-panel" style="display:none; position:absolute; top:10rem; left:25rem; width:350px; z-index:150;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(70,110,150,0.3); padding-bottom:5px; margin-bottom:10px;">
+            <h3 class="drag-handle" style="margin:0; border:none; padding:0;">🌘 ECLIPSES & EVENTOS</h3>
+            <button onclick="LabOS.closeApp('app-eclipses')" style="background:none; border:none; color:#7ab2d6; cursor:pointer;">❌</button>
+        </div>
+        <div style="font-size:10px; color:#a0c4d9; margin-bottom:10px;">Sincronización orbital forzada para visualización de eventos astronómicos reales (2026-2036).</div>
+        
+        <div id="eclipses-list" style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+            <div style="text-align:center; color:#7ab2d6; font-size:11px; padding:10px;">Cargando catálogo astronómico...</div>
+        </div>
     </aside>
 
     <script src="lab_apps.js"></script>

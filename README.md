@@ -12,6 +12,18 @@
 
 ---
 
+## ⚡ Technical Marvels / Hitos Técnicos (Highlights)
+
+> [!TIP]
+> **El motor TITAN está diseñado para lograr el máximo rendimiento científico en navegadores web estándar sin requerir descargas pesadas.**
+
+- 🌌 **Volumen Estelar:** Renderizado de **83.467 estrellas reales** (Catálogo HYG/ESA Gaia) simuladas como una nube de puntos masiva por GPU, cada una con su clase espectral real y temperatura termodinámica.
+- 🪶 **Ultra-Ligero (Micro-Engine):** Todo el núcleo matemático, motor 3D de físicas (gravedad N-Cuerpos, óptica relativista) y lógica de interfaz ocupa **menos de 400 KB** de código JavaScript puro, sin necesidad de pesados *frameworks*.
+- 🌘 **Sincronización de Efemérides (Modo Stellarium):** Transiciones fluidas y automáticas desde la órbita hasta la superficie de la Tierra, con posicionamiento de cámara auto-calculado (latitud/longitud) para presenciar **eventos astronómicos y eclipses en tiempo exacto (2026-2036)**.
+- 🚀 **Cero Dependencias de Servidor (Client-Side Only):** Funciona al 100% de manera autónoma (`standalone`) en cualquier entorno web estático (como GitHub Pages) al procesar la computación directamente en el cliente, diferenciándolo radicalmente de motores de escritorio que requieren GBs de memoria (como *SpaceEngine* o *Universe Sandbox*).
+
+---
+
 ## 📸 Showcase & Screenshots / Galería del Laboratorio
 
 <p align="center">
