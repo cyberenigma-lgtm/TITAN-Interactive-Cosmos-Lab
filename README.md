@@ -36,7 +36,10 @@ Gracias a la inyección directa en memoria gráfica (Instancing), TITAN desvincu
 | **PC de Desarrollo (GEEKOM GT1 Ultra 9 - Máquina Creadora)** | ~25.000 estrellas (Cuello botella CPU) | **> 5.000.000 estrellas (60 FPS)** | **+20.000%** |
 | **Workstation Gama Alta (RTX 3080/4090)** | ~60.000 estrellas (Cuello botella CPU) | **> 15.000.000 estrellas (Límite VRAM)** | **Absoluto** |
 
-> *Nota: Un motor 3D clásico dibuja cada estrella pidiendo permiso a la CPU una por una (creando un Cuello de Botella / Draw Call Bottleneck). TITAN empaqueta todo el catálogo galáctico en una única matriz matemática gigante y la envía de un solo golpe a la GPU, puenteando las limitaciones del procesador central.*
+> **Arquitectura de Inversión de Roles (Role Inversion) - Explicación Técnica:**  
+> En un motor 3D clásico, el procesador (CPU) asume el rol principal de enviar órdenes individuales a la tarjeta gráfica (GPU) por cada objeto en pantalla. Si hay 83.467 estrellas, la CPU debe generar **83.467 Draw Calls** (peticiones de dibujado) por fotograma. Este rol tradicional crea un cuello de botella masivo donde la CPU llega al 100% de uso mientras la GPU espera ociosa, colapsando los FPS.
+> 
+> **La solución de TITAN:** Aplicamos una **Inversión de Roles**. La CPU transfiere todo el peso matemático a la GPU mediante matrices pre-compiladas (Instancing). En lugar de 83.467 peticiones, TITAN comprime todo el catálogo estelar en un único paquete matricial (Float32Array) generando **1 solo Draw Call**. El cuello de botella desaparece porque la GPU (diseñada para cálculo paralelo masivo) asume el rol de procesar las 83.467 entidades de forma simultánea, dejando a la CPU libre para calcular las físicas de agujeros negros.
 
 ---
 
