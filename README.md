@@ -15,12 +15,15 @@
 ## ⚡ Technical Marvels / Hitos Técnicos (Highlights)
 
 > [!TIP]
-> **El motor TITAN está diseñado para lograr el máximo rendimiento científico en navegadores web estándar sin requerir descargas pesadas.**
+> **TITAN no es un motor gráfico genérico; es un "Apocalypse Engine" matemático diseñado específicamente para simulaciones cosmológicas y termodinámicas de altísimo rendimiento.**
 
-- 🌌 **Volumen Estelar:** Renderizado de **83.467 estrellas reales** (Catálogo HYG/ESA Gaia) simuladas como una nube de puntos masiva por GPU, cada una con su clase espectral real y temperatura termodinámica.
-- 🪶 **Ultra-Ligero (Micro-Engine):** Todo el núcleo matemático, motor 3D de físicas (gravedad N-Cuerpos, óptica relativista) y lógica de interfaz ocupa **menos de 400 KB** de código JavaScript puro, sin necesidad de pesados *frameworks*.
-- 🌘 **Sincronización de Efemérides (Modo Stellarium):** Transiciones fluidas y automáticas desde la órbita hasta la superficie de la Tierra, con posicionamiento de cámara auto-calculado (latitud/longitud) para presenciar **eventos astronómicos y eclipses en tiempo exacto (2026-2036)**.
-- 🚀 **Cero Dependencias de Servidor (Client-Side Only):** Funciona al 100% de manera autónoma (`standalone`) en cualquier entorno web estático (como GitHub Pages) al procesar la computación directamente en el cliente, diferenciándolo radicalmente de motores de escritorio que requieren GBs de memoria (como *SpaceEngine* o *Universe Sandbox*).
+- 🌌 **Volumen Estelar Extremo:** Renderizado de **83.467 estrellas reales** (Catálogo HYG/ESA Gaia) procesadas íntegramente por GPU como una nube de puntos masiva (Instanced/Point Cloud). Cada estrella brilla con su color termodinámico exacto según su clase espectral astronómica.
+- ⚙️ **Arquitectura Dual (Motor + Driver):** 
+  - **TITAN Engine (La Lógica):** Pesa **solo ~390 KB**. Es un motor puramente matemático (escrito en Vanilla JS) que calcula Gravedad N-Cuerpos, Métrica Tensorial, Óptica Relativista (Agujeros Negros) y Sincronización Ephemeris.
+  - **Graphic Driver (El Renderizador):** Utiliza **WebGL 2.0 (via Three.js r128)**, que suma unos **~600 KB** (minificado).
+  - **Peso Total:** ¡Todo el laboratorio espacial ocupa **menos de 1 MB**!
+- 🌘 **Modo Stellarium & Efemérides Reales:** Transiciones inmersivas desde la órbita hasta la superficie de la Tierra, con posicionamiento de cámara auto-calculado (Lat/Lon) y apuntado Cenital para presenciar **eventos astronómicos y eclipses históricos en su instante de tiempo exacto**.
+- 🚀 **Cero Dependencias de Servidor (Client-Side Computing):** Al contrario que *SpaceEngine* o *Universe Sandbox*, TITAN no requiere descargas de gigabytes ni servidores con bases de datos. Ejecuta todos sus algoritmos matriciales localmente en el navegador (`standalone`), haciéndolo 100% compatible con hostings estáticos como GitHub Pages.
 
 ---
 
