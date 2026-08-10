@@ -84,9 +84,20 @@ TITAN permite visualizar fenómenos astronómicos complejos, estudiar estructura
 
 ---
 
-### 🤝 3. Colaboración Abierta
+### 🤝 3. Colaboración Abierta & Mejoras Propuestas (¡Construido en 72h!)
 
-- 💡 [Crear Propuesta de Función](https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab/issues/new)
+> [!WARNING]  
+> **Aviso de Fase Temprana (Early Stage):** Todo este laboratorio, sus físicas y su arquitectura matemática han sido conceptualizados y construidos en **menos de 72 horas**. Aunque el rendimiento es excepcional, el código fuente aún está "muy verde" a nivel de refactorización.
+
+Dado que es un proyecto de prototipado hiper-rápido, hay muchísimo margen de mejora y **toda ayuda de la comunidad open-source es bienvenida**. Aquí hay algunas áreas clave donde puedes contribuir:
+
+#### 🛠️ Áreas de Mejora (Good First Issues)
+1. **Refactorización del Motor (`space_engine.js`):** El motor principal es un monolito gigante debido a la velocidad de desarrollo. Dividir las físicas, la óptica relativista y la lógica de renderizado en submódulos independientes sería increíble.
+2. **Soporte Táctil (Mobile):** Actualmente el *Raycasting* (selección de estrellas) y los controles orbitales están optimizados para ratón/PC.
+3. **Expansión de Datos Científicos:** Conectar la API de Exoplanetas de la NASA para renderizar sistemas planetarios alienígenas alrededor de las estrellas Gaia.
+4. **Shaders de Atmósfera Atmosférica:** Mejorar el *scattering* de Rayleigh y Mie en las atmósferas planetarias mediante GLSL puro para mayor realismo sin impacto de rendimiento.
+
+- 💡 **[Crear Propuesta de Función o Reportar Bug](https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab/issues/new)**
 
 ---
 
