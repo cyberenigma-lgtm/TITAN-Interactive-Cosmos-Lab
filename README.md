@@ -289,9 +289,6 @@ http://localhost:8080
 
 ## 🏆 Ránking Global de Pilotos (En Vivo)
 <!-- RANKING_START -->
-| Rango | Callsign (Piloto) | Nivel | Experiencia (XP) |
-| :---: | :--- | :---: | :---: |
-| 🥇 | **Piloto_2823** | 2 | 1742 |
-| 🥈 | **cyberenigma-lgt** | 1 | 150 |
+¡El universo está vacío! Juega a TITAN-CRAFT y sé el primero en dejar tu huella.
 
 <!-- RANKING_END -->
