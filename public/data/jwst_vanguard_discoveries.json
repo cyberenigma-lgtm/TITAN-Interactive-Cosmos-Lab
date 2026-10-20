@@ -1,0 +1,122 @@
+{
+  "simulation_epoch": "J2000.0",
+  "source": "NASA/ESA/CSA JWST & ESO Science Archives - Integrated by TITAN Lab",
+  "objects": [
+    {
+      "id": "JADES-GS-z14-0",
+      "name": "JADES-GS-z14-0 (Galaxia Más Lejana del Universo)",
+      "type": "high_redshift_galaxy",
+      "constellation": "Fornax",
+      "coordinates": {
+        "ra_hms": "03h 32m 36.89s",
+        "dec_dms": "-27d 46m 49.33s",
+        "ra_decimal_deg": 53.153708,
+        "dec_decimal_deg": -27.780369
+      },
+      "astrophysics": {
+        "redshift_z": 14.32,
+        "light_travel_time_ly": 13428000000,
+        "comoving_distance_ly": 33844000000,
+        "physical_radius_ly": 1600,
+        "apparent_magnitude_ab": 28.6,
+        "metallicity_indicator": "oxygen_rich_gas",
+        "cosmic_dawn_myr": 290
+      },
+      "description": "La galaxia confirmada más distante y antigua del cosmos descubierta por el Telescopio James Webb (JWST). Su luz fue emitida solo 290 millones de años tras el Big Bang durante el Amanecer Cósmico."
+    },
+    {
+      "id": "Cha_1107-7626",
+      "name": "Cha 1107-7626 (Planeta Errante Hiperactivo)",
+      "type": "rogue_planet_active_accretion",
+      "constellation": "Chamaeleon",
+      "coordinates": {
+        "ra_hms": "11h 07m 07.68s",
+        "dec_dms": "-76d 26m 32.60s",
+        "ra_decimal_deg": 166.782000,
+        "dec_decimal_deg": -76.442389
+      },
+      "kinematics_and_mass": {
+        "distance_parsecs": 190.1,
+        "distance_ly": 620,
+        "mass_jupiters": 7.5,
+        "estimated_age_myr": 1.5,
+        "accretion_rate_tons_per_sec": 6000000000.0,
+        "accretion_rate_kg_per_sec": 6000000000000.0
+      },
+      "description": "Planeta huérfano sin estrella madre descubierto por el ESO, devorando gas y polvo de su disco circumplanetario a un ritmo récord de 6.000 millones de toneladas por segundo. Masa de 7.5 Júpiteres."
+    },
+    {
+      "id": "T_Coronae_Borealis",
+      "name": "T Coronae Borealis (Nova Recurrente)",
+      "type": "recurrent_nova_binary",
+      "constellation": "Corona Borealis",
+      "coordinates": {
+        "ra_hms": "15h 59m 30.16s",
+        "dec_dms": "+25d 55m 12.60s",
+        "ra_decimal_deg": 239.875667,
+        "dec_decimal_deg": 25.920167
+      },
+      "kinematics_and_mass": {
+        "distance_ly": 2986,
+        "radial_velocity_km_s": -27.79,
+        "parallax_mas": 1.092,
+        "magnitude_quiescent": 10.8,
+        "magnitude_peak_forecast": 2.0
+      },
+      "description": "Sistema binario cataclísmico compuesto por una gigante roja y una enana blanca masiva. Erupciones termonucleares periódicas (~80 años) que elevan su brillo de magnitud +10.8 a +2.0 (visible a simple vista)."
+    },
+    {
+      "id": "Ophiuchus_Rogue_Population_Center",
+      "name": "Población de Planetas Errantes (Ofiuco-Escorpión)",
+      "type": "free_floating_planet_cluster",
+      "constellation": "Ophiuchus/Scorpius",
+      "coordinates": {
+        "ra_hms": "16h 25m 00.00s",
+        "dec_dms": "-24d 00m 00.00s",
+        "ra_decimal_deg": 246.250000,
+        "dec_decimal_deg": -24.000000
+      },
+      "astrophysics": {
+        "mean_distance_ly": 420,
+        "estimated_population_count": 115,
+        "mass_range_jupiter": "1.0-13.0"
+      },
+      "description": "La mayor colección de planetas errantes de masa joviana descubierta en la Vía Láctea: entre 70 y 170 mundos gigantes vagando juntos libremente por el medio interestelar sin ligadura gravitatoria."
+    },
+    {
+      "id": "Abell_370_JWST_Lens",
+      "name": "Abell 370 (Lente Gravitacional & 44 Estrellas)",
+      "type": "gravitational_lens_cluster",
+      "constellation": "Cetus",
+      "coordinates": {
+        "ra_hms": "02h 39m 50.52s",
+        "dec_dms": "-01d 35m 07.90s",
+        "ra_decimal_deg": 39.9605,
+        "dec_decimal_deg": -1.5855
+      },
+      "astrophysics": {
+        "distance_ly": 6500000000,
+        "redshift_z": 0.375,
+        "star_count_lensed": 44
+      },
+      "description": "Cúmulo de galaxias cuya curvatura relativista actúa como lente cósmica de aumento, revelando 44 estrellas individuales magnificadas a 6.500 millones de años luz descubiertas por el James Webb."
+    },
+    {
+      "id": "Pulsar_716Hz_SgrA",
+      "name": "Púlsar Milisegundo 716 Hz (Centro Galáctico)",
+      "type": "ultrafast_pulsar",
+      "constellation": "Sagittarius",
+      "coordinates": {
+        "ra_decimal_deg": 266.4168,
+        "dec_decimal_deg": -29.0078
+      },
+      "astrophysics": {
+        "distance_ly": 26000,
+        "rotation_hz": 716.0,
+        "period_sec": 0.001395,
+        "equatorial_speed_c": 0.24
+      },
+      "description": "Estrella de neutrones ultradensa girando a 716 revoluciones por segundo en el núcleo galáctico cerca de Sagitario A*, emitiendo haces colimados de sincrotrón a 0.24 c."
+    }
+  ]
+}

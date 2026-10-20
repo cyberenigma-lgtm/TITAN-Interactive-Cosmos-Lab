@@ -467,242 +467,745 @@ const gridHelper = new THREE.GridHelper(2000, 100, 0x2a3a4a, 0x222222);
 gridHelper.visible = false;
 scene.add(gridHelper);
 
-// === CATÁLOGO DE GALAXIAS REALES ===
-const cellSize = 10;
-function fetchGalaxias() {
-    fetch('http://localhost:8080/api/galaxias')
-    .then(r => r.json())
-    .then(data => {
-        const geo = new THREE.BufferGeometry();
-        const pos = [];
-        data.forEach(g => {
-            // "g" ya contiene las coordenadas INMENSAS del universo (raw_x, raw_y, raw_z)
-            // Ya no están apretadas en las 15 celdas del panal.
-            // Sumamos 75 para centrarlas respecto al sistema solar
-            pos.push(g.x + 75, g.y + 75, g.z + 75); 
-        });
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-        
-        const mat = new THREE.PointsMaterial({ 
-            color: 0x00f0ff, 
-            size: 20, 
-            transparent: true, 
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending 
-        });
-        
-        const puntos = new THREE.Points(geo, mat);
-        window.ourUniverse.add(puntos);
-    })
-    .catch(e => console.warn("Modo standalone (sin servidor local): Universo extendido no cargado.", e.message));
-}
-fetchGalaxias();
+// === CATÁLOGO HIPPARCOS & BÓVEDA CELESTE (DATOS ASTRONÓMICOS REALES) ===
+// Eliminado el catálogo arcaico de puntos cian que generaba cuadros flotantes obsoletos.
+// Ahora todo el firmamento se rige por la Bóveda Celeste Hipparcos (61.804 estrellas reales)
+// proyectada a R = 45.000 u con shaders gaussianos físicos y catálogo SIMBAD fotorrealista.
 
 let skyboxSphere;
 // === ESPACIO PROFUNDO (STELLARIUM MODE) ===
 // El skybox JPG estático fue eliminado. Ahora el fondo es 100% generado
 // matemáticamente por datos astronómicos puros (Hipparcos, Galaxia Volumétrica 1M y ZOA).
-// === CATÁLOGO HIPPARCOS (DATOS REALES) ===
+// === CATÁLOGO HIPPARCOS & BÓVEDA CELESTE (DATOS REALES) ===
 const hipparcosGroup = new THREE.Group();
 window.ourUniverse.add(hipparcosGroup);
+window.hipparcosGroup = hipparcosGroup;
 
+window.simbadGroup = new THREE.Group();
+window.ourUniverse.add(window.simbadGroup);
+window.namedStars = [];
+window.gaiaStarsData = [];
+window.vanguardObjects = {};
+
+// 1. Carga de la Bóveda Celeste Hipparcos (61.804 Estrellas Reales a R = 45.000 u)
 fetch('./data/hipparcos.json')
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+    })
     .then(data => {
-        // data es [x,y,z, r,g,b, x,y,z, r,g,b...]
         const numStars = data.length / 6;
         const positions = new Float32Array(numStars * 3);
         const colors = new Float32Array(numStars * 3);
+        const sizes = new Float32Array(numStars);
         
-        let j = 0;
-        let c = 0;
+        let j = 0; let c = 0; let sIdx = 0;
         for (let i = 0; i < data.length; i += 6) {
-            // Escalar posiciones (1 parsec = 10 unidades para que quepa bien en el motor)
-            positions[j++] = 75 + data[i] * 10;
-            positions[j++] = 75 + data[i+1] * 10;
-            positions[j++] = 75 + data[i+2] * 10;
+            // Coordenadas ya calibradas exactamente en la esfera celeste (R = 45.000 u)
+            positions[j++] = 75 + data[i];
+            positions[j++] = 75 + data[i+1];
+            positions[j++] = 75 + data[i+2];
             
             colors[c++] = data[i+3];
             colors[c++] = data[i+4];
             colors[c++] = data[i+5];
+
+            // Brillo perceptivo según luminancia RGB
+            const lum = data[i+3] * 0.299 + data[i+4] * 0.587 + data[i+5] * 0.114;
+            sizes[sIdx++] = Math.max(1.8, lum * 3.6);
         }
         
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
         
-        const mat = new THREE.PointsMaterial({
-            size: 0.8,
-            vertexColors: true,
+        // Shader Estelar Cinemático Fotorrealista: Circular Gaussiano (0% Cuadros) con Scintillation
+        const mat = new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 } },
+            vertexShader: `
+                attribute float size;
+                varying vec3 vColor;
+                uniform float uTime;
+                void main() {
+                    vColor = color;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    // Suave centelleo estelar térmico cinemático (Scintillation)
+                    float twinkle = sin(uTime * 3.5 + position.x * 0.05 + position.y * 0.05) * 0.18 + 0.82;
+                    gl_PointSize = size * twinkle;
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vColor;
+                void main() {
+                    float r = length(gl_PointCoord - vec2(0.5)) * 2.0;
+                    if (r > 1.0) discard;
+                    // Núcleo hiperbrillante Airy disc + corona suave difusa
+                    float core = exp(-r * r * 5.0);
+                    float corona = exp(-r * 2.2) * 0.45;
+                    float alpha = core + corona;
+                    gl_FragColor = vec4(vColor, alpha * 0.95);
+                }
+            `,
             transparent: true,
-            opacity: 0.9,
-            sizeAttenuation: true
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            vertexColors: true
         });
         
         const points = new THREE.Points(geo, mat);
-        FX.ApplyVolumetric(points, 0.8); // Inyectar textura esférica procedimental y HDR Bloom
         hipparcosGroup.add(points);
-        logTitan(`Cargadas ${numStars} estrellas del Catálogo Hipparcos.`);
-        
-        // === ZOA EXTRAPOLATION (Masa Faltante) ===
-        const zoaStars = 80000; // Densidad aumentada para rellenar visiblemente el hueco
-        const zoaPositions = new Float32Array(zoaStars * 3);
-        const zoaColors = new Float32Array(zoaStars * 3);
-        let zi = 0; let zc = 0;
-        for(let i=0; i<zoaStars; i++) {
-            // Generar disco denso para rellenar el hueco ecuatorial galáctico
-            // Distribución gaussiana para mayor densidad en el centro del disco
-            const r = 50 + Math.abs((Math.random() + Math.random() + Math.random() - 1.5)) * 4500;
-            const theta = Math.random() * Math.PI * 2;
-            // Espesor del disco también gaussiano — más denso cerca del plano
-            const y = (Math.random() - 0.5) * (Math.random() * 600);
-            
-            // Centrados en el origen local (luego se aplica la rotación y el offset global)
-            zoaPositions[zi++] = Math.cos(theta) * r;
-            zoaPositions[zi++] = y;
-            zoaPositions[zi++] = Math.sin(theta) * r;
-            
-            // Color realista: mezcla de polvo rojizo y estrellas azuladas ocultas
-            const starType = Math.random();
-            if (starType < 0.4) {
-                // Estrellas rojizas atenuadas por polvo
-                zoaColors[zc++] = 0.9 + Math.random() * 0.1;
-                zoaColors[zc++] = 0.5 + Math.random() * 0.3;
-                zoaColors[zc++] = 0.3 + Math.random() * 0.2;
-            } else if (starType < 0.7) {
-                // Estrellas blancas/amarillas
-                zoaColors[zc++] = 0.8 + Math.random() * 0.2;
-                zoaColors[zc++] = 0.8 + Math.random() * 0.2;
-                zoaColors[zc++] = 0.7 + Math.random() * 0.3;
-            } else {
-                // Estrellas azuladas de fondo
-                zoaColors[zc++] = 0.5 + Math.random() * 0.3;
-                zoaColors[zc++] = 0.6 + Math.random() * 0.3;
-                zoaColors[zc++] = 0.9 + Math.random() * 0.1;
-            }
-        }
-        const zoaGeo = new THREE.BufferGeometry();
-        zoaGeo.setAttribute('position', new THREE.BufferAttribute(zoaPositions, 3));
-        zoaGeo.setAttribute('color', new THREE.BufferAttribute(zoaColors, 3));
-        window.zoaGroup = new THREE.Points(zoaGeo, new THREE.PointsMaterial({
-            size: 0.1, vertexColors: true, transparent: true, opacity: 0.65, sizeAttenuation: true, blending: THREE.AdditiveBlending, map: window.FX ? window.FX.createStarTexture() : null, depthWrite: false
-        }));
-        FX.ApplyVolumetric(window.zoaGroup, 0.5); // Inyectar textura esférica procedimental y HDR Bloom
-        
-        // Alinear al plano galáctico (Aprox 62.8 grados respecto al ecuador celeste)
-        window.zoaGroup.rotation.x = 1.09; 
-        window.zoaGroup.rotation.z = 1.07;
-        window.zoaGroup.position.set(75, 75, 75); // Centrar en el Sol
-        window.zoaGroup.visible = true; // ✅ ACTIVO POR DEFECTO — rellena la ZOA siempre
-        window.ourUniverse.add(window.zoaGroup);
-        logTitan(`[ZOA] Motor Cuántico: Generadas ${zoaStars} estrellas sintéticas para rellenar la Zona de Evitación.`);
-        logTitan(`[ZOA] Masividad Oculta calculada: ~${(zoaStars * 1.2).toFixed(0)} Millones de Masas Solares.`);
-        
-        // === CONSTELLATIONS (3D Lines) ===
-        fetch('./data/constellations_3d.json')
-            .then(res => res.json())
-            .then(lineData => {
-                const linePositions = new Float32Array(lineData.length);
-                for(let i=0; i<lineData.length; i+=3) {
-                    linePositions[i]   = 75 + lineData[i] * 10;
-                    linePositions[i+1] = 75 + lineData[i+1] * 10;
-                    linePositions[i+2] = 75 + lineData[i+2] * 10;
-                }
-                const lineGeo = new THREE.BufferGeometry();
-                lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
-                const lineMat = new THREE.LineBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.3 });
-                const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
-                hipparcosGroup.add(lineMesh);
-                logTitan(`Cargadas líneas de constelaciones 3D.`);
-            }).catch(e => { if(window.logTitan) logTitan(`[SISTEMA] Error cargando constellations_3d: ${e.message}`); });
-        
-        // === CATÁLOGO GAIA / HIPPARCOS (Massive Point Cloud) ===
-        window.simbadGroup = new THREE.Group();
-        window.ourUniverse.add(window.simbadGroup);
-        window.namedStars = [];
-        window.gaiaStarsData = []; // Store metadata for raycaster
+        window.hipparcosPoints = points;
+        if (typeof logTitan !== 'undefined') logTitan(`[ASTRONOMÍA] Bóveda Hipparcos montada: ${numStars.toLocaleString()} estrellas reales en R=45.000 u.`);
+    })
+    .catch(err => {
+        if (typeof logTitan !== 'undefined') logTitan(`[AVISO] Hipparcos fallback activo: ${err.message}`);
+    });
 
-        fetch('./data/gaia_stars.json')
-            .then(res => res.json())
-            .then(gaiaData => {
-                window.gaiaStarsData = gaiaData;
-                const starCount = gaiaData.length;
-                
-                const positions = new Float32Array(starCount * 3);
-                const colors = new Float32Array(starCount * 3);
-                const sizes = new Float32Array(starCount);
-                
-                const colorObj = new THREE.Color();
-                
-                for(let i = 0; i < starCount; i++) {
-                    const s = gaiaData[i];
-                    
-                    // Positions
-                    positions[i * 3] = 75 + s.x * 10;
-                    positions[i * 3 + 1] = 75 + s.y * 10;
-                    positions[i * 3 + 2] = 75 + s.z * 10;
-                    
-                    // Colors
-                    colorObj.setHex(s.color || 0xffffff);
-                    colors[i * 3] = colorObj.r;
-                    colors[i * 3 + 1] = colorObj.g;
-                    colors[i * 3 + 2] = colorObj.b;
-                    
-                    // Sizes (Brighter stars are larger/brighter in the shader)
-                    // Visual magnitude: lower is brighter
-                    const mag = s.mag || 10;
-                    sizes[i] = Math.max(0.5, 5.0 - (mag / 2.0));
+// 2. Extrapolación ZOA (Zona de Evitación / Vía Láctea Volumétrica)
+const zoaStars = 80000;
+const zoaPositions = new Float32Array(zoaStars * 3);
+const zoaColors = new Float32Array(zoaStars * 3);
+let zi = 0; let zc = 0;
+for(let i=0; i<zoaStars; i++) {
+    const r = 50 + Math.abs((Math.random() + Math.random() + Math.random() - 1.5)) * 4500;
+    const theta = Math.random() * Math.PI * 2;
+    const y = (Math.random() - 0.5) * (Math.random() * 600);
+    zoaPositions[zi++] = Math.cos(theta) * r;
+    zoaPositions[zi++] = y;
+    zoaPositions[zi++] = Math.sin(theta) * r;
+    
+    const starType = Math.random();
+    if (starType < 0.4) {
+        zoaColors[zc++] = 0.9 + Math.random() * 0.1;
+        zoaColors[zc++] = 0.5 + Math.random() * 0.3;
+        zoaColors[zc++] = 0.3 + Math.random() * 0.2;
+    } else if (starType < 0.7) {
+        zoaColors[zc++] = 0.8 + Math.random() * 0.2;
+        zoaColors[zc++] = 0.8 + Math.random() * 0.2;
+        zoaColors[zc++] = 0.7 + Math.random() * 0.3;
+    } else {
+        zoaColors[zc++] = 0.5 + Math.random() * 0.3;
+        zoaColors[zc++] = 0.6 + Math.random() * 0.3;
+        zoaColors[zc++] = 0.9 + Math.random() * 0.1;
+    }
+}
+const zoaGeo = new THREE.BufferGeometry();
+zoaGeo.setAttribute('position', new THREE.BufferAttribute(zoaPositions, 3));
+zoaGeo.setAttribute('color', new THREE.BufferAttribute(zoaColors, 3));
+window.zoaGroup = new THREE.Points(zoaGeo, new THREE.PointsMaterial({
+    size: 0.15, vertexColors: true, transparent: true, opacity: 0.65, sizeAttenuation: true, blending: THREE.AdditiveBlending, map: window.FX ? window.FX.createStarTexture() : null, depthWrite: false
+}));
+if (window.FX && FX.ApplyVolumetric) FX.ApplyVolumetric(window.zoaGroup, 0.5);
+window.zoaGroup.rotation.x = 1.09; 
+window.zoaGroup.rotation.z = 1.07;
+window.zoaGroup.position.set(75, 75, 75);
+window.zoaGroup.visible = true;
+window.ourUniverse.add(window.zoaGroup);
+
+// 3. Constelaciones 3D Proyectadas en la Bóveda Celeste (R = 44.800 u)
+// Las líneas jamás atraviesan planetas ni la cámara; se proyectan con elegancia en la cúpula exterior
+fetch('./data/constellations_3d.json')
+    .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+    })
+    .then(lineData => {
+        const linePositions = new Float32Array(lineData.length);
+        const R_vault = 44800.0; // En la bóveda celeste exterior
+        for(let i=0; i<lineData.length; i+=3) {
+            const vx = lineData[i];
+            const vy = lineData[i+1];
+            const vz = lineData[i+2];
+            const len = Math.hypot(vx, vy, vz) || 1.0;
+            linePositions[i]   = 75 + (vx / len) * R_vault;
+            linePositions[i+1] = 75 + (vy / len) * R_vault;
+            linePositions[i+2] = 75 + (vz / len) * R_vault;
+        }
+        const lineGeo = new THREE.BufferGeometry();
+        lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+        const lineMat = new THREE.LineBasicMaterial({
+            color: 0x4cc9f0,
+            transparent: true,
+            opacity: 0.32,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
+        hipparcosGroup.add(lineMesh);
+        if (typeof logTitan !== 'undefined') logTitan(`[ASTRONOMÍA] Constelaciones celestes proyectadas limpiamente en cúpula R=44.800 u.`);
+    })
+    .catch(e => {
+        if (typeof logTitan !== 'undefined') logTitan(`[AVISO] constellations_3d: ${e.message}`);
+    });
+
+// 4. Catálogo Gaia Stars (Nube de Fondo en R = 45.200 u)
+fetch('./data/gaia_stars.json')
+    .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+    })
+    .then(gaiaData => {
+        window.gaiaStarsData = gaiaData;
+        const starCount = gaiaData.length;
+        const positions = new Float32Array(starCount * 3);
+        const colors = new Float32Array(starCount * 3);
+        const sizes = new Float32Array(starCount);
+        const colorObj = new THREE.Color();
+        const R_vault = 45200.0;
+        
+        for(let i = 0; i < starCount; i++) {
+            const s = gaiaData[i];
+            const len = Math.hypot(s.x, s.y, s.z) || 1.0;
+            positions[i * 3]     = 75 + (s.x / len) * R_vault;
+            positions[i * 3 + 1] = 75 + (s.y / len) * R_vault;
+            positions[i * 3 + 2] = 75 + (s.z / len) * R_vault;
+            
+            colorObj.setHex(s.color || 0xffffff);
+            colors[i * 3]     = colorObj.r;
+            colors[i * 3 + 1] = colorObj.g;
+            colors[i * 3 + 2] = colorObj.b;
+            
+            const mag = s.mag || 10;
+            sizes[i] = Math.max(1.2, 4.8 - (mag * 0.4));
+        }
+        
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        
+        const material = new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 } },
+            vertexShader: `
+                attribute float size;
+                varying vec3 vColor;
+                void main() {
+                    vColor = color;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size;
+                    gl_Position = projectionMatrix * mvPosition;
                 }
-                
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-                geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-                
-                // Custom Shader Material for glow and soft edges
-                const material = new THREE.ShaderMaterial({
-                    uniforms: {
-                        time: { value: 0 }
-                    },
-                    vertexShader: `
-                        attribute float size;
-                        varying vec3 vColor;
-                        void main() {
-                            vColor = color;
-                            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                            gl_PointSize = size * (300.0 / -mvPosition.z);
-                            gl_Position = projectionMatrix * mvPosition;
+            `,
+            fragmentShader: `
+                varying vec3 vColor;
+                void main() {
+                    float r = length(gl_PointCoord - vec2(0.5)) * 2.0;
+                    if (r > 1.0) discard;
+                    float intensity = exp(-r * r * 4.5);
+                    gl_FragColor = vec4(vColor, intensity * 0.85);
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            vertexColors: true
+        });
+        
+        const points = new THREE.Points(geometry, material);
+        points.userData = { isGaiaCloud: true };
+        window.simbadGroup.add(points);
+        window.gaiaPoints = points;
+        if (typeof logTitan !== 'undefined') logTitan(`[ASTRONOMÍA] Gaia DR Cloud: ${starCount.toLocaleString()} estrellas reales activas en cúpula exterior.`);
+    })
+    .catch(err => {
+        if (typeof logTitan !== 'undefined') logTitan(`[AVISO] Gaia stars fallback: ${err.message}`);
+    });
+
+// 5. Carga y Renderizado Físico de Descubrimientos de Vanguardia (JWST / ESO) & SIMBAD
+fetch('./data/simbad_stars.json')
+    .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+    })
+    .then(starCatalog => {
+        starCatalog.forEach(star => {
+            const worldPos = new THREE.Vector3(75 + star.x, 75 + star.y, 75 + star.z);
+            
+            // Renderizado físico especializado por tipo de objeto
+            let starMesh = null;
+
+            if (star.type === "recurrent_nova_binary") {
+                // T CORONAE BOREALIS: Binaria Cataclísmica
+                const binaryGroup = new THREE.Group();
+                binaryGroup.position.copy(worldPos);
+
+                // Gigante Roja
+                const rgGeo = new THREE.SphereGeometry(18, 32, 32);
+                const rgMat = new THREE.MeshBasicMaterial({ color: 0xff3311 });
+                const redGiant = new THREE.Mesh(rgGeo, rgMat);
+                binaryGroup.add(redGiant);
+
+                // Enana Blanca Masiva Orbitando
+                const wdGeo = new THREE.SphereGeometry(5, 16, 16);
+                const wdMat = new THREE.MeshBasicMaterial({ color: 0x88ddff });
+                const whiteDwarf = new THREE.Mesh(wdGeo, wdMat);
+                whiteDwarf.position.set(38, 0, 0);
+                binaryGroup.add(whiteDwarf);
+
+                // Disco de Acreción de Plasma
+                const diskGeo = new THREE.RingGeometry(8, 22, 32);
+                const diskMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+                const disk = new THREE.Mesh(diskGeo, diskMat);
+                disk.position.set(38, 0, 0);
+                disk.rotation.x = Math.PI / 2;
+                binaryGroup.add(disk);
+
+                // Luz puntual variable
+                const tcrbLight = new THREE.PointLight(0xff7733, 2.5, 8000);
+                binaryGroup.add(tcrbLight);
+
+                window.simbadGroup.add(binaryGroup);
+                starMesh = redGiant;
+                window.vanguardObjects["T_Coronae_Borealis"] = {
+                    group: binaryGroup,
+                    whiteDwarf: whiteDwarf,
+                    disk: disk,
+                    light: tcrbLight,
+                    data: star,
+                    isErupting: false
+                };
+
+                // Función Global para Disparar Erupción de Nova
+                window.triggerNovaTCrB = function() {
+                    const obj = window.vanguardObjects["T_Coronae_Borealis"];
+                    if (!obj) return;
+                    obj.isErupting = true;
+                    if (typeof logTitan !== 'undefined') logTitan("💥 [NOVA RUNAWAY] ¡Erupción termonuclear iniciada en T Coronae Borealis! Magnitud escalando de +10.8 a +2.0!");
+                    
+                    let burstT = 0;
+                    const burstInterval = setInterval(() => {
+                        burstT += 0.05;
+                        const factor = Math.sin(burstT * Math.PI);
+                        obj.light.intensity = 2.5 + factor * 25.0;
+                        obj.disk.scale.set(1 + factor * 3, 1 + factor * 3, 1 + factor * 3);
+                        if (burstT >= 1.0) {
+                            clearInterval(burstInterval);
+                            obj.isErupting = false;
+                            obj.light.intensity = 2.5;
+                            obj.disk.scale.set(1, 1, 1);
                         }
-                    `,
-                    fragmentShader: `
-                        varying vec3 vColor;
-                        void main() {
-                            // Circular smooth particle
-                            float r = distance(gl_PointCoord, vec2(0.5));
-                            if (r > 0.5) discard;
-                            
-                            // Soft glow edge
-                            float intensity = 1.0 - (r * 2.0);
-                            intensity = pow(intensity, 1.5);
-                            
-                            gl_FragColor = vec4(vColor, intensity);
-                        }
-                    `,
-                    transparent: true,
+                    }, 50);
+                };
+
+            } else if (star.type === "gravitational_lens_cluster") {
+                // ABELL 370 (Lente Gravitacional & 44 Estrellas JWST)
+                const lensGroup = new THREE.Group();
+                lensGroup.position.copy(worldPos);
+
+                // Anillo de Einstein (Relatividad General)
+                const arcGeo = new THREE.TorusGeometry(60, 2.5, 16, 64, Math.PI * 1.6);
+                const arcMat = new THREE.MeshBasicMaterial({ color: 0x44ddff, transparent: true, opacity: 0.75 });
+                const arcMesh = new THREE.Mesh(arcGeo, arcMat);
+                arcMesh.rotation.x = Math.PI / 3;
+                lensGroup.add(arcMesh);
+
+                // Enjambre de 44 Estrellas Primigenias Magnificadas
+                const star44Geo = new THREE.BufferGeometry();
+                const star44Pos = new Float32Array(44 * 3);
+                for(let k = 0; k < 44; k++) {
+                    const angle = (k / 44.0) * Math.PI * 1.6;
+                    const rad = 60 + (Math.random() - 0.5) * 12;
+                    star44Pos[k * 3]     = Math.cos(angle) * rad;
+                    star44Pos[k * 3 + 1] = Math.sin(angle) * rad;
+                    star44Pos[k * 3 + 2] = (Math.random() - 0.5) * 8;
+                }
+                star44Geo.setAttribute('position', new THREE.BufferAttribute(star44Pos, 3));
+                const star44Mat = new THREE.PointsMaterial({ 
+                    color: 0xaaffff, 
+                    size: 3.5, 
+                    transparent: true, 
+                    opacity: 0.95,
+                    map: window.FX ? window.FX.createStarTexture() : null,
                     blending: THREE.AdditiveBlending,
-                    depthWrite: false,
-                    vertexColors: true
+                    depthWrite: false
                 });
+                const star44Points = new THREE.Points(star44Geo, star44Mat);
+                lensGroup.add(star44Points);
+
+                window.simbadGroup.add(lensGroup);
+                starMesh = arcMesh;
+                window.vanguardObjects["Abell_370"] = { group: lensGroup, data: star };
+
+            } else if (star.type === "ultrafast_pulsar") {
+                // PÚLSAR 716 HZ EN EL CENTRO GALÁCTICO
+                const pulsarGroup = new THREE.Group();
+                pulsarGroup.position.copy(worldPos);
+
+                // Núcleo de Neutrones
+                const coreGeo = new THREE.SphereGeometry(12, 16, 16);
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0xbbaaff });
+                const core = new THREE.Mesh(coreGeo, coreMat);
+                pulsarGroup.add(core);
+
+                // Haces Relativistas Opuestos de Sincrotrón (Conos)
+                const beamGroup = new THREE.Group();
+                const coneGeo = new THREE.ConeGeometry(25, 300, 16, 1, true);
+                const coneMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
                 
-                const points = new THREE.Points(geometry, material);
-                points.userData = { isGaiaCloud: true };
-                window.simbadGroup.add(points);
-                
-                logTitan(`[SISTEMA] Nube de Puntos cargada: ${starCount.toLocaleString()} estrellas (Catálogo Gaia/Hipparcos).`);
-            })
-            .catch(err => logTitan(`[ERROR] Falló la carga del catálogo espacial masivo: ${err}`));
-    }) // close: .then(data => {...}) — Hipparcos fetch callback
-    .catch(err => logTitan(`Error cargando Hipparcos: ${err}`));
+                const beamNorth = new THREE.Mesh(coneGeo, coneMat);
+                beamNorth.position.y = 150;
+                beamGroup.add(beamNorth);
+
+                const beamSouth = new THREE.Mesh(coneGeo, coneMat);
+                beamSouth.position.y = -150;
+                beamSouth.rotation.x = Math.PI;
+                beamGroup.add(beamSouth);
+
+                pulsarGroup.add(beamGroup);
+                window.simbadGroup.add(pulsarGroup);
+                starMesh = core;
+                window.vanguardObjects["Pulsar_716Hz"] = { group: pulsarGroup, beamGroup: beamGroup, data: star };
+
+            } else if (star.type === "primordial_galaxy") {
+                // JADES-GS-z14-0 (Galaxia Más Lejana del Universo, z=14.32)
+                const jadesGroup = new THREE.Group();
+                jadesGroup.position.copy(worldPos);
+
+                const jGeo = new THREE.SphereGeometry(30, 32, 32);
+                const jMat = new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.85 });
+                const jCore = new THREE.Mesh(jGeo, jMat);
+                jadesGroup.add(jCore);
+
+                // Halo de Gas Rico en Oxígeno Ionizado
+                const haloGeo = new THREE.SphereGeometry(65, 16, 16);
+                const haloMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.25, side: THREE.BackSide });
+                const halo = new THREE.Mesh(haloGeo, haloMat);
+                jadesGroup.add(halo);
+
+                window.simbadGroup.add(jadesGroup);
+                starMesh = jCore;
+                window.vanguardObjects["JADES_GS_z14_0"] = { group: jadesGroup, data: star };
+
+            } else if (star.type === "rogue_planet") {
+                // CHA 1107-7626: Planeta Errante Hiperactivo con Disco de Acreción
+                const chaGroup = new THREE.Group();
+                chaGroup.position.copy(worldPos);
+
+                const planetGeo = new THREE.SphereGeometry(14, 32, 32);
+                const planetMat = new THREE.MeshBasicMaterial({ color: 0xcc6622 });
+                const roguePlanet = new THREE.Mesh(planetGeo, planetMat);
+                chaGroup.add(roguePlanet);
+
+                // Disco de Acreción devorando 6.000 Millones de Toneladas/s
+                const diskGeo = new THREE.RingGeometry(18, 55, 32);
+                const diskMat = new THREE.MeshBasicMaterial({ color: 0xff9900, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+                const disk = new THREE.Mesh(diskGeo, diskMat);
+                disk.rotation.x = Math.PI / 2.3;
+                chaGroup.add(disk);
+
+                window.simbadGroup.add(chaGroup);
+                starMesh = roguePlanet;
+                window.vanguardObjects["Cha_1107_7626"] = {
+                    group: chaGroup,
+                    disk: disk,
+                    data: star,
+                    accretionRate: 6e9 // 6.000 millones ton/s para interacción gravitacional
+                };
+
+            } else if (star.type === "rogue_planet_swarm") {
+                // ENJAMBRE DE 115 PLANETAS ERRANTES (Ofiuco-Escorpión)
+                const swarmGroup = new THREE.Group();
+                swarmGroup.position.copy(worldPos);
+
+                const count = star.population_count || 115;
+                const swarmGeo = new THREE.BufferGeometry();
+                const swarmPos = new Float32Array(count * 3);
+                for(let p = 0; p < count; p++) {
+                    const r = 25 + Math.random() * 120;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = (Math.random() - 0.5) * Math.PI;
+                    swarmPos[p * 3]     = r * Math.cos(phi) * Math.cos(theta);
+                    swarmPos[p * 3 + 1] = r * Math.sin(phi);
+                    swarmPos[p * 3 + 2] = r * Math.cos(phi) * Math.sin(theta);
+                }
+                swarmGeo.setAttribute('position', new THREE.BufferAttribute(swarmPos, 3));
+                const swarmMat = new THREE.PointsMaterial({ 
+                    color: 0xdd8855, 
+                    size: 2.8, 
+                    transparent: true, 
+                    opacity: 0.85,
+                    map: window.FX ? window.FX.createStarTexture() : null,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+                const swarmPoints = new THREE.Points(swarmGeo, swarmMat);
+                swarmGroup.add(swarmPoints);
+
+                window.simbadGroup.add(swarmGroup);
+                starMesh = swarmPoints;
+                window.vanguardObjects["Ophiuchus_Swarm"] = { group: swarmGroup, data: star };
+
+            } else if (star.type === "spiral_galaxy_ngc4380") {
+                // NGC 4380: Galaxia Espiral Compacta en el Cúmulo de Virgo (52M al)
+                // UPL+ Shader / Remolino de Partículas con Núcleo Masivo K/M y Bandas de Polvo
+                const ngcGroup = new THREE.Group();
+                ngcGroup.position.copy(worldPos);
+
+                // 1. Núcleo Bulge Esférico Masivo (Estrellas K y M, emisión térmica ~4200K)
+                const coreGeo = new THREE.SphereGeometry(24, 32, 32);
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0xffbb55, transparent: true, opacity: 0.95 });
+                const bulgeMesh = new THREE.Mesh(coreGeo, coreMat);
+                ngcGroup.add(bulgeMesh);
+
+                // Halo térmico difuso
+                if (window.FX && FX.createStarTexture) {
+                    const haloMat = new THREE.SpriteMaterial({
+                        map: FX.createStarTexture(),
+                        color: 0xffaa44,
+                        blending: THREE.AdditiveBlending,
+                        transparent: true,
+                        opacity: 0.85
+                    });
+                    const coreHalo = new THREE.Sprite(haloMat);
+                    coreHalo.scale.set(160, 160, 1.0);
+                    ngcGroup.add(coreHalo);
+                }
+
+                // 2. Remolino Concéntrico de Brazos Espirales Suaves (GPU Point Cloud / Instancing)
+                // Brazos muy juntos delineados por bandas oscuras de absorción de polvo
+                const numSpiralStars = 1800;
+                const spGeo = new THREE.BufferGeometry();
+                const spPos = new Float32Array(numSpiralStars * 3);
+                const spCol = new Float32Array(numSpiralStars * 3);
+                const colorStar = new THREE.Color(0xffeedd);
+                const colorOld = new THREE.Color(0xffaa55);
+                const colorArm = new THREE.Color(0x99ccff);
+
+                for (let k = 0; k < numSpiralStars; k++) {
+                    // Distribución logarítmica compacta (espiral estrecha)
+                    const armIndex = k % 2; // Dos brazos simétricos principales
+                    const t = Math.random();
+                    const theta = t * Math.PI * 5.2 + (armIndex * Math.PI);
+                    const r = 18 + Math.pow(t, 1.25) * 160;
+                    
+                    // Turbulencia y líneas de polvo
+                    const spread = (Math.random() - 0.5) * (10 + t * 14);
+                    const zSpread = (Math.random() - 0.5) * 12 * (1.0 - t * 0.5);
+
+                    spPos[k * 3]     = Math.cos(theta) * r + spread;
+                    spPos[k * 3 + 1] = zSpread;
+                    spPos[k * 3 + 2] = Math.sin(theta) * r + spread;
+
+                    // Gradiente espectral: cálido en el centro a azul tenue en los extremos de los brazos
+                    let c = (t < 0.25) ? colorOld : (t < 0.65 ? colorStar : colorArm);
+                    spCol[k * 3]     = c.r;
+                    spCol[k * 3 + 1] = c.g;
+                    spCol[k * 3 + 2] = c.b;
+                }
+                spGeo.setAttribute('position', new THREE.BufferAttribute(spPos, 3));
+                spGeo.setAttribute('color', new THREE.BufferAttribute(spCol, 3));
+
+                const spMat = new THREE.PointsMaterial({
+                    size: 4.2,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.90,
+                    map: window.FX ? window.FX.createStarTexture() : null,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+                const spiralPoints = new THREE.Points(spGeo, spMat);
+                // Inclinación galáctica realista hacia el observador terrestre
+                spiralPoints.rotation.x = Math.PI / 3.2;
+                spiralPoints.rotation.z = Math.PI / 5.5;
+                ngcGroup.add(spiralPoints);
+
+                window.simbadGroup.add(ngcGroup);
+                starMesh = bulgeMesh;
+                window.vanguardObjects["NGC_4380"] = { group: ngcGroup, spiralPoints: spiralPoints, data: star };
+
+            } else {
+                // ESTRELLA GUÍA DEL FIRMAMENTO (Polaris, Sirius A, Betelgeuse, Rigel, Vega...)
+                // Renderizado cinemático fotorrealista: Núcleo físico + halo estelar difractivo
+                const guideGroup = new THREE.Group();
+                guideGroup.position.copy(worldPos);
+
+                const starGeo = new THREE.SphereGeometry(32.0, 16, 16);
+                const starMat = new THREE.MeshBasicMaterial({ color: star.color || 0xffffff });
+                const coreMesh = new THREE.Mesh(starGeo, starMat);
+                guideGroup.add(coreMesh);
+
+                // Halo estelar difractivo fotorrealista estilo telescopio espacial James Webb (JWST)
+                if (window.FX && FX.createJWSTFlareTexture) {
+                    const spriteMat = new THREE.SpriteMaterial({
+                        map: FX.createJWSTFlareTexture(),
+                        color: star.color || 0xffffff,
+                        blending: THREE.AdditiveBlending,
+                        transparent: true,
+                        opacity: 0.95
+                    });
+                    const sprite = new THREE.Sprite(spriteMat);
+                    const haloScale = Math.max(500, 1600 - (star.mag || 1) * 350);
+                    sprite.scale.set(haloScale, haloScale, 1.0);
+                    guideGroup.add(sprite);
+                } else if (window.FX && FX.createStarTexture) {
+                    const spriteMat = new THREE.SpriteMaterial({
+                        map: FX.createStarTexture(),
+                        color: star.color || 0xffffff,
+                        blending: THREE.AdditiveBlending,
+                        transparent: true,
+                        opacity: 0.95
+                    });
+                    const sprite = new THREE.Sprite(spriteMat);
+                    const haloScale = Math.max(350, 950 - (star.mag || 1) * 220);
+                    sprite.scale.set(haloScale, haloScale, 1.0);
+                    guideGroup.add(sprite);
+                }
+
+                window.simbadGroup.add(guideGroup);
+                starMesh = coreMesh;
+            }
+
+            // Crear etiqueta interactiva en la pantalla
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'planet-label';
+            labelDiv.style.color = star.is_special ? '#00ffff' : '#ffdd88';
+            labelDiv.style.border = star.is_special ? '1px solid #00ffff' : '1px solid rgba(255,221,136,0.3)';
+            labelDiv.style.background = 'rgba(5, 10, 25, 0.75)';
+            labelDiv.style.padding = '3px 7px';
+            labelDiv.style.borderRadius = '4px';
+            labelDiv.style.fontSize = '10px';
+            labelDiv.style.fontWeight = 'bold';
+            labelDiv.style.fontFamily = "'Outfit', sans-serif";
+            labelDiv.style.cursor = 'pointer';
+            labelDiv.style.pointerEvents = 'auto';
+            labelDiv.textContent = star.name.split(' (')[0];
+
+            labelDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.trackedObject = null;
+                warpActive = true;
+                warpT = 0;
+                warpStartCameraPos.copy(camera.position);
+                warpStartLookAt.copy(controls.target);
+                warpTargetLookAt.copy(worldPos);
+                warpTargetCameraPos.copy(worldPos).add(new THREE.Vector3(50, 25, 60));
+
+                const infoP = document.getElementById('info-panel');
+                if (infoP) {
+                    infoP.classList.remove('hidden');
+                    document.getElementById('target-name').textContent = star.name;
+                    document.getElementById('target-type').textContent = star.designation || (star.type ? star.type.toUpperCase() : "OBJETO CELESTE");
+                    document.getElementById('target-dist').textContent = star.dist_ly ? `${star.dist_ly.toLocaleString()} años luz` : "Coordenadas Galácticas";
+                    document.getElementById('target-mass').textContent = star.constellation ? `Constelación: ${star.constellation}` : (star.sp_type || "Astrofísica de Vanguardia");
+                    document.getElementById('target-radius').textContent = star.desc || "Objeto astronómico de alta precisión.";
+                }
+            });
+
+            labelsContainer.appendChild(labelDiv);
+            window.namedStars.push({ mesh: starMesh, label: labelDiv, data: star });
+        });
+        if (typeof logTitan !== 'undefined') logTitan(`[ASTRONOMÍA] ${starCatalog.length} sistemas astronómicos mayores instanciados con física y telemetría.`);
+    })
+    .catch(err => {
+        if (typeof logTitan !== 'undefined') logTitan(`[AVISO] simbad_stars: ${err.message}`);
+    });
+
+// Función Global de Teletransporte de Vanguardia
+window.warpToVanguard = function(id) {
+    const starEntry = window.namedStars.find(s => s.data && (s.data.name.includes(id) || (s.data.designation && s.data.designation.includes(id))));
+    if (starEntry && starEntry.mesh) {
+        const pos = new THREE.Vector3();
+        starEntry.mesh.getWorldPosition(pos);
+        warpActive = true;
+        warpT = 0;
+        warpStartCameraPos.copy(camera.position);
+        warpStartLookAt.copy(controls.target);
+        warpTargetLookAt.copy(pos);
+        warpTargetCameraPos.copy(pos).add(new THREE.Vector3(60, 25, 75));
+
+        const infoP = document.getElementById('info-panel');
+        if (infoP) {
+            infoP.classList.remove('hidden');
+            document.getElementById('target-name').textContent = starEntry.data.name;
+            document.getElementById('target-type').textContent = starEntry.data.designation || starEntry.data.type || "VANGUARDIA JWST";
+            document.getElementById('target-dist').textContent = starEntry.data.dist_ly ? `${starEntry.data.dist_ly.toLocaleString()} al` : "Profundo";
+            document.getElementById('target-mass').textContent = starEntry.data.constellation ? `Constelación: ${starEntry.data.constellation}` : "JWST / ESO";
+            document.getElementById('target-radius').textContent = starEntry.data.desc || "";
+        }
+    }
+};
+
+// Función Global de Teletransporte Directo a Agujeros Negros y Singularidades
+window.warpToBlackHole = function(id) {
+    let targetPos = null;
+    let camOffset = new THREE.Vector3(140, 60, 180);
+    let descObj = null;
+
+    const query = id.toLowerCase();
+
+    if (query.includes('sagittarius') || query.includes('sgr') || query.includes('sagitario')) {
+        targetPos = new THREE.Vector3(52075, 75, -99925);
+        camOffset.set(220, 80, 280);
+        descObj = {
+            name: "Sagitario A* (Centro Galáctico)",
+            type: "🕳️ AGUJERO NEGRO SUPERMASIVO",
+            dist: "26,000 ly (Centro Vía Láctea)",
+            mass: "4.31 Millones Masas Solares",
+            radius: "15 UA (Radio de Schwarzschild)",
+            desc: "Agujero Negro Supermasivo anclado en el corazón de la Vía Láctea. Primera imagen directa obtenida por el Event Horizon Telescope (EHT 2022)."
+        };
+    } else if (typeof extraSystems !== 'undefined') {
+        const found = extraSystems.children.find(c => c.userData && (
+            (c.userData.name && c.userData.name.toLowerCase().includes(query)) ||
+            (c.userData.bhLabel && c.userData.bhLabel.textContent.toLowerCase().includes(query))
+        ));
+        if (found) {
+            targetPos = new THREE.Vector3();
+            found.getWorldPosition(targetPos);
+            const isQuasar = query.includes('ton 618');
+            const isM87 = query.includes('m87');
+            const isGargantua = query.includes('gargant');
+            const isCrab = query.includes('cangrejo') || query.includes('crab') || query.includes('m1');
+            const isCyg = query.includes('cygnus');
+            const isGaia = query.includes('gaia');
+            const isSteph = query.includes('stephenson');
+
+            if (isQuasar) camOffset.set(2800, 1100, 3400);
+            else if (isM87) camOffset.set(650, 240, 750);
+            else if (isGargantua) camOffset.set(320, 130, 380);
+            else if (isCrab) camOffset.set(130, 55, 160);
+            else if (isCyg) camOffset.set(200, 80, 250);
+            else if (isGaia) camOffset.set(120, 50, 150);
+            else if (isSteph) camOffset.set(180, 70, 240);
+            else camOffset.set(150, 60, 200);
+
+            descObj = {
+                name: found.userData.name || id,
+                type: isQuasar ? "🌌 CUÁSAR HIPERMASIVO" : (isCrab ? "🦀 REMANENTE SUPERNOVA M1" : (found.userData.isHypergiant ? "🔴 HIPERGIGANTE ROJA" : "🕳️ AGUJERO NEGRO")),
+                dist: isQuasar ? "18.2 Billones ly" : (isCrab ? "6,500 ly" : (isM87 ? "53.5 Millones ly" : (isCyg ? "6,070 ly" : (isGaia ? "1,560 ly" : (isSteph ? "18,900 ly" : "Espacio Profundo"))))),
+                mass: found.userData.mass || "Singularidad Relativista",
+                radius: found.userData.radius || "Radio Schwarzschild",
+                desc: found.userData.desc || "Horizonte de sucesos relativista."
+            };
+        }
+    }
+
+    if (targetPos) {
+        window.trackedObject = null;
+        warpActive = true;
+        warpT = 0;
+        warpStartCameraPos.copy(camera.position);
+        warpStartLookAt.copy(controls.target);
+        warpTargetLookAt.copy(targetPos);
+        warpTargetCameraPos.copy(targetPos).add(camOffset);
+
+        const infoP = document.getElementById('info-panel');
+        if (infoP && descObj) {
+            infoP.classList.remove('hidden');
+            document.getElementById('target-name').textContent = descObj.name;
+            document.getElementById('target-type').textContent = descObj.type;
+            document.getElementById('target-dist').textContent = descObj.dist;
+            document.getElementById('target-mass').textContent = descObj.mass;
+            document.getElementById('target-radius').textContent = descObj.radius;
+            document.getElementById('target-desc').textContent = descObj.desc;
+        }
+        if (window.logTitan) window.logTitan(`🚀 [WARP] Teletransporte relativista a ${descObj ? descObj.name : id} activado.`);
+        if (window.fetchNasaImageData) window.fetchNasaImageData(descObj ? descObj.name : id);
+    }
+};
 // createStarfield(); - Eliminado para fondo puramente matemático
 
 // === SISTEMA SOLAR COMPLETO ===
@@ -772,68 +1275,64 @@ function createSunPhotosphereTexture() {
     return new THREE.CanvasTexture(canvas);
 }
 
-// === EL SOL (FOTOSFERA REAL EN ALTA RESOLUCIÓN) ===
+// === EL SOL (FOTOSFERA PROCEDURAL PURA 360° Y CORONA ESFÉRICA 3D) ===
 const sunMat = new THREE.MeshBasicMaterial({ 
-    map: textureLoader.load("./textures/sun.jpg"), 
+    map: createSunPhotosphereTexture(),
     color: 0xffffff 
 });
 const sun = new THREE.Mesh(new THREE.SphereGeometry(18, 64, 64), sunMat);
 sun.userData = { name: "Sol (Estrella G2V)", mass: "1.989 × 10^30 kg", radius: "696,340 km" };
 solarSystem.add(sun);
 
-const sunLight = new THREE.PointLight(0xffffff, 2.5, 10000);
-FX.ApplySunFlare(sunLight, 0xffffff); // Inyectar cinemática física (Lens Flare procedimental)
+const sunLight = new THREE.PointLight(0xfff8e7, 3.5, 15000);
+FX.ApplySunFlare(sunLight, 0xffeedd); // Inyectar cinemática física (Lens Flare procedimental)
 sun.add(sunLight);
 // Espacio profundo real: sin luz ambiental global.
 // Hemisferio muy tenue como fill mínimo (luz difusa del fondo cósmico de microondas)
 const cosmicFill = new THREE.HemisphereLight(0x0d1520, 0x000000, 0.04);
 scene.add(cosmicFill);
 
-// PROTUBERANCIAS SOLARES (LENGUAS DE FUEGO EN 3D)
-const solarProminencesGroup = new THREE.Group();
-sun.add(solarProminencesGroup);
+// CORONA SOLAR ESFÉRICA 3D OMNIDIRECCIONAL (Sin planos 2D que se claven en el Sol)
+const coronaGeo = new THREE.SphereGeometry(18.9, 64, 64);
+const coronaMat = new THREE.ShaderMaterial({
+    uniforms: {
+        glowColor: { value: new THREE.Color(0xff8800) }
+    },
+    vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 glowColor;
+        varying vec3 vNormal;
+        void main() {
+            // Efecto Fresnel esférico suave en los bordes
+            float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+            gl_FragColor = vec4(glowColor, intensity * 0.85);
+        }
+    `,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    depthWrite: false
+});
+const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
+sun.add(coronaMesh);
 
+// Halo exterior cálido de radiación
+const outerHaloGeo = new THREE.SphereGeometry(21.0, 32, 32);
+const outerHaloMat = new THREE.MeshBasicMaterial({
+    color: 0xff6600,
+    transparent: true,
+    opacity: 0.18,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+});
+sun.add(new THREE.Mesh(outerHaloGeo, outerHaloMat));
 window.prominenceArcs = [];
-for (let p = 0; p < 16; p++) {
-    const angle = (p / 16) * Math.PI * 2 + Math.random() * 0.2;
-    const phi = (Math.random() - 0.5) * Math.PI * 0.7;
-    const R = 18; // Radio del Sol
-    const height = 4 + Math.random() * 9; // Altura de la protuberancia
-    
-    // Curva bezier para formar el arco magnético del plasma
-    const curve = new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(Math.cos(angle)*R, Math.sin(phi)*R, Math.sin(angle)*R),
-        new THREE.Vector3(Math.cos(angle)*(R + height*1.4), Math.sin(phi)*(R + height*1.4) + height*0.4, Math.sin(angle)*(R + height*1.4)),
-        new THREE.Vector3(Math.cos(angle + 0.22)*R, Math.sin(phi + 0.1)*R, Math.sin(angle + 0.22)*R)
-    );
-    
-    const tubeGeo = new THREE.TubeGeometry(curve, 18, 0.5 + Math.random()*0.6, 8, false);
-    const pColor = Math.random() > 0.3 ? 0xff4400 : 0xffaa00;
-    const tubeMat = new THREE.MeshBasicMaterial({
-        color: pColor,
-        transparent: true,
-        opacity: 0.85,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-    });
-    const arcMesh = new THREE.Mesh(tubeGeo, tubeMat);
-    arcMesh.userData = { speed: 1.5 + Math.random()*2.5, phase: Math.random()*Math.PI*2, baseScale: 1.0 };
-    solarProminencesGroup.add(arcMesh);
-    window.prominenceArcs.push(arcMesh);
-}
-
-// CORONA SOLAR INCANDESCENTE (Multi-capa de plasma)
-for (let c = 0; c < 3; c++) {
-    const cGeo = new THREE.SphereGeometry(18.5 + c * 3.0, 32, 32);
-    const cMat = new THREE.MeshBasicMaterial({
-        color: c === 0 ? 0xffaa00 : (c === 1 ? 0xff5500 : 0xff2200),
-        transparent: true,
-        opacity: 0.35 / (c + 1),
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-    });
-    solarProminencesGroup.add(new THREE.Mesh(cGeo, cMat));
-}
 
 // === PLANETAS CON PROPORCIONES ASTRONÓMICAS REALES (UA) Y ACHATAMIENTO POLAR (OBLATOS) ===
 const planetsData = [
@@ -963,36 +1462,32 @@ planetsData.forEach(data => {
         `;
         const fragmentShader = `
             varying vec3 vNormal;
-            varying vec3 vPositionNormal;
             uniform vec3 glowColor;
-            uniform float coefficient;
-            uniform float power;
             void main() {
-                float intensity = pow(coefficient - dot(vNormal, vPositionNormal), power);
-                gl_FragColor = vec4(glowColor, intensity);
+                // Limbo atmosférico físico tipo ISS (delgado y brillante en el borde)
+                float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 4.2);
+                gl_FragColor = vec4(glowColor, fresnel * 0.85);
             }
         `;
         
-        let atmosColor = new THREE.Color(0x88bbff); // Azul terrestre por defecto
-        if (data.name === "Marte") atmosColor = new THREE.Color(0xff8844);
-        if (data.name === "Venus") atmosColor = new THREE.Color(0xffddaa);
+        let atmosColor = new THREE.Color(0x4cc9f0); // Azul Rayleigh terrestre
+        if (data.name === "Marte") atmosColor = new THREE.Color(0xd97736);
+        if (data.name === "Venus") atmosColor = new THREE.Color(0xeedda0);
         
         const customAtmosMat = new THREE.ShaderMaterial({
             uniforms: {
-                glowColor: { type: "c", value: atmosColor },
-                coefficient: { type: "f", value: 0.6 }, // Ajustar grosor del borde
-                power: { type: "f", value: 3.5 } // Ajustar difuminado
+                glowColor: { type: "c", value: atmosColor }
             },
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
-            side: THREE.BackSide, // Renderizar por detrás para el halo exterior
+            side: THREE.BackSide,
             blending: THREE.AdditiveBlending,
             transparent: true,
             depthWrite: false
         });
         
-        // El halo debe ser ligeramente más grande que el planeta
-        const atmosGeo = new THREE.SphereGeometry(data.radius * 1.15, 64, 64);
+        // Espesor físico sutil (escala tipo ISS / Apolo)
+        const atmosGeo = new THREE.SphereGeometry(data.radius * 1.025, 64, 64);
         const haloMesh = new THREE.Mesh(atmosGeo, customAtmosMat);
         haloMesh.scale.set(sx, sy, sz);
         haloMesh.position.x = data.distance;
@@ -1015,11 +1510,12 @@ planetsData.forEach(data => {
         }
     }
     
-    // Anillos de Saturno y Urano
+    // Anillos de Saturno y Urano (Fotorrealismo Espacial Tipo Star Citizen / SpaceEngine)
     if (data.name === "Saturno" || data.name === "Urano") {
-        const innerR = data.name === "Saturno" ? data.radius * 1.2 : data.radius * 1.5;
-        const outerR = data.name === "Saturno" ? data.radius * 2.2 : data.radius * 2.0;
-        const ringGeo = new THREE.RingGeometry(innerR, outerR, 64);
+        const isSaturn = data.name === "Saturno";
+        const innerR = isSaturn ? data.radius * 1.25 : data.radius * 1.5;
+        const outerR = isSaturn ? data.radius * 2.35 : data.radius * 2.0;
+        const ringGeo = new THREE.RingGeometry(innerR, outerR, 128);
         const pos = ringGeo.attributes.position;
         const uvs = ringGeo.attributes.uv;
         for (let j = 0; j < pos.count; j++) {
@@ -1031,16 +1527,106 @@ planetsData.forEach(data => {
         window.allRingsToMutate = window.allRingsToMutate || [];
         window.allRingsToMutate.push(ringGeo);
         
-        const rColor = data.name === "Saturno" ? 0xddccaa : 0x88ccff;
         const ringMat = new THREE.MeshStandardMaterial({ 
-            color: rColor, 
+            map: isSaturn ? textureLoader.load("./textures/saturn_ring.png") : null,
+            color: isSaturn ? 0xffffff : 0x88ccff, 
             side: THREE.DoubleSide, 
             transparent: true, 
-            opacity: data.name === "Saturno" ? 0.9 : 0.4
+            opacity: isSaturn ? 0.95 : 0.45,
+            roughness: 0.6,
+            metalness: 0.1
         });
         const ring = new THREE.Mesh(ringGeo, ringMat);
         ring.rotation.x = Math.PI / 2; // Acostar el anillo
         planetMesh.add(ring);
+
+        // ENJAMBRE VOLUMÉTRICO 3D DE ROCAS Y FRAGMENTOS DE HIELO EN EL PLANO DE LOS ANILLOS
+        if (isSaturn) {
+            const numBoulders = 3500;
+            const bGeo = new THREE.BufferGeometry();
+            const bPos = new Float32Array(numBoulders * 3);
+            const bCol = new Float32Array(numBoulders * 3);
+            const cassiniGapInner = data.radius * 1.95;
+            const cassiniGapOuter = data.radius * 2.05;
+
+            for (let b = 0; b < numBoulders; b++) {
+                // Distribución radial evitando la División de Cassini para realismo astrofísico
+                let distR = innerR + Math.random() * (outerR - innerR);
+                if (distR > cassiniGapInner && distR < cassiniGapOuter && Math.random() > 0.08) {
+                    distR = innerR + Math.random() * (cassiniGapInner - innerR);
+                }
+                const angle = Math.random() * Math.PI * 2;
+                const thickness = (Math.random() - 0.5) * 0.22; // Grosor vertical físico del anillo
+
+                bPos[b * 3] = Math.cos(angle) * distR;
+                bPos[b * 3 + 1] = thickness;
+                bPos[b * 3 + 2] = Math.sin(angle) * distR;
+
+                // Tonalidad de hielo brillante y polvo de silicato
+                const icy = 0.85 + Math.random() * 0.15;
+                bCol[b * 3] = icy;
+                bCol[b * 3 + 1] = icy * 0.95;
+                bCol[b * 3 + 2] = icy * 0.85;
+            }
+
+            bGeo.setAttribute('position', new THREE.BufferAttribute(bPos, 3));
+            bGeo.setAttribute('color', new THREE.BufferAttribute(bCol, 3));
+
+            const boulderMat = new THREE.PointsMaterial({
+                size: 0.22,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.85,
+                map: window.FX ? window.FX.createStarTexture() : null,
+                depthWrite: false
+            });
+            const boulderPoints = new THREE.Points(bGeo, boulderMat);
+            planetMesh.add(boulderPoints);
+
+            // SONDA ESPACIAL CASSINI-HUYGENS (NASA / ESA / ASI)
+            const cassiniGroup = new THREE.Group();
+            // 1. Cuerpo principal octogonal con aislamiento térmico de oro (Gold MLI)
+            const busGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.55, 8);
+            const goldMat = new THREE.MeshStandardMaterial({ 
+                color: 0xd4af37, 
+                metalness: 0.85, 
+                roughness: 0.25 
+            });
+            const busMesh = new THREE.Mesh(busGeo, goldMat);
+            cassiniGroup.add(busMesh);
+
+            // 2. Antena de Alta Ganancia (HGA) parabólica blanca
+            const hgaGeo = new THREE.CylinderGeometry(0.38, 0.05, 0.12, 16);
+            const hgaMat = new THREE.MeshStandardMaterial({ 
+                color: 0xf5f5f5, 
+                metalness: 0.2, 
+                roughness: 0.4 
+            });
+            const hgaMesh = new THREE.Mesh(hgaGeo, hgaMat);
+            hgaMesh.position.y = 0.32;
+            cassiniGroup.add(hgaMesh);
+
+            // 3. Mástil del Magnetómetro (11 m a escala)
+            const boomGeo = new THREE.CylinderGeometry(0.015, 0.015, 1.2, 4);
+            const boomMat = new THREE.MeshBasicMaterial({ color: 0x888888 });
+            const boomMesh = new THREE.Mesh(boomGeo, boomMat);
+            boomMesh.rotation.z = Math.PI / 3;
+            boomMesh.position.set(0.4, 0.1, 0);
+            cassiniGroup.add(boomMesh);
+
+            // 4. Módulo de Descenso Huygens (Titan Lander)
+            const huygensGeo = new THREE.SphereGeometry(0.12, 8, 8);
+            const huygensMat = new THREE.MeshStandardMaterial({ color: 0xcc8833, metalness: 0.5 });
+            const huygensMesh = new THREE.Mesh(huygensGeo, huygensMat);
+            huygensMesh.position.set(-0.24, 0, 0);
+            cassiniGroup.add(huygensMesh);
+
+            // Ubicar Cassini en la División de Cassini (órbita de exploración)
+            cassiniGroup.position.set(data.radius * 1.98, 0.4, 0);
+            cassiniGroup.userData = { name: "Sonda Cassini-Huygens (NASA/ESA/ASI)", isSpacecraft: true };
+            planetMesh.add(cassiniGroup);
+            window.cassiniProbe = cassiniGroup;
+        }
     }
 
     const label = document.createElement('div');
@@ -1387,6 +1973,7 @@ fetch('./data/nebulae.json').then(res => res.json()).then(nebulaeData => {
                 vertexColors: true,
                 transparent: true,
                 opacity: 0.8,
+                map: window.FX ? window.FX.createStarTexture() : null,
                 blending: THREE.AdditiveBlending,
                 depthWrite: false
             });
@@ -1689,10 +2276,11 @@ fetch('./data/cosmic_web.bin').then(res => {
     
     const material = new THREE.PointsMaterial({
         color: 0x88bbff, 
-        size: 800, // Tamaño reducido para que parezcan nodos luminosos a lo lejos, no polígonos masivos
+        size: 25.0, 
         sizeAttenuation: true,
         transparent: true,
-        opacity: 0.6,
+        opacity: 0.65,
+        map: window.FX ? window.FX.createStarTexture() : null,
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
@@ -1849,7 +2437,15 @@ if (earthObj) {
         satPos.push(r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi));
     }
     satGeo.setAttribute('position', new THREE.Float32BufferAttribute(satPos, 3));
-    const satMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+    const satMat = new THREE.PointsMaterial({ 
+        color: 0xffffff, 
+        size: 0.12, 
+        map: window.FX ? window.FX.createStarTexture() : null,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false 
+    });
     const satellites = new THREE.Points(satGeo, satMat);
     earthMesh.add(satellites);
     earthObj.satPoints = satellites;
@@ -2008,15 +2604,18 @@ window.ourUniverse.add(extraSystems);
 
 const exoplanetData = [
     { name: "Próxima Centauri", x: 4.2, z: 2.1, y: 0, color: 0xff3333, desc: "Enana Roja (Sistema estelar más cercano con exoplanetas)" },
-{ name: "TRAPPIST-1", x: 40, z: -15, y: 5, color: 0xff4444, desc: "Sistema con 7 planetas rocosos (Zona Habitable)" },
+    { name: "TRAPPIST-1", x: 40, z: -15, y: 5, color: 0xff4444, desc: "Sistema con 7 planetas rocosos (Zona Habitable)" },
     { name: "Kepler-186", x: -100, z: 250, y: -20, color: 0xffaa88, desc: "Enana M con el primer planeta terrestre confirmado" },
     { name: "Castor (Gemini A)", x: 35, z: 15, y: 40, color: 0x88bbff, desc: "Sistema Estelar Múltiple en la constelación de Géminis" },
     { name: "Stephenson 2-18", x: 190, z: -320, y: 40, isHypergiant: true, color: 0xff4411, desc: "La estrella más grande conocida en el Universo (Hipergigante Roja con 2,150 Radios Solares). Distancia: 18,900 ly." },
-    // Agujeros Negros y Cuásares Hipermasivos Reales
-    { name: "Sagittarius A*", x: 260, z: -500, y: 0, isBlackHole: true, desc: "Agujero Negro Supermasivo en el centro de la Vía Láctea. Masa: 4.31 millones Soles." },
-    { name: "M87*", x: 350, z: 150, y: 400, isBlackHole: true, desc: "Agujero Negro Supermasivo de la Galaxia Virgo A. Masa: 6500 millones Soles." },
-    { name: "Cygnus X-1", x: 150, z: 400, y: 30, isBlackHole: true, desc: "Sistema Binario con Agujero Negro Estelar masivo. Fuerte emisor de Rayos X." },
-    { name: "TON 618", x: 4000, z: -6000, y: 800, isBlackHole: true, isHyperQuasar: true, desc: "TON 618 es el Agujero Negro y Cuásar más grande conocido en el Universo (66,000 Millones Masas Solares). Distancia: 18.2 Billones años luz. Su radio de Schwarzschild mide 1,300 UA." }
+    // Agujeros Negros y Singularidades Reales
+    { name: "Gaia BH1", x: 15, z: 25, y: -8, isBlackHole: true, desc: "El agujero negro conocido más cercano a la Tierra (1,560 años luz en Ofiuco). Masa: 9.62 Masas Solares. Descubierto por telescopio Gaia (ESA, 2022)." },
+    { name: "Cygnus X-1", x: 150, z: 400, y: 30, isBlackHole: true, desc: "Sistema Binario con Agujero Negro Estelar masivo y estrella compañera HDE 226868. Fuerte emisor de Rayos X. Distancia: 6,070 ly." },
+    { name: "M87*", x: 350, z: 150, y: 400, isBlackHole: true, desc: "Agujero Negro Supermasivo de la Galaxia Virgo A con chorro relativista de 5,000 años luz. Masa: 6,500 millones Soles. Distancia: 53.5 millones ly." },
+    { name: "Gargantúa", x: -350, z: -550, y: 120, isBlackHole: true, desc: "Agujero Negro Supermasivo hiper-rotatorio con curvatura relativista extrema (spin a=0.9998). Modelo computacional de Kip Thorne. Masa: 100 millones Masas Solares." },
+    { name: "TON 618", x: 4000, z: -6000, y: 800, isBlackHole: true, isHyperQuasar: true, desc: "TON 618 es el Agujero Negro y Cuásar más grande conocido en el Universo (66,000 Millones Masas Solares). Distancia: 18.2 Billones años luz. Su radio de Schwarzschild mide 1,300 UA." },
+    // Nebulosas Remanentes y Cunas Estelares
+    { name: "Nebulosa del Cangrejo (M1)", x: 42, z: 28, y: 15, isCrabNebula: true, desc: "Remanente de la supernova SN 1054 con Púlsar de neutrones PSR B0531+21 (30.2 Hz). Filamentos de azufre e hidrógeno con emisión sincrotrón azul turquesa. Distancia: 6,500 ly." }
 ];
 
 // === HELPER KIP THORNE BLACK HOLE GENERATOR (NASA / EHT M87* / SGR A* / TON 618 MODEL) ===
@@ -2126,47 +2725,30 @@ function createKipThorneBlackHole({ rShadow = 30, jetLength = 350, isAccretionAc
     // Usamos un ShaderMaterial procedural montado sobre un Sprite para simular la luz
     // de la parte trasera del disco doblándose alrededor del agujero negro.
     // Al ser un Sprite, siempre mirará a la cámara, que es físicamente el comportamiento correcto de un Einstein Ring.
-    const haloMat = new THREE.ShaderMaterial({
-        uniforms: {
-            color: { value: baseColor }
-        },
-        vertexShader: `
-            varying vec2 vUv;
-            void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `,
-        fragmentShader: `
-            uniform vec3 color;
-            varying vec2 vUv;
-            void main() {
-                vec2 uv = vUv - 0.5;
-                float dist = length(uv);
-                
-                // El sprite se escala a 8 * rShadow. Por tanto, el horizonte de sucesos (rShadow) está en dist = 1/8 = 0.125
-                float ring = smoothstep(0.08, 0.14, dist) * smoothstep(0.45, 0.14, dist);
-                
-                // Hacer que el anillo sea extremadamente brillante arriba y abajo
-                float angleIntensity = abs(uv.y) / (dist + 0.001);
-                angleIntensity = pow(angleIntensity, 2.5);
-                
-                // Efecto Doppler asimétrico (izquierda vs derecha)
-                float doppler = smoothstep(-0.5, 0.5, uv.x);
-                vec3 finalColor = color * (0.3 + doppler * 1.7);
-                
-                float alpha = ring * angleIntensity * 3.0; // Multiplicador de intensidad
-                alpha *= smoothstep(0.5, 0.3, dist); // Difuminado en los bordes
-                
-                gl_FragColor = vec4(finalColor, alpha);
-            }
-        `,
-        transparent: true,
+    // 3. Lente Gravitacional de Gargantua / Cygnus X-1 (Einstein Ring Físico)
+    // Usamos SpriteMaterial nativo con textura de lente para evitar artefactos de quads blancos
+    const lensCanvas = document.createElement('canvas');
+    lensCanvas.width = 256; lensCanvas.height = 256;
+    const lCtx = lensCanvas.getContext('2d');
+    const grad = lCtx.createRadialGradient(128, 128, 25, 128, 128, 120);
+    grad.addColorStop(0.0, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.25, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.42, isBlue ? 'rgba(120, 220, 255, 0.95)' : 'rgba(255, 180, 60, 0.95)');
+    grad.addColorStop(0.60, isBlue ? 'rgba(40, 140, 255, 0.45)' : 'rgba(255, 90, 10, 0.45)');
+    grad.addColorStop(1.0, 'rgba(0,0,0,0)');
+    lCtx.fillStyle = grad;
+    lCtx.fillRect(0, 0, 256, 256);
+    
+    const lensTex = new THREE.CanvasTexture(lensCanvas);
+    const haloMat = new THREE.SpriteMaterial({
+        map: lensTex,
+        color: 0xffffff,
         blending: THREE.AdditiveBlending,
+        transparent: true,
         depthWrite: false
     });
     const haloSprite = new THREE.Sprite(haloMat);
-    haloSprite.scale.set(rShadow * 8.0, rShadow * 8.0, 1);
+    haloSprite.scale.set(rShadow * 5.5, rShadow * 5.5, 1);
     haloSprite.renderOrder = 5; 
     bhGroup.add(haloSprite);
 
@@ -2253,15 +2835,18 @@ exoplanetData.forEach(sys => {
     
     if (sys.isHyperQuasar || sys.isBlackHole) {
         const isQuasar = sys.isHyperQuasar;
-        let rShadow = 15; // Defecto para agujeros negros estelares (Cygnus X-1)
-        if (sys.name === 'M87*') rShadow = 300; // Supermasivo
-        else if (isQuasar) rShadow = 1500;      // Ultramasivo (TON 618)
+        let rShadow = 18; // Defecto para agujeros negros estelares
+        if (sys.name === 'Gaia BH1') rShadow = 10;
+        else if (sys.name === 'Cygnus X-1') rShadow = 18;
+        else if (sys.name === 'M87*') rShadow = 280; // Supermasivo
+        else if (sys.name === 'Gargantúa') rShadow = 120; // Kip Thorne Kerr
+        else if (isQuasar) rShadow = 1200;      // Ultramasivo (TON 618)
         
         const bhData = createKipThorneBlackHole({ 
             rShadow: rShadow, 
-            jetLength: rShadow * 6, // Jets relativistas monstruosos
+            jetLength: rShadow * 6,
             isAccretionActive: true, 
-            labelColor: isQuasar ? '#00ffff' : '#ffaa00'
+            labelColor: isQuasar ? '#00ffff' : (sys.name === 'Gaia BH1' ? '#00ffcc' : (sys.name === 'Gargantúa' ? '#ffcc00' : '#ffaa00'))
         });
         
         bhData.bhGroup.userData = { 
@@ -2275,26 +2860,78 @@ exoplanetData.forEach(sys => {
         group.userData.disk = bhData.eqDisk;
         group.userData.isBlackHole = true;
         group.userData.rShadow = rShadow;
+        group.userData.mass = sys.desc || "Singularidad Masiva";
+        group.userData.radius = `${rShadow} UA`;
+
+        // Propagar userData a todos los hijos para soporte impecable de Raycaster
+        bhData.bhGroup.traverse(child => {
+            child.userData.name = sys.name;
+            child.userData.isBlackHole = true;
+            child.userData.parentSystem = group;
+        });
+
+        // --- AÑADIR ESTRELLA COMPAÑERA PARA GAIA BH1 (ENANA AMARILLA TIPO SOLAR G2V) ---
+        if (sys.name === 'Gaia BH1') {
+            const compDist = rShadow * 12;
+            const compRadius = rShadow * 0.55; // Escala estelar física solar (~5.5 unidades vs disco)
+            const starGeo = new THREE.SphereGeometry(compRadius, 48, 48);
+            const starMat = new THREE.MeshBasicMaterial({ 
+                map: textureLoader.load("./textures/sun.jpg"),
+                color: 0xffe680 
+            });
+            const starMesh = new THREE.Mesh(starGeo, starMat);
+            starMesh.position.set(compDist, 0, 0);
+            starMesh.userData.name = "Compañera Gaia BH1 (Enana Amarilla G2V)";
+            starMesh.userData.parentSystem = group;
+            group.add(starMesh);
+
+            // Corona y halo de plasma incandescente (Atmósfera solar fotorrealista)
+            const starCoronaGeo = new THREE.SphereGeometry(compRadius * 1.5, 32, 32);
+            const starCoronaMat = new THREE.MeshBasicMaterial({ 
+                color: 0xffaa22, 
+                transparent: true, 
+                opacity: 0.35, 
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            const starCoronaMesh = new THREE.Mesh(starCoronaGeo, starCoronaMat);
+            starMesh.add(starCoronaMesh);
+
+            const pLight = new THREE.PointLight(0xffdd66, 2.5, compDist * 4);
+            pLight.position.copy(starMesh.position);
+            group.add(pLight);
+        }
         
         // --- AÑADIR ESTRELLA COMPAÑERA Y CORRIENTE DE ACRECIÓN PARA CYGNUS X-1 ---
         if (sys.name === 'Cygnus X-1') {
-            const compDist = rShadow * 25; // Distancia de la estrella compañera
-            const compRadius = rShadow * 10; // Estrella gigante azul
+            const compDist = rShadow * 16; // Distancia calibrada
+            const compRadius = rShadow * 0.95; // Supergigante azul estelar equilibrada (~17 u)
             
             // Malla de la estrella HDE 226868
-            const starGeo = new THREE.SphereGeometry(compRadius, 64, 64);
-            const starMat = new THREE.MeshBasicMaterial({ color: 0x99ccff });
+            const starGeo = new THREE.SphereGeometry(compRadius, 48, 48);
+            const starMat = new THREE.MeshBasicMaterial({ 
+                map: textureLoader.load("./textures/sun.jpg"),
+                color: 0x99ccff 
+            });
             const starMesh = new THREE.Mesh(starGeo, starMat);
             starMesh.position.set(compDist, 0, 0);
+            starMesh.userData.name = "HDE 226868 (Supergigante Azul de Cygnus X-1)";
+            starMesh.userData.parentSystem = group;
             group.add(starMesh);
             
             // Resplandor de la estrella
-            const starHaloGeo = new THREE.SphereGeometry(compRadius * 1.3, 32, 32);
-            const starHaloMat = new THREE.MeshBasicMaterial({ color: 0x55aaff, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending });
+            const starHaloGeo = new THREE.SphereGeometry(compRadius * 1.5, 32, 32);
+            const starHaloMat = new THREE.MeshBasicMaterial({ 
+                color: 0x3388ff, 
+                transparent: true, 
+                opacity: 0.35, 
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
             const starHaloMesh = new THREE.Mesh(starHaloGeo, starHaloMat);
             starMesh.add(starHaloMesh);
             
-            const pLight = new THREE.PointLight(0x99ccff, 3, compDist * 4);
+            const pLight = new THREE.PointLight(0x88ccff, 3, compDist * 4);
             pLight.position.copy(starMesh.position);
             group.add(pLight);
             
@@ -2389,38 +3026,66 @@ exoplanetData.forEach(sys => {
         }
         // --------------------------------------------------------------------------
         
+        // ETIQUETA HOLOGRÁFICA GLOWING 3D DE ALTO CONTRASTE (TITAN BADGE)
         const bhLabelDiv = document.createElement('div');
-        bhLabelDiv.className = 'planet-label';
-        bhLabelDiv.style.color = isQuasar ? '#00ffff' : '#ff0055';
+        bhLabelDiv.className = 'planet-label titan-bh-badge';
+        bhLabelDiv.style.color = '#ffffff';
         bhLabelDiv.style.fontWeight = 'bold';
-        bhLabelDiv.style.textShadow = `0 0 10px ${isQuasar ? '#00ffff' : '#ff0055'}, 1px 1px 3px black`;
-        bhLabelDiv.textContent = `[ ${sys.name.toUpperCase()} ]`;
-        
-        // Habilitar clics en etiquetas de Agujeros Negros
+        bhLabelDiv.style.fontFamily = "'Outfit', -apple-system, sans-serif";
+        bhLabelDiv.style.fontSize = '11px';
+        bhLabelDiv.style.padding = '4px 10px';
+        bhLabelDiv.style.borderRadius = '5px';
         bhLabelDiv.style.pointerEvents = 'auto';
         bhLabelDiv.style.cursor = 'pointer';
+        bhLabelDiv.style.zIndex = '1500';
+        bhLabelDiv.style.whiteSpace = 'nowrap';
+        bhLabelDiv.style.transform = 'translate(-50%, -130%)';
+        bhLabelDiv.style.transition = 'transform 0.15s ease, background 0.2s';
+        
+        let themeCol = '#ff3366';
+        let icon = '🕳️';
+        let subInfo = 'Agujero Negro';
+        if (isQuasar) {
+            themeCol = '#00ffff';
+            icon = '💥';
+            subInfo = 'Cuásar 66B M☉';
+        } else if (sys.name === 'M87*') {
+            themeCol = '#ff5500';
+            icon = '🕳️';
+            subInfo = 'Virgo A 6,500M M☉';
+        } else if (sys.name === 'Cygnus X-1') {
+            themeCol = '#ff00aa';
+            icon = '⚡';
+            subInfo = 'Binario Rayos X 21.2 M☉';
+        } else if (sys.name === 'Gaia BH1') {
+            themeCol = '#00ffcc';
+            icon = '🕳️';
+            subInfo = 'Cercano a Tierra 9.6 M☉';
+        } else if (sys.name === 'Gargantúa') {
+            themeCol = '#ffcc00';
+            icon = '🌀';
+            subInfo = 'Kip Thorne 100M M☉';
+        }
+
+        bhLabelDiv.style.background = 'rgba(8, 4, 18, 0.92)';
+        bhLabelDiv.style.border = `1px solid ${themeCol}`;
+        bhLabelDiv.style.boxShadow = `0 0 12px ${themeCol}`;
+        bhLabelDiv.innerHTML = `${icon} <span style="letter-spacing:0.06em;">[ ${sys.name.toUpperCase()} ]</span> <span style="font-size:9.5px; opacity:0.85; font-weight:normal; margin-left:4px;">${subInfo}</span>`;
+
+        bhLabelDiv.addEventListener('mouseenter', () => {
+            bhLabelDiv.style.transform = 'translate(-50%, -135%) scale(1.06)';
+            bhLabelDiv.style.background = 'rgba(25, 10, 45, 0.98)';
+        });
+        bhLabelDiv.addEventListener('mouseleave', () => {
+            bhLabelDiv.style.transform = 'translate(-50%, -130%) scale(1.0)';
+            bhLabelDiv.style.background = 'rgba(8, 4, 18, 0.92)';
+        });
+
         bhLabelDiv.addEventListener('click', (e) => {
             e.stopPropagation();
-            window.trackedObject = null; // Detener persecución de bólidos
-            warpActive = true; warpT = 0;
-            warpStartCameraPos.copy(camera.position); warpStartLookAt.copy(controls.target);
-            const targetPos = new THREE.Vector3(75 + sys.x * 200, 75 + sys.y * 200, 75 + sys.z * 200);
-            warpTargetLookAt.copy(targetPos);
-            const camOffset = isQuasar ? new THREE.Vector3(450, 180, 550) : (sys.name === 'M87*' ? new THREE.Vector3(120, 50, 140) : new THREE.Vector3(45, 20, 55));
-            warpTargetCameraPos.copy(targetPos).add(camOffset);
-            
-            const infoP = document.getElementById('info-panel');
-            if (infoP) {
-                infoP.classList.remove('hidden');
-                document.getElementById('target-name').textContent = sys.name;
-                document.getElementById('target-type').textContent = isQuasar ? "🌌 CUÁSAR HIPERMASIVO" : "🕳️ AGUJERO NEGRO";
-                document.getElementById('target-dist').textContent = isQuasar ? "18.2B ly" : (sys.name === 'M87*' ? "53.5M ly" : "6,070 ly");
-                document.getElementById('target-mass').textContent = sys.desc || "Masa de Singularidad";
-                document.getElementById('target-radius').textContent = `${rShadow} UA`;
-            }
-            if (window.fetchNasaImageData) window.fetchNasaImageData(sys.name);
+            window.warpToBlackHole(sys.name);
         });
-        
+
         document.body.appendChild(bhLabelDiv);
         group.userData.bhLabel = bhLabelDiv;
 
@@ -2437,44 +3102,168 @@ exoplanetData.forEach(sys => {
             desc: "Estrella hipergigante en la constelación de Scutum. Si estuviese en el centro de nuestro Sistema Solar, su superficie tragaría la órbita de Saturno."
         };
         group.add(starMesh);
+        group.userData.name = "Stephenson 2-18";
+        group.userData.isHypergiant = true;
+        group.userData.mass = "30-50 Masas Solares";
+        group.userData.radius = "2,150 Radios Solares";
+        group.userData.desc = sys.desc;
+        starMesh.userData.parentSystem = group;
         
         const labelDiv = document.createElement('div');
-        labelDiv.className = 'planet-label';
-        labelDiv.style.color = '#ff4411';
+        labelDiv.className = 'planet-label titan-bh-badge';
+        labelDiv.style.color = '#ffffff';
         labelDiv.style.fontWeight = 'bold';
-        labelDiv.style.textShadow = '0 0 8px #ff4411, 1px 1px 2px black';
-        labelDiv.textContent = '[ STEPHENSON 2-18 ]';
-        
-        // Habilitar clics en Stephenson 2-18
+        labelDiv.style.fontFamily = "'Outfit', -apple-system, sans-serif";
+        labelDiv.style.fontSize = '11px';
+        labelDiv.style.padding = '4px 10px';
+        labelDiv.style.borderRadius = '5px';
+        labelDiv.style.background = 'rgba(18, 6, 2, 0.92)';
+        labelDiv.style.border = '1px solid #ff4411';
+        labelDiv.style.boxShadow = '0 0 12px rgba(255, 68, 17, 0.5)';
+        labelDiv.innerHTML = `🔴 <span style="letter-spacing:0.06em;">[ STEPHENSON 2-18 ]</span> <span style="font-size:9.5px; opacity:0.85; font-weight:normal; margin-left:4px;">Hipergigante 2,150 R☉</span>`;
         labelDiv.style.pointerEvents = 'auto';
         labelDiv.style.cursor = 'pointer';
+        labelDiv.style.zIndex = '1500';
+        labelDiv.style.transform = 'translate(-50%, -130%)';
+        labelDiv.style.transition = 'transform 0.15s ease, background 0.2s';
+        
+        labelDiv.addEventListener('mouseenter', () => {
+            labelDiv.style.transform = 'translate(-50%, -135%) scale(1.06)';
+            labelDiv.style.background = 'rgba(40, 15, 5, 0.98)';
+        });
+        labelDiv.addEventListener('mouseleave', () => {
+            labelDiv.style.transform = 'translate(-50%, -130%) scale(1.0)';
+            labelDiv.style.background = 'rgba(18, 6, 2, 0.92)';
+        });
+
         labelDiv.addEventListener('click', (e) => {
             e.stopPropagation();
-            window.trackedObject = null; // Detener persecución de bólido
-            warpActive = true; warpT = 0;
-            warpStartCameraPos.copy(camera.position); warpStartLookAt.copy(controls.target);
-            const targetPos = new THREE.Vector3(75 + sys.x * 200, 75 + sys.y * 200, 75 + sys.z * 200);
-            warpTargetLookAt.copy(targetPos);
-            warpTargetCameraPos.copy(targetPos).add(new THREE.Vector3(150, 60, 200));
-            
-            const infoP = document.getElementById('info-panel');
-            if (infoP) {
-                infoP.classList.remove('hidden');
-                document.getElementById('target-name').textContent = "Stephenson 2-18";
-                document.getElementById('target-type').textContent = "🔴 LA ESTRELLA MÁS GRANDE DEL COSMOS";
-                document.getElementById('target-dist').textContent = "18,900 ly";
-                document.getElementById('target-mass').textContent = "30-50 Masas Solares";
-                document.getElementById('target-radius').textContent = "2,150 Radios Solares";
-            }
-            if (window.fetchNasaImageData) window.fetchNasaImageData("Stephenson 2-18");
+            window.warpToBlackHole('Stephenson 2-18');
         });
         
         document.body.appendChild(labelDiv);
         group.userData.bhLabel = labelDiv;
+
+    } else if (sys.isCrabNebula) {
+        // === NEBULOSA DEL CANGREJO (MESSIER 1 / NGC 1952) — 3D VOLUMÉTRICA AAA ===
+        const crabGroup = new THREE.Group();
+        const crabTex = textureLoader.load("./textures/crab_nebula.jpg");
+        
+        // 1. Estructura de filamentos volumétricos 3D (Planos ortogonales cruzados fotorrealistas)
+        const planeGeo = new THREE.PlaneGeometry(75, 75);
+        const crabMat = new THREE.MeshBasicMaterial({
+            map: crabTex,
+            transparent: true,
+            opacity: 0.90,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+        
+        const p1 = new THREE.Mesh(planeGeo, crabMat);
+        const p2 = new THREE.Mesh(planeGeo, crabMat);
+        p2.rotation.y = Math.PI / 2.3;
+        p2.scale.set(0.92, 0.92, 1);
+        const p3 = new THREE.Mesh(planeGeo, crabMat);
+        p3.rotation.x = Math.PI / 2.7;
+        p3.scale.set(0.85, 0.85, 1);
+
+        crabGroup.add(p1);
+        crabGroup.add(p2);
+        crabGroup.add(p3);
+
+        // 2. Núcleo Sincrotrón Azul Turquesa de Plasma Relativista
+        const coreGeo = new THREE.SphereGeometry(14, 32, 32);
+        const coreMat = new THREE.MeshBasicMaterial({
+            color: 0x00d9ff,
+            transparent: true,
+            opacity: 0.38,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+        crabGroup.add(coreMesh);
+
+        // 3. Púlsar Central PSR B0531+21 (Giro ultrarrápido a 30.2 Hz)
+        const pulsarGeo = new THREE.SphereGeometry(1.8, 16, 16);
+        const pulsarMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const pulsarMesh = new THREE.Mesh(pulsarGeo, pulsarMat);
+        pulsarMesh.userData = { isPulsar: true, rpm: 1812 };
+        crabGroup.add(pulsarMesh);
+
+        // Chorro relativista bipolar (Jets de rayos gamma y rayos X sincrotrón)
+        const jetGeo = new THREE.CylinderGeometry(0.15, 0.55, 42, 8);
+        const jetMat = new THREE.MeshBasicMaterial({
+            color: 0x44ffff,
+            transparent: true,
+            opacity: 0.70,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const jet1 = new THREE.Mesh(jetGeo, jetMat);
+        jet1.position.y = 21.0;
+        const jet2 = new THREE.Mesh(jetGeo, jetMat);
+        jet2.position.y = -21.0;
+        crabGroup.add(jet1);
+        crabGroup.add(jet2);
+
+        group.add(crabGroup);
+        window.crabNebulaGroup = crabGroup;
+
+        // Metadatos para Raycaster e Info Panel
+        group.userData.name = "Nebulosa del Cangrejo (M1)";
+        group.userData.isNebula = true;
+        group.userData.isBlackHole = true; // Para navegación universal
+        group.userData.mass = "~10 Masas Solares";
+        group.userData.radius = "11 años luz (Remanente SN 1054)";
+        group.userData.desc = sys.desc;
+
+        crabGroup.traverse(child => {
+            child.userData.name = "Nebulosa del Cangrejo (M1)";
+            child.userData.parentSystem = group;
+        });
+
+        // Badge Holográfica de Alta Visibilidad
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'planet-label titan-bh-badge';
+        labelDiv.style.color = '#ffffff';
+        labelDiv.style.fontWeight = 'bold';
+        labelDiv.style.fontFamily = "'Outfit', -apple-system, sans-serif";
+        labelDiv.style.fontSize = '11px';
+        labelDiv.style.padding = '4px 10px';
+        labelDiv.style.borderRadius = '5px';
+        labelDiv.style.background = 'rgba(2, 16, 28, 0.94)';
+        labelDiv.style.border = '1px solid #00ffcc';
+        labelDiv.style.boxShadow = '0 0 14px rgba(0, 255, 204, 0.7)';
+        labelDiv.innerHTML = `🦀 <span style="letter-spacing:0.06em;">[ M1 CANGREJO ]</span> <span style="font-size:9.5px; opacity:0.85; font-weight:normal; margin-left:4px;">SN 1054 | Púlsar 30.2 Hz</span>`;
+        labelDiv.style.pointerEvents = 'auto';
+        labelDiv.style.cursor = 'pointer';
+        labelDiv.style.zIndex = '1500';
+        labelDiv.style.transform = 'translate(-50%, -130%)';
+        labelDiv.style.transition = 'transform 0.15s ease, background 0.2s';
+
+        labelDiv.addEventListener('mouseenter', () => {
+            labelDiv.style.transform = 'translate(-50%, -135%) scale(1.06)';
+            labelDiv.style.background = 'rgba(6, 32, 55, 0.98)';
+        });
+        labelDiv.addEventListener('mouseleave', () => {
+            labelDiv.style.transform = 'translate(-50%, -130%) scale(1.0)';
+            labelDiv.style.background = 'rgba(2, 16, 28, 0.94)';
+        });
+
+        labelDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.warpToBlackHole('Nebulosa del Cangrejo (M1)');
+        });
+
+        document.body.appendChild(labelDiv);
+        group.userData.bhLabel = labelDiv;
+
     } else {
         const starMesh = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 32), new THREE.MeshBasicMaterial({ color: sys.color }));
-        starMesh.userData = { name: sys.name, mass: "Masa Estelar (Secuencia Principal)", radius: "Gigante gaseosa/rocosa" };
+        starMesh.userData = { name: sys.name, mass: "Masa Estelar (Secuencia Principal)", radius: "Gigante gaseosa/rocosa", parentSystem: group };
         group.add(starMesh);
+        group.userData.name = sys.name;
     }
     extraSystems.add(group);
 });
@@ -2482,22 +3271,58 @@ exoplanetData.forEach(sys => {
 // === SAGITARIO A* (Centro Galáctico Supermasivo - Modelo Kip Thorne + Lente Gravitacional) ===
 const sgrAGroup = new THREE.Group();
 sgrAGroup.position.set(52075, 75, -99925);
+sgrAGroup.userData.name = "Sagittarius A*";
+sgrAGroup.userData.isBlackHole = true;
+sgrAGroup.userData.mass = "4.31 Millones Masas Solares";
+sgrAGroup.userData.radius = "15 UA";
+sgrAGroup.userData.desc = "Agujero Negro Supermasivo anclado en el corazón gravitacional de la Vía Láctea.";
 extraSystems.add(sgrAGroup);
 
 // Sagitario A* es supermasivo pero "pequeño" comparado con M87* y TON 618
 const sgrABh = createKipThorneBlackHole({ rShadow: 20, jetLength: 120, isAccretionActive: true, labelColor: '#ff7700' });
-sgrABh.bhGroup.userData = { name: "Sagitario A* (Agujero Negro Supermasivo)", mass: "4.1 Millones de Masas Solares", radius: "Horizonte de 22 millones km" };
+sgrABh.bhGroup.userData = { name: "Sagitario A* (Agujero Negro Supermasivo)", mass: "4.31 Millones de Masas Solares", radius: "Horizonte de 22 millones km", isBlackHole: true };
 sgrAGroup.add(sgrABh.bhGroup);
+
+sgrAGroup.traverse(child => {
+    child.userData.name = "Sagittarius A*";
+    child.userData.isBlackHole = true;
+    child.userData.parentSystem = sgrAGroup;
+});
 
 const sgrADisk = sgrABh.eqDisk;
 
 const sgrALabelDiv = document.createElement('div');
-sgrALabelDiv.className = 'planet-label';
-sgrALabelDiv.style.color = '#ff0055';
+sgrALabelDiv.className = 'planet-label titan-bh-badge';
+sgrALabelDiv.style.color = '#ffffff';
 sgrALabelDiv.style.fontWeight = 'bold';
-sgrALabelDiv.style.textShadow = '0 0 8px #ff0055, 1px 1px 2px black';
-sgrALabelDiv.textContent = '[ SAGITARIO A* ]';
-sgrALabelDiv.style.pointerEvents = 'none';
+sgrALabelDiv.style.fontFamily = "'Outfit', -apple-system, sans-serif";
+sgrALabelDiv.style.fontSize = '11.5px';
+sgrALabelDiv.style.padding = '4px 10px';
+sgrALabelDiv.style.borderRadius = '5px';
+sgrALabelDiv.style.background = 'rgba(12, 6, 2, 0.92)';
+sgrALabelDiv.style.border = '1px solid #ffaa00';
+sgrALabelDiv.style.boxShadow = '0 0 14px rgba(255, 170, 0, 0.5)';
+sgrALabelDiv.innerHTML = `🌌 <span style="letter-spacing:0.06em;">[ SAGITARIO A* ]</span> <span style="font-size:9.5px; opacity:0.85; font-weight:normal; color:#ffcc66; margin-left:4px;">4.31M M☉ (Centro Galáctico)</span>`;
+sgrALabelDiv.style.pointerEvents = 'auto';
+sgrALabelDiv.style.cursor = 'pointer';
+sgrALabelDiv.style.zIndex = '1500';
+sgrALabelDiv.style.whiteSpace = 'nowrap';
+sgrALabelDiv.style.transform = 'translate(-50%, -130%)';
+sgrALabelDiv.style.transition = 'transform 0.15s ease, background 0.2s';
+
+sgrALabelDiv.addEventListener('mouseenter', () => {
+    sgrALabelDiv.style.transform = 'translate(-50%, -135%) scale(1.06)';
+    sgrALabelDiv.style.background = 'rgba(35, 15, 5, 0.98)';
+});
+sgrALabelDiv.addEventListener('mouseleave', () => {
+    sgrALabelDiv.style.transform = 'translate(-50%, -130%) scale(1.0)';
+    sgrALabelDiv.style.background = 'rgba(12, 6, 2, 0.92)';
+});
+
+sgrALabelDiv.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.warpToBlackHole('Sagittarius A*');
+});
 document.body.appendChild(sgrALabelDiv);
 sgrAGroup.userData.bhLabel = sgrALabelDiv;
 
@@ -2569,11 +3394,11 @@ window.meteorites = meteorites;
 for(let i=0; i<20; i++) {
     const metMat = new THREE.MeshStandardMaterial({
         map: rockTexture,
-        color: 0xddbb99,
-        roughness: 0.85,
-        metalness: 0.2,
-        emissive: 0x442200,
-        emissiveIntensity: 0.8
+        color: 0x77726e, // Roca espacial oscura realista (Bennu/Ryugu)
+        roughness: 0.95,
+        metalness: 0.05,
+        emissive: 0x000000,
+        emissiveIntensity: 0.0
     });
     const m = new THREE.Mesh(baseAstGeo.clone(), metMat);
     m.visible = false;
@@ -2986,8 +3811,10 @@ async function fetchDVTRGAS() {
         eventsContainer.innerHTML = html;
 
     } catch (e) {
-        eventsContainer.innerHTML = `<div style='color:red;'>Esperando conexión con servidor DVTRGAS (API)...<br>DEBUG ERROR: ${e.message}</div>`;
-        console.error("Fetch/Update Error:", e);
+        // Modo silencioso: no ensuciar la interfaz cinematográfica con texto rojo de debug
+        if (eventsContainer) {
+            eventsContainer.innerHTML = `<div style='color:rgba(255,255,255,0.4); font-size:11px;'>DVTRGAS | SIMULACIÓN LOCAL ACTIVA</div>`;
+        }
     }
 }
 
@@ -3176,8 +4003,8 @@ window.launchDARTMission = function(targetIdx) {
 // Sondeo periódico (Poll) al cerebro DVTRGAS cada 1 segundo
 setInterval(fetchDVTRGAS, 1000);
 
-// === TITAN v26 SHADER (POST-PROCESADO BRUTAL) ===
-// Transpuesto desde dvtrga26_pipeline.c (apply_swarm_distortion y apply_snr_visual)
+// === TITAN v26 SHADER (POST-PROCESADO CINEMATOGRÁFICO IMAX) ===
+// Transpuesto desde dvtrga26_pipeline.c con aberración anamórfica, curva S Kodak y viñeteado óptico
 const TitanShader = {
     uniforms: {
         "tDiffuse": { value: null },
@@ -3185,7 +4012,10 @@ const TitanShader = {
         "swarmIntensity": { value: 0.005 },
         "bhPosScreen": { value: new THREE.Vector2(0.5, 0.5) },
         "bhActive": { value: 0.0 },
-        "aspect": { value: 1.0 }
+        "aspect": { value: 1.0 },
+        "cinematicActive": { value: 1.0 }, // 1.0 = CINEMÁTICO IMAX, 0.0 = OBSERVATORIO TÉCNICO
+        "chromaticAberration": { value: 1.0 },
+        "vignetteIntensity": { value: 1.0 }
     },
     vertexShader: `
         varying vec2 vUv;
@@ -3201,6 +4031,9 @@ const TitanShader = {
         uniform vec2 bhPosScreen;
         uniform float bhActive;
         uniform float aspect;
+        uniform float cinematicActive;
+        uniform float chromaticAberration;
+        uniform float vignetteIntensity;
         varying vec2 vUv;
         
         void main() {
@@ -3209,10 +4042,7 @@ const TitanShader = {
             // Corregir aspecto para cálculos circulares (para evitar que el agujero negro sea un óvalo)
             vec2 aspectUv = vec2(uv.x * aspect, uv.y);
             vec2 aspectCenter = vec2(0.5 * aspect, 0.5);
-            
             float dist = distance(aspectUv, aspectCenter);
-            
-            // Máscara radial: 0 en el centro, 1 en los bordes
             float edgeMask = smoothstep(0.1, 0.8 * aspect, dist); 
             
             // Lente Gravitacional Realista (Black Hole Lensing / Einstein Ring)
@@ -3221,55 +4051,55 @@ const TitanShader = {
                 vec2 dirToBh = aspectUv - aspectBhPos;
                 float distToBh = length(dirToBh);
                 
-                // bhActive es el radio aparente de Schwarzschild proyectado en pantalla
                 if (distToBh > 0.0) {
-                    // Métrica de Schwarzschild aproximada en Screen Space
-                    float massTerm = bhActive * bhActive * 0.2; // Reducido para evitar que empuje los UVs fuera de la pantalla
+                    float massTerm = bhActive * bhActive * 0.2;
                     float deflexion = massTerm / (distToBh + 0.01);
-                    
-                    // Asegurarnos de que el efecto de lente solo ocurra LOCALMENTE alrededor del agujero
-                    // Si distToBh es mayor que bhActive * 6, el efecto desaparece rápidamente
                     deflexion *= smoothstep(bhActive * 8.0, bhActive * 1.5, distToBh);
-                    
-                    // El TitanShader solo aplica la lente gravitacional para las estrellas y discos.
-                    // Ya NO pintamos de negro absoluto aquí, porque oculta la parte delantera de los discos 3D.
-                    // La sombra negra se maneja nativamente con shadowMesh en el motor 3D.
-                    
-                    // IMPORTANTE: Dentro del horizonte de sucesos, NO hay deflexión de luz hacia afuera,
-                    // de lo contrario el shader jalaría píxeles del exterior hacia el centro, creando un vórtice 
-                    // que borra la sombra negra 3D.
                     if (distToBh < bhActive * 0.95) {
                         deflexion = 0.0;
                     }
-                    
-                    // Curvar la luz hacia afuera (efecto lente gravitacional)
-                    // Ajustamos la deflexión en X dividiéndola por el aspecto para que el estiramiento UV sea proporcional
                     vec2 targetUv = uv + normalize(dirToBh) * vec2(deflexion / aspect, deflexion);
-                    // Clampear para que no lea fuera de la pantalla y cree el "cuadrado feo"
                     uv = clamp(targetUv, vec2(0.001), vec2(0.999));
                 }
             }
             
-            // 🌪️ Swarm Distortion (Aberración)
+            // Swarm Distortion
             float vx = sin(uv.y * 20.0 + time * 2.0) * swarmIntensity * edgeMask;
             float vy = cos(uv.x * 20.0 + time * 2.0) * swarmIntensity * edgeMask;
             uv.x += vx;
             uv.y += vy;
             
-            vec4 texColor = texture2D(tDiffuse, uv);
+            vec3 finalColor = vec3(0.0);
             
-            // Usar la distancia de pantalla pura (sin corregir aspecto) para efectos perimetrales como Vignette o SNR
-            float screenDist = distance(vUv, vec2(0.5));
+            if (cinematicActive > 0.5) {
+                // 1. Aberración Cromática Anamórfica Panavision (Dispersión óptica periférica)
+                vec2 toCenter = uv - vec2(0.5);
+                float distFromCenter = length(toCenter);
+                vec2 caOffset = toCenter * (distFromCenter * 0.006 * chromaticAberration);
+                
+                float r = texture2D(tDiffuse, clamp(uv + caOffset, 0.001, 0.999)).r;
+                float g = texture2D(tDiffuse, uv).g;
+                float b = texture2D(tDiffuse, clamp(uv - caOffset, 0.001, 0.999)).b;
+                vec3 col = vec3(r, g, b);
+                
+                // 2. Curva S Fílmica Kodak Vision3 / IMAX (Negros de vacío absoluto + Luces de alta gama)
+                // Da relieve, volumen y contraste dramático 3D en pantalla directa
+                vec3 sCurve = col * col * (3.0 - 2.0 * col);
+                col = mix(col, sCurve, 0.25);
+                col = pow(col, vec3(1.06)); // Profundidad sutil de negros espaciales
+                col *= 1.12; // Realce lumínico controlado
+                
+                // 3. Viñeteado Óptico Suave (Guía la vista hacia el centro del cosmos)
+                float vignette = 1.0 - smoothstep(0.48, 1.25, distFromCenter * 1.35) * 0.35 * vignetteIntensity;
+                col *= vignette;
+                
+                finalColor = col;
+            } else {
+                // Modo normal técnico
+                finalColor = texture2D(tDiffuse, uv).rgb;
+            }
             
-            // 🧠 SNR Visual (Aberración Energética perimetral) - ELIMINADO
-            // El usuario reportó pulsaciones rojas/moradas en los bordes. Desactivamos la aberración cromática
-            // para mantener la pureza visual de la simulación del Cosmos.
-            // float snrWeight = smoothstep(0.4, 0.8, screenDist); 
-            // texColor.r += snrWeight * 0.15 * (sin(time * 2.0) * 0.5 + 0.5);
-            // texColor.b += snrWeight * 0.15 * (cos(time * 2.0) * 0.5 + 0.5);
-            // texColor.g *= (1.0 - snrWeight * 0.1); 
-            
-            gl_FragColor = texColor;
+            gl_FragColor = vec4(finalColor, 1.0);
         }
     `
 };
@@ -3279,24 +4109,22 @@ FX.init(scene, camera, renderer);
 const composer = FX.composer;
 
 // === POLVO INTERESTELAR — Medio Interestelar (ISM) Real ===
-// Distribución volumétrica de gas y polvo interestelar:
-// color gris-azul frío (ISM real: silicatos y carbono), tamaño sub-pixel, muy transparente
 const dustGeo = new THREE.BufferGeometry();
 const dustCount = 8000;
 const dustPos = new Float32Array(dustCount * 3);
 for (let i = 0; i < dustCount; i++) {
-    // Distribución en disco galáctico aplanado (plano Y más comprimido)
     dustPos[i*3]   = (Math.random() - 0.5) * 2400 + 75;
     dustPos[i*3+1] = (Math.random() - 0.5) * 180  + 75;
     dustPos[i*3+2] = (Math.random() - 0.5) * 2400 + 75;
 }
 dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-// Silicatos interestelares: gris-azul frío, muy pequeños, casi invisibles a distancia
 const dustMat = new THREE.PointsMaterial({
-    color: 0x8899bb,    // Gris-azul: silicatos y grafito ISM real
-    size: 0.15,         // Sub-pixel — visible solo cerca
+    color: 0x8899bb,
+    size: 0.15,
     transparent: true,
     opacity: 0.22,
+    map: window.FX ? window.FX.createStarTexture() : null,
+    blending: THREE.AdditiveBlending,
     depthWrite: false,
     sizeAttenuation: true
 });
@@ -3307,6 +4135,12 @@ scene.add(cosmicDust);
 const titanPass = new THREE.ShaderPass(TitanShader);
 titanPass.renderToScreen = true;
 composer.addPass(titanPass);
+window.titanPass = titanPass;
+
+// Iniciar automáticamente en Modo Cinemático IMAX
+if (window.FX && window.FX.setCinematicMode) {
+    window.FX.setCinematicMode(true);
+}
 
 // === INTERACTIVIDAD UI ===
 let timeSpeed = 5.0; // Velocidad default más rápida para ver orbitar planetas
@@ -3471,7 +4305,16 @@ function logTitan(msg) {
 const tHipp = document.getElementById('toggle-hipparcos');
 if (tHipp) {
     tHipp.addEventListener('change', (e) => {
-        if (typeof hipparcosGroup !== 'undefined') hipparcosGroup.visible = e.target.checked;
+        const checked = e.target.checked;
+        if (typeof hipparcosGroup !== 'undefined') hipparcosGroup.visible = checked;
+        if (window.simbadGroup) window.simbadGroup.visible = checked;
+        if (typeof constellationsGroup !== 'undefined') constellationsGroup.visible = checked;
+        if (window.namedStars) {
+            window.namedStars.forEach(s => {
+                if (s.label) s.label.style.display = checked ? 'block' : 'none';
+            });
+        }
+        logTitan(checked ? `[CATÁLOGO] Hipparcos + SIMBAD activado.` : `[CATÁLOGO] Ocultando estrellas de catálogo.`);
     });
 }
 
@@ -3523,18 +4366,28 @@ if (toggleMultiverse) {
 const tBh = document.getElementById('toggle-blackholes');
 if (tBh) {
     tBh.addEventListener('change', (e) => {
-        if (typeof extraSystems !== 'undefined') extraSystems.visible = e.target.checked;
+        const checked = e.target.checked;
+        if (typeof extraSystems !== 'undefined') {
+            extraSystems.visible = checked;
+            extraSystems.children.forEach(sys => {
+                if (sys.userData.bhLabel) sys.userData.bhLabel.style.display = checked ? 'block' : 'none';
+            });
+        }
+        logTitan(checked ? `[HORIZONTE] Agujeros Negros y Cuásares activados.` : `[HORIZONTE] Singularidades ocultas.`);
     });
 }
 
 const tPlanets = document.getElementById('toggle-planets');
 if (tPlanets) {
     tPlanets.addEventListener('change', (e) => {
-        if (typeof solarSystem !== 'undefined') {
-            solarSystem.children.forEach(child => {
-                if (child.type === 'Group') child.visible = e.target.checked;
+        const checked = e.target.checked;
+        if (typeof solarSystem !== 'undefined') solarSystem.visible = checked;
+        if (typeof planets !== 'undefined') {
+            planets.forEach(p => {
+                if (p.label) p.label.style.display = checked ? 'block' : 'none';
             });
         }
+        logTitan(checked ? `[SISTEMA SOLAR] Planetas visibles.` : `[SISTEMA SOLAR] Planetas ocultos.`);
     });
 }
 
@@ -3548,8 +4401,12 @@ if (tOrbits) {
 const tLabels = document.getElementById('toggle-labels');
 if (tLabels) {
     tLabels.addEventListener('change', (e) => {
+        const checked = e.target.checked;
         const lblContainer = document.getElementById('labels-container');
-        if (lblContainer) lblContainer.style.display = e.target.checked ? 'block' : 'none';
+        if (lblContainer) lblContainer.style.display = checked ? 'block' : 'none';
+        document.querySelectorAll('.planet-label, .titan-bh-badge').forEach(lbl => {
+            lbl.style.display = checked ? 'block' : 'none';
+        });
     });
 }
 
@@ -3563,7 +4420,16 @@ if (tGrid) {
 const tMeteors = document.getElementById('toggle-meteors');
 if (tMeteors) {
     tMeteors.addEventListener('change', (e) => {
-        if (typeof metGroup !== 'undefined') metGroup.visible = e.target.checked;
+        const checked = e.target.checked;
+        if (typeof metGroup !== 'undefined') metGroup.visible = checked;
+        if (window.meteorites) {
+            window.meteorites.forEach(m => {
+                if (m.mesh) m.mesh.visible = checked;
+                if (m.trail) m.trail.visible = checked;
+                if (m.label) m.label.style.display = checked ? 'block' : 'none';
+            });
+        }
+        logTitan(checked ? `[NEO] Bólidos y asteroides activos.` : `[NEO] Anomalías ocultas.`);
     });
 }
 
@@ -3893,6 +4759,30 @@ window.addEventListener('click', (e) => {
             }
         }
         
+        // === INTERSECCIÓN CON AGUJEROS NEGROS Y SINGULARIDADES ===
+        let bhTarget = null;
+        let pCheck = obj;
+        while (pCheck && pCheck !== scene && pCheck !== window.ourUniverse) {
+            if (pCheck.userData && (pCheck.userData.isBlackHole || pCheck.userData.isAccretion || pCheck.userData.isHypergiant)) {
+                bhTarget = pCheck;
+                break;
+            }
+            if (pCheck.userData && pCheck.userData.parentSystem) {
+                bhTarget = pCheck.userData.parentSystem;
+                break;
+            }
+            pCheck = pCheck.parent;
+        }
+        if (bhTarget || (obj.userData && (obj.userData.isBlackHole || obj.userData.isAccretion))) {
+            const bhObj = bhTarget || obj;
+            const bhName = (bhObj.userData && bhObj.userData.name) || obj.userData.name;
+            if (bhName && window.warpToBlackHole) {
+                window.warpToBlackHole(bhName);
+                found = true;
+                break;
+            }
+        }
+
         // Planetas Normales y SIMBAD Stars
         if (obj.userData && (obj.userData.name || obj.userData.simbad)) {
             const uName = obj.userData.simbad ? obj.userData.simbad.name : obj.userData.name;
@@ -4437,7 +5327,17 @@ function animate() {
     const delta = 0.002 * timeSpeed;
     time += delta;
     
-    sun.rotation.y += 0.005 * timeSpeed;
+    // Centelleo estelar físico en tiempo real (Scintillation)
+    if (window.hipparcosPoints && window.hipparcosPoints.material && window.hipparcosPoints.material.uniforms && window.hipparcosPoints.material.uniforms.uTime) {
+        window.hipparcosPoints.material.uniforms.uTime.value = time;
+    }
+    if (window.gaiaPoints && window.gaiaPoints.material && window.gaiaPoints.material.uniforms && window.gaiaPoints.material.uniforms.uTime) {
+        window.gaiaPoints.material.uniforms.uTime.value = time;
+    }
+    
+    // Rotación real del Sol (Período sidéreo ecuatorial: 25.38 días)
+    const solarSiderealOmega = (2 * Math.PI) / (25.38 * 86400 * 60); // rad/frame a 1x real-time
+    sun.rotation.y += solarSiderealOmega * timeSpeed;
     // Animación de Protuberancias Solares y Lenguas de Fuego 3D
     if (window.prominenceArcs && window.prominenceArcs.length > 0) {
         window.prominenceArcs.forEach((arc, idx) => {
@@ -4477,14 +5377,20 @@ function animate() {
             }
         }
         if (sys.userData.bhLabel) {
-            if (sys.visible && document.getElementById('toggle-blackholes').checked) {
+            const bhVisible = (!document.getElementById('toggle-blackholes') || document.getElementById('toggle-blackholes').checked) &&
+                              (!document.getElementById('toggle-labels') || document.getElementById('toggle-labels').checked) &&
+                              sys.visible !== false &&
+                              (typeof extraSystems === 'undefined' || extraSystems.visible !== false);
+            if (bhVisible) {
                 sys.getWorldPosition(tempV);
+                const toObj = tempV.clone().sub(camera.position);
+                const inFront = toObj.dot(camera.getWorldDirection(new THREE.Vector3())) > 0;
                 tempV.project(camera);
-                if (tempV.z < 1) {
+                if (inFront && tempV.x >= -1.15 && tempV.x <= 1.15 && tempV.y >= -1.15 && tempV.y <= 1.15) {
                     const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
                     const y = (tempV.y * -0.5 + 0.5) * window.innerHeight;
-                    sys.userData.bhLabel.style.left = (x + 15) + 'px';
-                    sys.userData.bhLabel.style.top = (y - 15) + 'px';
+                    sys.userData.bhLabel.style.left = x + 'px';
+                    sys.userData.bhLabel.style.top = y + 'px';
                     sys.userData.bhLabel.style.display = 'block';
                 } else {
                     sys.userData.bhLabel.style.display = 'none';
@@ -4612,13 +5518,16 @@ function animate() {
         
         // (La lógica de p.label se ha movido arriba para que funcione también con las lunas)
         if (p.satPoints) {
-            p.satPoints.rotation.x += 0.005 * timeSpeed;
-            p.satPoints.rotation.y += 0.02 * timeSpeed;
+            // Calibración orbital física LEO (~92 min periodo en tiempo real)
+            const leoOrbitalDelta = (2 * Math.PI / (5520 * 60)) * Math.max(timeSpeed, 1.0) * 6.0;
+            p.satPoints.rotation.y += leoOrbitalDelta;
+            p.satPoints.rotation.x += leoOrbitalDelta * 0.15;
         }
         // Rotar telescopios
         if (p.hubbleOrbit) {
-            p.hubbleOrbit.rotation.y += 0.2 * timeSpeed;
-            p.hubbleOrbit.rotation.x += 0.1 * timeSpeed;
+            const hubbleDelta = (2 * Math.PI / (5760 * 60)) * Math.max(timeSpeed, 1.0) * 6.0;
+            p.hubbleOrbit.rotation.y += hubbleDelta;
+            p.hubbleOrbit.rotation.x += hubbleDelta * 0.1;
         }
         if (p.jwstOrbit) {
             // JWST orbita L2 muy lentamente
@@ -4868,7 +5777,7 @@ function animate() {
                     m.isThreat = true;
                 }
             } else {
-                setNEOColorAndEmissive(m, null, 0xffaa00); // Naranja (Seguro)
+                setNEOColorAndEmissive(m, 0x77726e, 0x000000, 0.0); // Roca espacial oscura realista, no fluorescente
                 m.traj.material.color.setHex(0xffaa00);
                 m.isThreat = false;
             }
@@ -4967,67 +5876,72 @@ function animate() {
         
         controls.target.copy(camera.position).add(originalDir.multiplyScalar(100));
     } else if (!warpActive) {
-        controls.enabled = true; // Acoplamiento gravitatorio reanudado
-        
-        if (currentTarget) {
-            const currentPos = new THREE.Vector3();
-            currentTarget.getWorldPosition(currentPos);
-            const deltaMove = new THREE.Vector3().subVectors(currentPos, lastTargetPos);
-            camera.position.add(deltaMove);
-            controls.target.copy(currentPos);
-            lastTargetPos.copy(currentPos);
+        if (window.Planetarium && window.Planetarium.active) {
+            controls.enabled = false;
+            window.Planetarium.update();
+        } else {
+            controls.enabled = true; // Acoplamiento gravitatorio reanudado
             
-            if (isLanded && landedTarget) {
-                // FÍSICA DE ATERRIZAJE (FPS Style Surface Camera)
-                // Permitimos a OrbitControls gestionar la cámara con limits, aquí aplicamos solo FOG
-                let surfaceRadius = 1;
-                if (landedTarget.geometry && landedTarget.geometry.parameters.radius) {
-                    surfaceRadius = landedTarget.geometry.parameters.radius;
-                }
-                const localSurfaceOffset = new THREE.Vector3(surfaceRadius + 0.1, 0, 0);
-                localSurfaceOffset.applyEuler(landedTarget.rotation);
-                const globalSurfacePos = currentPos.clone().add(localSurfaceOffset);
+            if (currentTarget) {
+                const currentPos = new THREE.Vector3();
+                currentTarget.getWorldPosition(currentPos);
+                const deltaMove = new THREE.Vector3().subVectors(currentPos, lastTargetPos);
+                camera.position.add(deltaMove);
+                controls.target.copy(currentPos);
+                lastTargetPos.copy(currentPos);
                 
-                const sunVec = new THREE.Vector3(0,0,0).sub(globalSurfacePos).normalize();
-                const surfaceNormal = localSurfaceOffset.clone().normalize();
-                const sunAngle = surfaceNormal.dot(sunVec);
-                
-                if (landedTargetName === "Marte") {
-                    if (sunAngle > 0.1) { scene.fog = new THREE.FogExp2(0xcc6633, 0.08); scene.background = new THREE.Color(0xcc6633); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0xcc6633); }
-                    else if (sunAngle > -0.1) { scene.fog = new THREE.FogExp2(0x3366cc, 0.05); scene.background = new THREE.Color(0x111122); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x3366cc); }
-                    else { scene.fog = null; scene.background = new THREE.Color(0x000000); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000); }
-                } else if (landedTargetName === "Tierra") {
-                    if (sunAngle > 0.1) { scene.fog = new THREE.FogExp2(0x66aaff, 0.05); scene.background = new THREE.Color(0x66aaff); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x66aaff); }
-                    else if (sunAngle > -0.1) { scene.fog = new THREE.FogExp2(0xff8844, 0.06); scene.background = new THREE.Color(0xff8844); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0xff8844); }
-                    else { scene.fog = null; scene.background = new THREE.Color(0x000000); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000); }
-                } else if (landedTargetName === "Venus") {
-                    scene.fog = new THREE.FogExp2(0xffff88, 0.2);
-                    scene.background = new THREE.Color(0xffff88);
-                    if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0xffff88);
-                } else if (landedTarget && landedTarget.userData && landedTarget.userData.isExoplanet) {
-                    const baseColor = landedTarget.userData.starColor || 0xffffff;
-                    const r = (baseColor >> 16) & 255;
-                    const g = (baseColor >> 8) & 255;
-                    const b = baseColor & 255;
-                    const sunsetColor = (r << 16) | (Math.floor(g*0.5) << 8) | Math.floor(b*0.5); 
-                    
-                    if (sunAngle > 0.1) { 
-                        scene.fog = new THREE.FogExp2(baseColor, 0.05); 
-                        scene.background = new THREE.Color(baseColor); 
-                        if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(baseColor); 
-                    } else if (sunAngle > -0.1) { 
-                        scene.fog = new THREE.FogExp2(sunsetColor, 0.08); 
-                        scene.background = new THREE.Color(sunsetColor); 
-                        if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(sunsetColor); 
-                    } else { 
-                        scene.fog = null; 
-                        scene.background = new THREE.Color(0x000000); 
-                        if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000); 
+                if (isLanded && landedTarget) {
+                    // FÍSICA DE ATERRIZAJE (FPS Style Surface Camera)
+                    // Permitimos a OrbitControls gestionar la cámara con limits, aquí aplicamos solo FOG
+                    let surfaceRadius = 1;
+                    if (landedTarget.geometry && landedTarget.geometry.parameters.radius) {
+                        surfaceRadius = landedTarget.geometry.parameters.radius;
                     }
-                } else {
-                    scene.fog = null;
-                    scene.background = window.milkyWayTex;
-                    if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000);
+                    const localSurfaceOffset = new THREE.Vector3(surfaceRadius + 0.1, 0, 0);
+                    localSurfaceOffset.applyEuler(landedTarget.rotation);
+                    const globalSurfacePos = currentPos.clone().add(localSurfaceOffset);
+                    
+                    const sunVec = new THREE.Vector3(0,0,0).sub(globalSurfacePos).normalize();
+                    const surfaceNormal = localSurfaceOffset.clone().normalize();
+                    const sunAngle = surfaceNormal.dot(sunVec);
+                    
+                    if (landedTargetName === "Marte") {
+                        if (sunAngle > 0.1) { scene.fog = new THREE.FogExp2(0xcc6633, 0.08); scene.background = new THREE.Color(0xcc6633); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0xcc6633); }
+                        else if (sunAngle > -0.1) { scene.fog = new THREE.FogExp2(0x3366cc, 0.05); scene.background = new THREE.Color(0x111122); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x3366cc); }
+                        else { scene.fog = null; scene.background = new THREE.Color(0x000000); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000); }
+                    } else if (landedTargetName === "Tierra") {
+                        if (sunAngle > 0.1) { scene.fog = new THREE.FogExp2(0x66aaff, 0.05); scene.background = new THREE.Color(0x66aaff); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x66aaff); }
+                        else if (sunAngle > -0.1) { scene.fog = new THREE.FogExp2(0xff8844, 0.06); scene.background = new THREE.Color(0xff8844); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0xff8844); }
+                        else { scene.fog = null; scene.background = new THREE.Color(0x000000); if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000); }
+                    } else if (landedTargetName === "Venus") {
+                        scene.fog = new THREE.FogExp2(0xffff88, 0.2);
+                        scene.background = new THREE.Color(0xffff88);
+                        if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0xffff88);
+                    } else if (landedTarget && landedTarget.userData && landedTarget.userData.isExoplanet) {
+                        const baseColor = landedTarget.userData.starColor || 0xffffff;
+                        const r = (baseColor >> 16) & 255;
+                        const g = (baseColor >> 8) & 255;
+                        const b = baseColor & 255;
+                        const sunsetColor = (r << 16) | (Math.floor(g*0.5) << 8) | Math.floor(b*0.5); 
+                        
+                        if (sunAngle > 0.1) { 
+                            scene.fog = new THREE.FogExp2(baseColor, 0.05); 
+                            scene.background = new THREE.Color(baseColor); 
+                            if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(baseColor); 
+                        } else if (sunAngle > -0.1) { 
+                            scene.fog = new THREE.FogExp2(sunsetColor, 0.08); 
+                            scene.background = new THREE.Color(sunsetColor); 
+                            if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(sunsetColor); 
+                        } else { 
+                            scene.fog = null; 
+                            scene.background = new THREE.Color(0x000000); 
+                            if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000); 
+                        }
+                    } else {
+                        scene.fog = null;
+                        scene.background = window.milkyWayTex;
+                        if(window.skyDome) window.skyDome.material.uniforms.bottomColor.value.setHex(0x000000);
+                    }
                 }
             }
         }
@@ -5111,7 +6025,7 @@ function animate() {
     
     // Desactivar el efecto gelatina (Warp) si estamos en Street View o si el usuario lo apagó
     const warpToggle = document.getElementById('toggle-warp-effect');
-    if (isLanded || (warpToggle && !warpToggle.checked)) {
+    if (isLanded || (window.Planetarium && window.Planetarium.active) || (warpToggle && !warpToggle.checked)) {
         titanPass.uniforms["swarmIntensity"].value = 0.0;
     } else {
         titanPass.uniforms["swarmIntensity"].value = 0.005 * physicsWarp;
@@ -5128,14 +6042,47 @@ function animate() {
         });
     }
 
+    // === PROFUNDIDAD CINEMATOGRÁFICA 3D EN PANTALLA (SIN GAFAS) ===
+    // Micro-deriva orbital cinematográfica (Motion Parallax): cuando el usuario no está arrastrando el ratón
+    // ni volando activamente, la cámara genera un sutilísimo movimiento de paralaje orbital continuo (0.22x).
+    // Esto activa la visión esteoroscópica del cerebro (motion parallax) en monitores 2D normales sin gafas.
+    if (!isMoving && !warpActive && (!window.Planetarium || !window.Planetarium.active)) {
+        if (window.cinematicDepthActive !== false) {
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.22;
+        } else {
+            controls.autoRotate = false;
+        }
+    } else {
+        controls.autoRotate = false;
+    }
+
     // SAFEGUARD: Desactivar TitanPass si falla
     try {
-        if (controls.enabled) controls.update();
+        if (controls.enabled && (!window.Planetarium || !window.Planetarium.active)) controls.update();
         FX.ApplyPostProcessing();
     } catch (e) {
         renderer.render(scene, camera); // Fallback a render raw si composer falla
     }
 }
+
+// Control Global de Modo Cinemático 3D (Sin Gafas)
+window.cinematicDepthActive = true;
+window.toggleCinematicDepth = function(forcedState) {
+    if (window.FX && window.FX.setCinematicMode) {
+        const nextState = (typeof forcedState === 'boolean') ? forcedState : !window.FX.isCinematicActive;
+        window.FX.setCinematicMode(nextState);
+        window.cinematicDepthActive = nextState;
+    }
+};
+
+window.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'c' || e.key === 'C') {
+        window.toggleCinematicDepth();
+    }
+});
+
 animate();
 
 // HUD NASA

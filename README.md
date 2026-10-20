@@ -18,11 +18,13 @@
 > **TITAN no es un motor gráfico genérico; es un "Apocalypse Engine" matemático diseñado específicamente para simulaciones cosmológicas y termodinámicas de altísimo rendimiento.**
 
 - 🌌 **Volumen Estelar Extremo:** Renderizado de **83.467 estrellas reales** (Catálogo HYG/ESA Gaia) procesadas íntegramente por GPU como una nube de puntos masiva (Instanced/Point Cloud). Cada estrella brilla con su color termodinámico exacto según su clase espectral astronómica.
-- ⚙️ **Arquitectura Dual (Motor + Driver):** 
-  - **TITAN Engine (La Lógica):** Pesa **solo ~390 KB**. Es un motor puramente matemático (escrito en Vanilla JS) que calcula Gravedad N-Cuerpos, Métrica Tensorial, Óptica Relativista (Agujeros Negros) y Sincronización Ephemeris.
+- ⚙️ **Arquitectura Dual y Backend Nativo C99 (Zero-Python):** 
+  - **TITAN C99 Native Engine:** Servidor nativo de ultra-baja latencia escrito en ANSI C99 puro (`titan_server.c`), con generación de catálogos matriciales y pipeline libre de runtime de Python.
+  - **TITAN Engine Frontend (La Lógica):** Pesa **solo ~390 KB**. Es un motor puramente matemático (escrito en Vanilla JS) que calcula Gravedad N-Cuerpos, Métrica Tensorial, Óptica Relativista (Agujeros Negros) y Sincronización Ephemeris.
   - **Graphic Driver (El Renderizador):** Utiliza **WebGL 2.0 (via Three.js r128)**, que suma unos **~600 KB** (minificado).
-  - **Peso Total:** ¡Todo el laboratorio espacial ocupa **menos de 1 MB**!
-- 🌘 **Modo Stellarium & Efemérides Reales:** Transiciones inmersivas desde la órbita hasta la superficie de la Tierra, con posicionamiento de cámara auto-calculado (Lat/Lon) y apuntado Cenital para presenciar **eventos astronómicos y eclipses históricos en su instante de tiempo exacto**.
+- 🪐 **Planetarium 2.0 & Modo Stellarium Diurno:** Street View inmersivo con cúpula de dispersión atmosférica Rayleigh y atajo de teclado tecla `A` / botón `[ ATMÓSFERA ]` para alternar entre el cielo diurno azul y la visibilidad de las estrellas a plena luz del día.
+- 🕳️ **Navegación de Singularidades & Agujeros Negros:** Menú global desplegable `🕳️ AGUJEROS NEGROS ▾` y badges holográficos con Hyper-Warp directo a Sagitario A*, M87*, Cygnus X-1, Gaia BH1, Gargantúa, TON 618 y la Nebulosa del Cangrejo M1.
+- ✨ **Constelaciones Oficiales UAI:** 66 segmentos de las 14 constelaciones clásicas de la Unión Astronómica Internacional (Osa Mayor, Orión y su Cinturón, Casiopea 'W', Cisne, Tauro, Pegaso con cabeza y extremidades, etc.) proyectados de forma pura en la bóveda exterior.
 - 🚀 **Cero Dependencias de Servidor (Client-Side Computing):** Al contrario que *SpaceEngine* o *Universe Sandbox*, TITAN no requiere descargas de gigabytes ni servidores con bases de datos. Ejecuta todos sus algoritmos matriciales localmente en el navegador (`standalone`), haciéndolo 100% compatible con hostings estáticos como GitHub Pages.
 
 ### 📊 Comparativa de Rendimiento (Draw Call vs GPU Instancing)

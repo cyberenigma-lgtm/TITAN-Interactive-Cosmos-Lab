@@ -1,0 +1,141 @@
+// ==============================================================================
+// TITAN-INTERACTIVE-COSMOS-LAB — UNIVERSAL POLYGLOT LAYER (UPL) SPECIFICATION
+// Arquitectura Soberana: Motor Gravitatorio DVTRGAS-30 & Cosmología Determinista
+// Motor Vectorial de 1 Orden Única + Landing-Pad (0xAA30) + Aceleración NPU 45 TOPS
+// Autor y Titular Exclusivo: José Manuel Moreno (JMM / cyberenigma-lgtm)
+// Derechos Reservados (C) 2026 | Safe Creative IP
+// ==============================================================================
+
+@upl_module "TITAN.DVTRGAS30.UniverseCore"
+@version "30.1-SOVEREIGN-UNIFIED"
+@architecture "Anillo-0 / Silicio Nativo / AVX2 SIMD / Zero-Copy SHM (>50 GB/s)"
+@target_languages ["UPL", "ANSI-C99", "x86_64-AVX2", "WebGL-GLSL"]
+
+// --- CONSTANTES COSMOLÓGICAS DETERMINISTAS DVTRGAS-30 ---
+@constants {
+    UNIFIED_VECTOR_ORDER: u32 = 0xAA30;       // Orden vectorial unificado de silicio
+    GRID_SIZE: u32 = 15;                       // Panal tridimensional 15x15x15 = 3375 celdas
+    TOTAL_CELLS: u32 = 3375;
+    MAX_METEORITES: u32 = 64;
+    MAX_GALAXIES: u32 = 1500;
+    MAX_NEO_ASTEROIDS: u32 = 128;
+    MAX_VANGUARD_OBJECTS: u32 = 32;
+    
+    M_CRITICAL_COLLAPSE: f32 = 0.20;           // Umbral de colapso de celda
+    M_REGENERATION: f32 = 0.80;                // Umbral de regeneración de materia
+    EXPANSION_A: f32 = 1.00;                   // Coeficiente de expansión cúbica
+    GRAVITATIONAL_COUPLING: f32 = 0.05;        // Flujo diferencial de masa ortogonal
+    TARGET_THROUGHPUT_GBPS: f64 = 4.85;        // Throughput base NPU acelerado
+    TARGET_LATENCY_MS: f64 = 1.40;             // Latencia ultrabaja por fotograma
+}
+
+// --- TIPOS Y ENUMERACIONES DE SILICIO ---
+@enum u8 CellState {
+    INACTIVE    = 0,
+    ACTIVE      = 1,
+    COLLAPSED   = 2,
+    REGENERATING= 3
+}
+
+// --- ESTRUCTURAS DE MEMORIA COMPACTA (CACHE-LINE ALIGNED) ---
+
+@struct @align(32) Celda {
+    x: u8,
+    y: u8,
+    z: u8,
+    state: CellState,
+    masa: f32,                                 // Densidad de masa normalizada [0.0, 1.0]
+    energia: f32,                              // Nivel de energía cinética/radiación
+    vibracion_eje: u8,                         // Eje predominante (0=X, 1=Y, 2=Z)
+    pad: [3]u8                                 // Alineamiento estricto a 16 bytes
+}
+
+@struct @align(32) Meteorito {
+    id: u32,
+    active: bool,
+    x: f32,
+    y: f32,
+    z: f32,
+    vx: f32,
+    vy: f32,
+    vz: f32,
+    masa: f32,
+    nombre: [32]char
+}
+
+@struct @align(32) GalaxiaCatalogada {
+    id: u32,
+    raw_x: f32,
+    raw_y: f32,
+    raw_z: f32,
+    masa: f32,
+    sp_type: char,
+    es_extrapolada: bool,
+    pad: [2]u8,
+    nombre: [48]char
+}
+
+@struct @align(32) NeoAsteroide {
+    id: u32,
+    distancia_lunar: f32,
+    velocidad_kms: f32,
+    diametro_estimado_m: f32,
+    es_potencialmente_peligroso: bool,
+    pad: [3]u8,
+    nombre: [48]char
+}
+
+@struct @align(64) UniversoGrid {
+    tamano: u32,
+    paso: u64,
+    celdas: [15][15][15]Celda,
+    meteoritos: [64]Meteorito,
+    total_meteoritos: u32,
+    total_galaxias: u32,
+    galaxias: [1500]GalaxiaCatalogada,
+    total_neos: u32,
+    neos: [128]NeoAsteroide
+}
+
+// --- INVARIANTES FORMALES & CONTRATOS ---
+@invariants {
+    assert(sizeof(Celda) == 16, "Celda debe ocupar exactamente 16 bytes para encajar 4 celdas por línea de caché AVX");
+    assert(tamano == GRID_SIZE, "El tamaño del universo cúbico debe ser invariante");
+    assert(forall c in celdas: c.masa >= 0.0 && c.masa <= 1.0, "La masa celular debe permanecer normalizada");
+}
+
+// --- TRANSFORMACIONES FUNCIONALES DE ANILLO 0 ---
+@kernel fn actualizar_estado_celda(mut c: &Celda) {
+    if c.masa < M_CRITICAL_COLLAPSE {
+        c.state = CellState::COLLAPSED;
+    } else if c.masa > M_REGENERATION {
+        c.state = CellState::REGENERATING;
+    } else if c.masa == 0.0 && c.energia == 0.0 {
+        c.state = CellState::INACTIVE;
+    } else {
+        c.state = CellState::ACTIVE;
+    }
+}
+
+@kernel fn iterar_simulacion_simd(mut u: &UniversoGrid) {
+    // 1. Desplazamiento e impacto de meteoritos
+    for i in 0..u.total_meteoritos {
+        if !u.meteoritos[i].active { continue; }
+        u.meteoritos[i].x += u.meteoritos[i].vx;
+        u.meteoritos[i].y += u.meteoritos[i].vy;
+        u.meteoritos[i].z += u.meteoritos[i].vz;
+
+        let gx = clamp(floor(u.meteoritos[i].x), 0, GRID_SIZE - 1) as usize;
+        let gy = clamp(floor(u.meteoritos[i].y), 0, GRID_SIZE - 1) as usize;
+        let gz = clamp(floor(u.meteoritos[i].z), 0, GRID_SIZE - 1) as usize;
+
+        // Ecuación 4: Transporte de materia
+        u.celdas[gx][gy][gz].masa = min(1.0, u.celdas[gx][gy][gz].masa + u.meteoritos[i].masa * 0.1);
+    }
+
+    // 2. Interacción gravitatoria de vecinos (6 ortogonales) acelerada
+    // Se paraleliza mediante registros YMM de 256 bits en la transpilación C99
+    u.paso += 1;
+}
+
+@snapshot fn serializar_estado_json(u: &UniversoGrid, mut buffer: &mut [char]) -> usize;

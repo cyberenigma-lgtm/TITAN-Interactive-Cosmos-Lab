@@ -4,6 +4,48 @@
 
 ---
 
+## [v75] — 2026-10-21 — Core C99 Native Overhaul, Planetarium 2.0 & Astrophotographic Master Update
+### 🎛️ Nuevos Menús y Navegación Universal
+- **Menú Global `🕳️ AGUJEROS NEGROS ▾`**: Menú desplegable flotante con acceso instantáneo mediante Hyper-Warp relativista a cualquier agujero negro o singularidad del universo conocido (Sagitario A*, M87*, Cygnus X-1, Gaia BH1, Gargantúa, TON 618, Stephenson 2-18, y Nebulosa del Cangrejo M1) sin reiniciar el foco de la cámara en el origen `(0, 0, 0)`.
+- **Modo Stellarium en `🌍 STREET VIEW DEL CIELO`**: Nuevo control `[ ATMÓSFERA ]` y atajo de teclado tecla `A` que alterna entre la cúpula diurna de dispersión Rayleigh y la visualización de la bóveda estelar diurna a plena luz del sol con telemetría de elevación solar y horizonte astronómico en tiempo real.
+- **Selector de Renderizado `🔭 OBSERVATORIO / CINEMATOGRÁFICO`**: Conmutación inmediata entre Modo Observatorio (lineal, 0 Bloom, métrica plana de datos) y Modo Cinemático (ACES Filmic HDR, Bloom físico 1.75, grano analógico de 70mm, viñeteado anamórfico).
+- **Control Unificado de Capas**: Toggles blindados para Catálogo Estelar (Hipparcos + SIMBAD), Agujeros Negros, Sistema Solar, Líneas Orbitales y Radar de Anomalías NEO.
+
+### 🛠️ Correcciones y Calibración Física de Precisión
+- **El Sol Fotorrealista**:
+  - Eliminadas las texturas planas de miniaturas y los tubos toscos de protuberancias que generaban artefactos geométricos y apariencia de pelota de tenis.
+  - Generador de Fotosfera 360° esférica con 5,000 células de granulación convectiva, manchas solares con umbra helio-fría, penumbra y fáculas brillantes magnéticas.
+  - Corona solar esférica 3D omnidireccional con Fresnel (`THREE.BackSide` + `AdditiveBlending`) sin planos 2D que corten el disco.
+  - Velocidad de rotación solar calibrada al período sidéreo ecuatorial real de **25.38 días** en tiempo real (modo LIVE).
+- **Bug del Quad Blanco en Agujeros Negros**:
+  - Resuelto el fallo de renderizado en Cygnus X-1 donde `THREE.Sprite` con `ShaderMaterial` se dibujaba como un rectángulo blanco opaco. Sustituido por `THREE.SpriteMaterial` nativo con gradiente radial de Anillo de Einstein fotométrico.
+- **Constelaciones Oficiales UAI**:
+  - Sustitución de las líneas aleatorias ("espaguetis") por los **66 segmentos de las 14 constelaciones clásicas de la UAI** (Osa Mayor / El Carro, Orión con su Cinturón, Casiopea 'W', Cisne / Cruz del Norte, Cruz del Sur, Tauro, Can Mayor con Sirio, Leo, Escorpio, Géminis, Pegaso completo con cabeza y patas, Lira con Vega, Boyero con Arturo).
+- **Atmósfera Terrestre Realista**:
+  - Calibración de la escala atmosférica a la física del limbo orbital de la ISS y misiones Apolo (espesor del 2.5% respecto al radio planetario), eliminando la burbuja azul sobredimensionada en el hemisferio nocturno.
+- **Bólidos y Asteroides NEO**:
+  - Sustituido el brillo amarillo fluorescente por material basáltico oscuro y condrítico realista (`roughness: 0.95`, `metalness: 0.05`, `emissive: 0x000000`). La emisión roja se reserva exclusivamente para rutas de impacto inminente (< 45 u).
+- **Velocidad Orbital de Satélites**:
+  - Calibrados satélites LEO y telescopio Hubble a mecánica orbital Kepleriana (~92 minutos de período sideral).
+- **Eliminación de Píxeles Cuadrados**:
+  - Reemplazadas partículas cuadradas en nubes de gas, pilares de nebulosa y polvo cósmico por texturas gaussianas circulares puras.
+
+### 🌌 Inyección de Objetos de Cielo Profundo y Misiones
+- **Nebulosa del Cangrejo (M1)**: Remanente de la supernova histórica SN 1054 a 6,500 ly, con filamentos ionizados volumétricos y el púlsar relativista central girando a 30.2 Hz.
+- **Galaxia Espiral NGC 4380**: Galaxia espiral en Virgo a 52M ly con bulbo esférico de estrellas viejas K/M y brazos con líneas de polvo.
+- **Saturno y Cassini-Huygens**: Sonda espacial en órbita kepleriana con enjambre de bólidos de hielo en los anillos de Saturno.
+
+### ⚙️ Arquitectura de Cómputo ANSI C99 (Zero-Python)
+- Eliminación de scripts heredados en Python; todo el backend de datos, cálculo orbital y servidor HTTP/WebSocket reside en C99 nativo (`titan_server.c`, `build_astronomy_catalogs.c`, `generate_iau_constellations.c`, `generate_cosmic_web.c`).
+
+### 🗺️ Hoja de Ruta para Próximas Actualizaciones
+- [ ] Conexión del núcleo nativo Ring-0 de DVTRGAS-30 a framebuffer directo (Vulkan / DirectX 12) para bypass de navegador web.
+- [ ] Despacho de turbulencia magnetohidrodinámica en NPU local (45-163 TOPS).
+- [ ] Simulación gravitacional N-Cuerpos para más de 100,000 asteroides en AVX2/AVX-512.
+- [ ] Integración de audio binaural relativista (ondas gravitacionales / radiofrecuencias de púlsares en WebAudio).
+
+---
+
 ## [v74] — 2026-08-06
 ### ✅ Añadido
 - Firma digital de autoría en todos los archivos del proyecto (space_engine.js, index.html, style.css, server.py, fetch_nebulae.py, generate_cosmic_web.py, reconstruct_galaxy.py, nebula_photo_to_3d.py)

@@ -67,3 +67,8 @@ desktop.ini
 node_modules/
 dist/
 build/
+
+# === BINARIOS Y CLONES ANIDADOS ===
+*.exe
+TITAN-Interactive-Cosmos-Lab/
+legacy_python_archive/

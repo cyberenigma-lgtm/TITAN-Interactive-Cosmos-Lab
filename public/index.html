@@ -14,6 +14,20 @@
     <title>APOCALYPSE ENGINE - Astrophysical Simulation</title>
     <meta name="description" content="Visor Fotorrealista del Sistema Solar y Espacio Profundo — Creado por José Manuel">
     <link rel="stylesheet" href="style.css">
+    <script>
+        if (window.location.search.includes('clean=1') || window.location.search.includes('no_ui=1')) {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                body > *:not(#webgl-container) { display: none !important; }
+                body, html { background: #000 !important; overflow: hidden !important; margin: 0; padding: 0; width: 100vw; height: 100vh; }
+                #webgl-container { position: fixed !important; top:0; left:0; width:100vw; height:100vh; z-index:1 !important; display: block !important; }
+            `;
+            document.head.appendChild(style);
+            window.addEventListener('load', function() {
+                setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 200);
+            });
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -85,38 +99,107 @@
         <nav>
             <ul>
                 <li><a href="#" id="view-sun">Sol</a></li>
-                <li><a href="#" id="view-earth">Tierra / Luna</a></li>
-                <li><a href="#" id="view-deepspace">Espacio Profundo</a></li>
-                <li style="margin-right: 15px;">
-                    <div id="server-status" title="Estado del Servidor de Datos" style="display:inline-flex; align-items:center; gap:5px; font-size:0.7rem; color:#aaa; font-family:monospace; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px;">
-                        <span id="server-ping-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#888;"></span>
-                        <span id="server-ping-text">SERVER CHECKING...</span>
+                <li><a href="#" id="view-earth">Tierra</a></li>
+                <li><a href="#" id="view-deepspace">Espacio</a></li>
+                <li style="position:relative;" class="obs-panel">
+                    <a href="#" id="btn-blackholes-menu" onclick="event.preventDefault(); const d = document.getElementById('blackholes-dropdown'); d.style.display = d.style.display === 'none' ? 'block' : 'none';" style="color:#ff3366; font-weight:bold; border:1px solid #ff3366; background:rgba(255,51,102,0.15); box-shadow:0 0 10px rgba(255,51,102,0.3);">
+                        🕳️ AGUJEROS NEGROS ▾
+                    </a>
+                    <div id="blackholes-dropdown" style="display:none; position:absolute; top:100%; left:0; background:rgba(10,15,30,0.98); border:1px solid #ff3366; border-radius:6px; min-width:340px; padding:6px; z-index:2500; box-shadow:0 12px 35px rgba(0,0,0,0.95);">
+                        <div onclick="window.warpToBlackHole('Sagittarius A*'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#ffaa00; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,170,0,0.2)'" onmouseout="this.style.background='transparent'">
+                            🌌 Sagitario A* (Centro Galáctico — 4.31M M☉)
+                        </div>
+                        <div onclick="window.warpToBlackHole('M87*'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#ff5500; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,85,0,0.2)'" onmouseout="this.style.background='transparent'">
+                            🕳️ M87* (Galaxia Virgo A — 6,500M M☉)
+                        </div>
+                        <div onclick="window.warpToBlackHole('Cygnus X-1'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#ff00aa; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,0,170,0.2)'" onmouseout="this.style.background='transparent'">
+                            ⚡ Cygnus X-1 (Binaria Rayos X — 21.2 M☉)
+                        </div>
+                        <div onclick="window.warpToBlackHole('Gaia BH1'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#00ffcc; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(0,255,204,0.2)'" onmouseout="this.style.background='transparent'">
+                            🕳️ Gaia BH1 (Más cercano a la Tierra — 1,560 ly)
+                        </div>
+                        <div onclick="window.warpToBlackHole('Gargantúa'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#ffcc00; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,204,0,0.2)'" onmouseout="this.style.background='transparent'">
+                            🌀 Gargantúa (Singularidad Kip Thorne — 100M M☉)
+                        </div>
+                        <div onclick="window.warpToBlackHole('TON 618'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#00ffff; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(0,255,255,0.2)'" onmouseout="this.style.background='transparent'">
+                            💥 TON 618 (Cuásar Ultramasivo — 66,000M M☉)
+                        </div>
+                        <div onclick="window.warpToBlackHole('Stephenson 2-18'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#ff4411; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,68,17,0.2)'" onmouseout="this.style.background='transparent'">
+                            🔴 Stephenson 2-18 (Hipergigante Roja — 2,150 R☉)
+                        </div>
+                        <div onclick="window.warpToBlackHole('Nebulosa del Cangrejo (M1)'); document.getElementById('blackholes-dropdown').style.display='none';" style="padding:8px; color:#00ffcc; cursor:pointer; font-size:11.5px; font-weight:bold;" onmouseover="this.style.background='rgba(0,255,204,0.2)'" onmouseout="this.style.background='transparent'">
+                            🦀 Nebulosa del Cangrejo (M1 — Púlsar SN 1054 30.2 Hz)
+                        </div>
                     </div>
                 </li>
-                <li style="margin-right: 15px;">
-                    <button id="btn-mode-toggle" style="background:rgba(122,158,106,0.15); border:1px solid rgba(122,158,106,0.5); color:#7a9e6a; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:monospace;">
-                        MODO: [ OBS ] OBSERVATORIO
+                <li>
+                    <div id="server-status" title="Estado del Servidor de Datos" style="display:inline-flex; align-items:center; gap:5px; color:#aaa; font-family:monospace; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1);">
+                        <span id="server-ping-dot" style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#888;"></span>
+                        <span id="server-ping-text">SERVER</span>
+                    </div>
+                </li>
+                <li>
+                    <button id="btn-mode-toggle" style="background:rgba(122,158,106,0.15); border:1px solid rgba(122,158,106,0.5); color:#7a9e6a; font-weight:bold; cursor:pointer;">
+                        MODO: OBSERVATORIO
                     </button>
                 </li>
-                <li style="margin-right: 15px;">
-                    <button id="btn-street-view" onclick="Planetarium.togglePanel()" style="background:rgba(76,201,240,0.15); border:1px solid rgba(76,201,240,0.5); color:#4cc9f0; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:'Outfit',sans-serif;">
-                        🌍 STREET VIEW DEL CIELO
+                <li>
+                    <button id="btn-street-view" onclick="Planetarium.togglePanel()" style="background:rgba(76,201,240,0.15); border:1px solid rgba(76,201,240,0.5); color:#4cc9f0; font-weight:bold; cursor:pointer;">
+                        🌍 STREET VIEW
                     </button>
                 </li>
-                <li style="margin-right: 15px;">
-                    <button id="btn-titan-craft" style="background:rgba(255,0,85,0.15); border:1px solid rgba(255,0,85,0.5); color:#ff0055; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow: 0 0 10px rgba(255,0,85,0.2);">
-                        🚀 ACTIVAR NAVE (TITAN-CRAFT)
+                <li>
+                    <button id="btn-cinematic-mode" onclick="window.toggleCinematicDepth()" title="Profundidad 3D Cinemática en Pantalla Directa (Sin Gafas) [Atajo: Tecla C]" style="background:rgba(255,180,0,0.25); border:1px solid #ffb400; color:#fff; font-weight:bold; cursor:pointer; box-shadow: 0 0 14px rgba(255,180,0,0.5); text-shadow: 0 0 6px #ffb400;">
+                        🎬 3D CINEMA: [ ON ]
                     </button>
                 </li>
-                <li style="margin-right: 15px;">
-                    <button id="btn-benchmark" style="background:rgba(255,153,0,0.15); border:1px solid rgba(255,153,0,0.5); color:#ff9900; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow: 0 0 10px rgba(255,153,0,0.2);">
+                <li>
+                    <button id="btn-anaglyph-3d" onclick="window.FX && window.FX.toggle3D()" title="Alternar Modo Gafas 3D Rojo/Cian [Atajo: Tecla 3]" style="background:rgba(255,0,85,0.12); border:1px solid rgba(255,0,85,0.4); color:#eee; cursor:pointer;">
+                        👓 GAFAS 3D
+                    </button>
+                </li>
+                <li>
+                    <button id="btn-titan-craft" style="background:rgba(255,0,85,0.15); border:1px solid rgba(255,0,85,0.5); color:#ff0055; font-weight:bold; cursor:pointer; box-shadow: 0 0 10px rgba(255,0,85,0.2);">
+                        🚀 NAVE (TITAN-CRAFT)
+                    </button>
+                </li>
+                <li>
+                    <button id="btn-benchmark" style="background:rgba(255,153,0,0.15); border:1px solid rgba(255,153,0,0.5); color:#ff9900; font-weight:bold; cursor:pointer; box-shadow: 0 0 10px rgba(255,153,0,0.2);">
                         🔥 TECH DEMO (50K)
                     </button>
                 </li>
-                <li style="margin-right: 15px;">
-                    <button onclick="if(window.TITAN && window.TITAN.Leaderboard) window.TITAN.Leaderboard.showRankingModal()" style="background:rgba(0,255,255,0.15); border:1px solid rgba(0,255,255,0.5); color:#00ffff; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow: 0 0 10px rgba(0,255,255,0.2);">
-                        🏆 RANKING GLOBAL
+                <li>
+                    <button onclick="if(window.TITAN && window.TITAN.Leaderboard) window.TITAN.Leaderboard.showRankingModal()" style="background:rgba(0,255,255,0.15); border:1px solid rgba(0,255,255,0.5); color:#00ffff; font-weight:bold; cursor:pointer; box-shadow: 0 0 10px rgba(0,255,255,0.2);">
+                        🏆 RANKING
                     </button>
+                </li>
+                <li style="position:relative;" class="obs-panel">
+                    <a href="#" id="btn-vanguard-menu" onclick="event.preventDefault(); const d = document.getElementById('vanguard-dropdown'); d.style.display = d.style.display === 'none' ? 'block' : 'none';" style="color:#00ffcc; font-weight:bold; border:1px solid #00ffcc; background:rgba(0,255,204,0.15); box-shadow:0 0 10px rgba(0,255,204,0.3);">
+                        🔬 VANGUARDIA (JWST) ▾
+                    </a>
+                    <div id="vanguard-dropdown" style="display:none; position:absolute; top:100%; right:0; background:rgba(10,15,30,0.98); border:1px solid #00ffcc; border-radius:6px; min-width:300px; padding:6px; z-index:2000; box-shadow:0 12px 35px rgba(0,0,0,0.9);">
+                        <div onclick="window.warpToVanguard('T Coronae'); document.getElementById('vanguard-dropdown').style.display='none';" style="padding:8px; color:#ff5533; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,85,51,0.2)'" onmouseout="this.style.background='transparent'">
+                            💥 1. T Coronae Borealis (Nova Recurrente)
+                        </div>
+                        <div onclick="window.warpToVanguard('Abell 370'); document.getElementById('vanguard-dropdown').style.display='none';" style="padding:8px; color:#4cc9f0; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(76,201,240,0.2)'" onmouseout="this.style.background='transparent'">
+                            🔭 2. Abell 370 (Lente JWST & 44 Estrellas)
+                        </div>
+                        <div onclick="window.warpToVanguard('Púlsar'); document.getElementById('vanguard-dropdown').style.display='none';" style="padding:8px; color:#bbaaff; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(187,170,255,0.2)'" onmouseout="this.style.background='transparent'">
+                            ⚡ 3. Púlsar 716 Hz (Centro Galáctico / Sgr A*)
+                        </div>
+                        <div onclick="window.warpToVanguard('JADES'); document.getElementById('vanguard-dropdown').style.display='none';" style="padding:8px; color:#ff3300; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,51,0,0.2)'" onmouseout="this.style.background='transparent'">
+                            🌌 4. JADES-GS-z14-0 (Amanecer Cósmico z=14.32)
+                        </div>
+                        <div onclick="window.warpToVanguard('Cha 1107'); document.getElementById('vanguard-dropdown').style.display='none';" style="padding:8px; color:#ffaa00; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(255,170,0,0.2)'" onmouseout="this.style.background='transparent'">
+                            🪐 5. Cha 1107-7626 (Planeta Errante Hiperactivo)
+                        </div>
+                        <div onclick="window.warpToVanguard('Ofiuco'); document.getElementById('vanguard-dropdown').style.display='none';" style="padding:8px; color:#dd8855; cursor:pointer; font-size:11.5px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.background='rgba(221,136,85,0.2)'" onmouseout="this.style.background='transparent'">
+                            ☄️ 6. Enjambre Ofiuco (~115 Planetas Errantes)
+                        </div>
+                        <div onclick="window.warpToVanguard('NGC 4380'); document.getElementById('vanguard-dropdown').style.display='none';" style="padding:8px; color:#ffbb55; cursor:pointer; font-size:11.5px; font-weight:bold;" onmouseover="this.style.background='rgba(255,187,85,0.2)'" onmouseout="this.style.background='transparent'">
+                            🌀 7. NGC 4380 (Espiral Virgo / Remolino GPU)
+                        </div>
+                    </div>
                 </li>
                 <li style="position:relative;" class="obs-panel">
                     <a href="#" id="btn-tours-menu" style="color:#ffd700; font-weight:bold; border:1px solid #ffd700; padding:4px 10px; border-radius:4px; background:rgba(255,215,0,0.15);">🚀 TOURS GUIADOS ▾</a>
@@ -429,7 +512,7 @@
             CUERPOS CELESTES
         </div>
         <label style="display:flex; align-items:center; color:white; font-size:12px; margin-bottom:5px;">
-            <input type="checkbox" id="toggle-hipparcos" checked style="margin-right:8px;"> Catálogo Hipparcos
+            <input type="checkbox" id="toggle-hipparcos" checked style="margin-right:8px;"> Catálogo Estelar (Hipparcos + SIMBAD)
         </label>
         <label style="display:flex; align-items:center; color:#ffcc00; font-size:12px; margin-bottom:5px;">
             <input type="checkbox" id="toggle-milkyway" checked style="margin-right:8px;"> Galaxia Volumétrica (1M)
@@ -447,13 +530,13 @@
             <input type="checkbox" id="toggle-zoa" style="margin-right:8px;"> Extrapolar Masa (ZOA)
         </label>
         <label style="display:flex; align-items:center; color:white; font-size:12px; margin-bottom:5px;">
-            <input type="checkbox" id="toggle-blackholes" checked style="margin-right:8px;"> Agujeros Negros
+            <input type="checkbox" id="toggle-blackholes" checked style="margin-right:8px;"> 🕳️ Agujeros Negros & Singularidades
         </label>
         <label style="display:flex; align-items:center; color:white; font-size:12px; margin-bottom:5px;">
-            <input type="checkbox" id="toggle-planets" checked style="margin-right:8px;"> Sistema Solar (Planetas)
+            <input type="checkbox" id="toggle-planets" checked style="margin-right:8px;"> 🪐 Sistema Solar (Planetas)
         </label>
         <label style="display:flex; align-items:center; color:white; font-size:12px; margin-bottom:10px;">
-            <input type="checkbox" id="toggle-meteors" checked style="margin-right:8px;"> Anomalías NEO
+            <input type="checkbox" id="toggle-meteors" checked style="margin-right:8px;"> ☄️ Anomalías NEO (Bólidos / Asteroides)
         </label>
 
         <button id="btn-open-discovery-modal" style="width:100%; margin-bottom:12px; background:linear-gradient(90deg, rgba(255,215,0,0.2), rgba(0,255,204,0.2)); border:1px solid #ffd700; color:#ffd700; font-family:'Outfit',sans-serif; font-size:11px; font-weight:bold; padding:6px; border-radius:4px; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='rgba(255,215,0,0.4)'" onmouseout="this.style.background='linear-gradient(90deg, rgba(255,215,0,0.2), rgba(0,255,204,0.2))'">
