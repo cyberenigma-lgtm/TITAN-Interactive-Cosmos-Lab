@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/assets/titan_logo.svg" width="100%" alt="TITAN Apocalypse Engine Logo" />
+</p>
+
 # 🌌 APOCALYPSE ENGINE / TITAN-LAB
 > **Author & Creator / Autor:** José Manuel (`cyberenigma-lgtm`)
 > **Copyright © 2026 José Manuel. All Rights Reserved / Todos los Derechos Reservados.**
@@ -86,18 +90,15 @@ TITAN permite visualizar fenómenos astronómicos complejos, estudiar estructura
 
 ---
 
-### 🤝 3. Colaboración Abierta & Mejoras Propuestas (¡Construido en 72h!)
+### 🤝 3. Colaboración e Innovación Abierta
 
-> [!WARNING]  
-> **Aviso de Fase Temprana (Early Stage):** Todo este laboratorio, sus físicas y su arquitectura matemática han sido conceptualizados y construidos en **menos de 72 horas**. Aunque el rendimiento es excepcional, el código fuente aún está "muy verde" a nivel de refactorización.
+TITAN es un proyecto vivo de ingeniería astrofísica computacional y computación gráfica de alto rendimiento. Toda colaboración de la comunidad científica y desarrolladores de motores espaciales es bienvenida para seguir expandiendo sus capacidades:
 
-Dado que es un proyecto de prototipado hiper-rápido, hay muchísimo margen de mejora y **toda ayuda de la comunidad open-source es bienvenida**. Aquí hay algunas áreas clave donde puedes contribuir:
-
-#### 🛠️ Áreas de Mejora (Good First Issues)
-1. **Refactorización del Motor (`space_engine.js`):** El motor principal es un monolito gigante debido a la velocidad de desarrollo. Dividir las físicas, la óptica relativista y la lógica de renderizado en submódulos independientes sería increíble.
-2. **Soporte Táctil (Mobile):** Actualmente el *Raycasting* (selección de estrellas) y los controles orbitales están optimizados para ratón/PC.
+#### 🛠️ Áreas de Expansión
+1. **Refactorización Modular:** Integración modular continua con el pipeline C99 / WebAssembly y motores de renderizado avanzado.
+2. **Soporte Táctil & VR:** Optimización del raycasting estelar para pantallas táctiles y cascos de realidad virtual.
 3. **Expansión de Datos Científicos:** Conectar la API de Exoplanetas de la NASA para renderizar sistemas planetarios alienígenas alrededor de las estrellas Gaia.
-4. **Shaders de Atmósfera Atmosférica:** Mejorar el *scattering* de Rayleigh y Mie en las atmósferas planetarias mediante GLSL puro para mayor realismo sin impacto de rendimiento.
+4. **Shaders de Alta Precisión:** Optimización de dispersión atmosférica Rayleigh y Mie en tiempo real.
 
 - 💡 **[Crear Propuesta de Función o Reportar Bug](https://github.com/cyberenigma-lgtm/TITAN-Interactive-Cosmos-Lab/issues/new)**
 
