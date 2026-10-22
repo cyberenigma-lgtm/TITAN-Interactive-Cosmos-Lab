@@ -46,6 +46,10 @@ secrets.json
 logs/
 tmp/
 temp/
+err.txt
+out.txt
+temp_*.txt
+simulacion.json
 
 # === DATOS ASTRONÓMICOS MASIVOS (demasiado grandes para GitHub) ===
 public/data/*.bin
